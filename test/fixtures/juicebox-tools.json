@@ -1,0 +1,1045 @@
+[
+  {
+    "name": "load_map",
+    "title": "Load Map",
+    "description": "Load a Hi-C contact map (.hic file) into Juicebox. With panel \"new\" the map opens in an additional panel beside the current one (side by side); otherwise it replaces the map in the panel named by `panel`, which is required when more than one panel is open.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the .hic file"
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional name for the map"
+        },
+        "normalization": {
+          "type": "string",
+          "description": "Normalization method (e.g., \"VC\", \"VC_SQRT\", \"KR\", \"NONE\")"
+        },
+        "locus": {
+          "type": "string",
+          "description": "Optional genomic locus (e.g., \"1:1000000-2000000 1:1000000-2000000\")"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: \"new\" opens another panel beside the others and loads there (side-by-side comparisons); a position from the left (1, 2, ...) or a map name replaces that panel's map, no \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "close_panel",
+    "title": "Close Panel",
+    "description": "Close one panel (contact-map viewer) of the page; the panels to its right move one position left. The last panel cannot be closed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...) or a map name, no \"all\"; required when more than one panel is open"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_control_map",
+    "title": "Load Control Map",
+    "description": "Load a control map (.hic file) for comparison",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the control .hic file"
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional name for the control map"
+        },
+        "normalization": {
+          "type": "string",
+          "description": "Normalization method (e.g., \"VC\", \"VC_SQRT\", \"KR\", \"NONE\")"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...) or a map name, no \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_session",
+    "title": "Load Session",
+    "description": "Load a Juicebox session from JSON data, attached file, or remote URL. Sessions restore browser configurations, loci, tracks, and visualization state. Supports three input methods: (1) direct JSON paste, (2) file attachment, (3) URL-based loading from remote sources (Dropbox, AWS, etc.).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "sessionData": {
+          "type": "string",
+          "description": "JSON string of session data (use when pasting JSON directly into chat)"
+        },
+        "sessionUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to fetch session JSON from remote source (e.g., Dropbox, AWS S3, GitHub raw file URL)"
+        },
+        "fileContent": {
+          "type": "string",
+          "description": "Content of attached session file (use when user attaches a .json file to the chat)"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "zoom_in",
+    "title": "Zoom In",
+    "description": "Zoom in on the contact map",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "centerX": {
+          "type": "number",
+          "description": "Optional X coordinate for zoom center (pixels)"
+        },
+        "centerY": {
+          "type": "number",
+          "description": "Optional Y coordinate for zoom center (pixels)"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "zoom_out",
+    "title": "Zoom Out",
+    "description": "Zoom out on the contact map",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "centerX": {
+          "type": "number",
+          "description": "Optional X coordinate for zoom center (pixels)"
+        },
+        "centerY": {
+          "type": "number",
+          "description": "Optional Y coordinate for zoom center (pixels)"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_map_foreground_color",
+    "title": "Set Map Foreground Color",
+    "description": "Set the foreground color scale for the contact map",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Hex color code (e.g., \"#ff0000\")"
+        },
+        "threshold": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Optional threshold value for the color scale"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "color"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_map_background_color",
+    "title": "Set Map Background Color",
+    "description": "Set the background color of the contact map",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Hex color code (e.g., \"#ff0000\")"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "color"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_color_scale",
+    "title": "Set Color Scale",
+    "description": "Adjust the color scale (threshold) of the contact map. Use \"increase\" to double the threshold (lighter), \"decrease\" to halve it (darker), or set an exact numeric value.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "increase",
+            "decrease",
+            "set"
+          ],
+          "description": "Action: \"increase\" doubles the threshold, \"decrease\" halves it, \"set\" uses the provided value"
+        },
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Exact threshold value (required when action is \"set\")"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_track",
+    "title": "Load Track",
+    "description": "Load a 1D or 2D track into Juicebox from a URL. Supports bigWig, bigBed, bedGraph, bed, bedpe, interact, annotation, and other standard genomic track formats. The format is auto-detected from the file extension. When the user asks for a \"genes\" track, use the keyword \"genes\" as the url — it loads the NCBI RefSeq Select gene track for the genome of the map in that panel.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL to the track file (e.g., bigWig, bigBed, bed, bedpe), or the keyword \"genes\" for the built-in gene track"
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional display name for the track"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Optional track color as hex code (e.g., \"#ff0000\")"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "select_normalization",
+    "title": "Select Normalization",
+    "description": "Change the normalization method for the currently loaded Hi-C contact map. This changes the normalization in-place without reloading the map. Available normalizations: NONE (raw counts), VC (Coverage), VC_SQRT (Coverage-Sqrt), KR (Balanced / Knight-Ruiz matrix balancing), SCALE, INTER_SCALE, GW_SCALE. The user may refer to normalizations by either their internal name or their visual/spoken name.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "normalization": {
+          "type": "string",
+          "description": "Normalization method. Common values: NONE (raw counts), VC (Coverage), VC_SQRT (Coverage-Sqrt), KR (Balanced / Knight-Ruiz), SCALE, INTER_SCALE, GW_SCALE. The available normalizations depend on the loaded map."
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "normalization"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "remove_track",
+    "title": "Remove Track",
+    "description": "Remove a loaded track from Juicebox by name or index number (use list_tracks to see available tracks).",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Track name or 1-based index number"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_color",
+    "title": "Set Track Color",
+    "description": "Set or reset the color of a loaded track. Omit color to reset to default.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Track name or 1-based index number"
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "description": "Hex color (e.g., \"#ff0000\"). Omit to reset to default."
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_name",
+    "title": "Set Track Name",
+    "description": "Rename a loaded track.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Current track name or 1-based index number"
+        },
+        "name": {
+          "type": "string",
+          "description": "New display name for the track"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track",
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_data_range",
+    "title": "Set Track Data Range",
+    "description": "Set the min/max data range for a 1D track. This disables autoscale.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Track name or 1-based index number"
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track",
+        "min",
+        "max"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_autoscale",
+    "title": "Set Track Autoscale",
+    "description": "Enable or disable autoscale for a 1D track.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Track name or 1-based index number"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable (true) or disable (false) autoscale"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_log_scale",
+    "title": "Set Track Log Scale",
+    "description": "Enable or disable log scale for a 1D track.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "track": {
+          "type": "string",
+          "description": "Track name or 1-based index number"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable (true) or disable (false) log scale"
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "track"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "goto_locus",
+    "title": "Navigate to Locus",
+    "description": "Navigate to a specific genomic locus in the currently loaded map. Supports natural language, gene names, standard format, and structured objects. Examples: \"chr1:1000-2000\", \"BRCA1\", \"chromosome 1 from 1000 to 2000\", or {chr: \"chr1\", start: 1000, end: 2000}. When a single chromosome is specified, it applies to both axes of the Hi-C contact map.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "locus": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "Locus specification as string (natural language, standard format, or gene name). Examples: \"chr1:1000-2000\", \"BRCA1\", \"chromosome 1 from 1000 to 2000\""
+            },
+            {
+              "type": "object",
+              "properties": {
+                "chr": {
+                  "type": "string",
+                  "description": "Chromosome name (e.g., \"chr1\")"
+                },
+                "start": {
+                  "type": "number",
+                  "description": "Start position in base pairs (1-based)"
+                },
+                "end": {
+                  "type": "number",
+                  "description": "End position in base pairs (1-based)"
+                }
+              },
+              "required": [
+                "chr"
+              ],
+              "additionalProperties": false,
+              "description": "Locus specification as structured object"
+            }
+          ],
+          "description": "Locus to navigate to."
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...), a map name, or \"all\"; required when more than one panel is open"
+        }
+      },
+      "required": [
+        "locus"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_tracks",
+    "title": "List Tracks",
+    "description": "List all loaded 1D and 2D tracks in the current Juicebox session, including their names, types, colors, data ranges, and display settings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "panel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "panel: position from the left (1, 2, ...) or a map name, no \"all\"; required when more than one panel is open"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_panels",
+    "title": "List Panels",
+    "description": "List the panels (contact-map viewers) open in the page, left to right: position, whether it is the current one, map name, genome, control map, track count and locus. Tools that take `panel` address a panel by this position, by its map name, or \"all\".",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "create_shareable_url",
+    "title": "Create Shareable URL",
+    "description": "Create a shareable URL for the current Juicebox session",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_server_status",
+    "title": "Get Server Status",
+    "description": "Get diagnostic information about the MCP server, WebSocket connections, and session status. Use this for debugging connection issues.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_juicebox_url",
+    "title": "Get Juicebox URL",
+    "description": "Get the join link that opens Juicebox connected to the room bound to this MCP session. Use this when users ask how to connect, how to open the Juicebox app, or say things like \"Hello juicebox\", \"Hello juicebot\", \"Open juicebox\", \"Show me juicebox\", \"Launch juicebox\", etc. A card with an Open Juicebox button is shown to the user. If you have a browser that shows pages inside this app, beside the conversation, open the join link in it right away: the page connects to this session's room and later tool calls redraw it there. Use only such an in-app browser; a tool that drives the user's own web browser is not one. Do not repeat the room id or a QR code.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://juicebox/join"
+      },
+      "ui/resourceUri": "ui://juicebox/join"
+    }
+  },
+  {
+    "name": "join_room",
+    "title": "Join Room",
+    "description": "Bind this MCP session to an existing room, e.g. one a page started whose join link (…?room=<id>) the user pasted into chat. Later tools drive the pages in that room, and get_juicebox_url returns its join link.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "type": "string",
+          "pattern": "^[0-9A-HJKMNP-TV-Z]{10}$",
+          "description": "Room id: the value of the room parameter in the join link"
+        }
+      },
+      "required": [
+        "room"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "juicebox_help",
+    "title": "Juicebox Help Guide",
+    "description": "Provides a quick-start guide with common phrases and examples for using Juicebox via natural language. Use this ONLY when users explicitly ask about Juicebox, such as \"how to use Juicebox\", \"Juicebox help\", \"how do I use Juicebox\", \"what can I do with Juicebox\", \"get started with Juicebox\", \"Juicebox examples\", \"how does Juicebox work\", or similar questions specifically about the Juicebox tool. Do NOT use this for general \"how to\" questions unrelated to Juicebox.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "list_data_sources",
+    "title": "List Data Sources",
+    "description": "List available Hi-C contact map data sources (4DN, ENCODE) with their metadata columns. Use this when users ask what data sources are available, what maps can be searched, or want to understand the available metadata.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "search_map_catalogs",
+    "title": "Search Map Catalogs",
+    "description": "Search the two curated contact-map catalogs that ship with juicebox-web (ENCODE: ~176 cell-line maps such as GM12878, HCT116, IMR-90, K562; 4DN: ~600 maps) with natural language, e.g. \"human hg38 maps\", \"mouse cell lines\", \"K562\". This is a static list, NOT the ENCODE or 4DN portal: it has no ENCODE tissues and no intact Hi-C. If a query finds nothing here, or the user asks for tissues, intact Hi-C or anything ENCODE-specific, use search_encode_hic instead. Results are limited to 50 by default. For statistical questions like \"what assemblies are covered\" or \"how many maps are there\", use get_data_source_statistics instead.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Data source ID ('4dn', 'encode') or 'all' to search all sources. Default: 'all'"
+        },
+        "query": {
+          "type": "string",
+          "description": "Natural language search query (e.g., \"human hg38\", \"mouse cells\", \"K562\")"
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "Maximum number of results to return (default: 50)"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "search_encode_hic",
+    "title": "Search ENCODE Hi-C",
+    "description": "Search the live ENCODE portal (encodeproject.org) for Hi-C experiments and list, per experiment, its contact-map files and the companion files the viewer can load as tracks (loops, contact domains and chromatin stripes as bedpe; subcompartments as bed; compartments as bigWig). Use this for any ENCODE map the catalogs do not have: tissues (heart, colon, brain ...), intact Hi-C, specific cell lines. Put organ, tissue or cell-line words in `biosample` (organs match the ontology; other words fall back to text search); ask for \"intact Hi-C\" with `assay`; set `classification: \"tissue\"` when the user means tissue rather than a cell line derived from that organ. To load a map pass `maps[].url` to load_map (prefer the \"mapping quality thresholded contact matrix\", one per biosample); pass `tracks[].url` to load_track. For non-Hi-C questions use search_encode.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "biosample": {
+          "type": "string",
+          "description": "Organ, tissue or cell line words, e.g. \"heart\", \"colon\", \"K562\""
+        },
+        "assay": {
+          "type": "string",
+          "enum": [
+            "intact Hi-C",
+            "in situ Hi-C",
+            "Hi-C",
+            "dilution Hi-C"
+          ],
+          "description": "One Hi-C flavour; default: all of intact Hi-C, in situ Hi-C, Hi-C, dilution Hi-C"
+        },
+        "classification": {
+          "type": "string",
+          "enum": [
+            "tissue",
+            "cell line",
+            "primary cell",
+            "in vitro differentiated cells"
+          ],
+          "description": "Biosample classification, e.g. \"tissue\" to exclude cell lines derived from the organ"
+        },
+        "assembly": {
+          "type": "string",
+          "description": "Genome assembly, e.g. \"GRCh38\", \"mm10\""
+        },
+        "query": {
+          "type": "string",
+          "description": "Free text for the portal full-text search (lab, donor, treatment ...)"
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 50,
+          "description": "Maximum experiments to return (default: 10)"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "search_encode",
+    "title": "Search ENCODE",
+    "description": "General search of the live ENCODE portal for anything that is not a Hi-C map: other assays (TF ChIP-seq, Histone ChIP-seq, DNase-seq, ATAC-seq, RNA-seq ...), annotations, biosamples, publications. `query` is the portal full-text search; `filters` are portal facet fields passed through verbatim, e.g. {\"assay_title\": \"TF ChIP-seq\", \"biosample_ontology.organ_slims\": \"heart\", \"target.label\": \"CTCF\"}; a list value means any of them. The result lists the hits with their portal links and the facets you can narrow by. For the files of one experiment use type \"File\" with {\"dataset\": \"/experiments/ENCSRxxxxxx/\"}.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Portal object type: Experiment (default), Annotation, File, Biosample, Publication, ..."
+        },
+        "query": {
+          "type": "string",
+          "description": "Free text"
+        },
+        "filters": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "description": "Facet field → value or list of values, passed to the portal as query parameters"
+        },
+        "limit": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "maximum": 100,
+          "description": "Maximum hits to return (default: 20)"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_data_source_statistics",
+    "title": "Get Data Source Statistics",
+    "description": "Get statistical overview of a data source including total maps, assemblies covered, and breakdowns by metadata fields. Use this when users ask \"what assemblies are available\", \"how many maps are there\", \"what cell types are covered\", etc. This returns unfiltered statistics without search limits.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Data source ID ('4dn' or 'encode')"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_map_details",
+    "title": "Get Map Details",
+    "description": "Get detailed information about a specific Hi-C contact map. Use this when users want more information about a specific map from search results.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Data source ID ('4dn' or 'encode')"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Index from search results (0-based). Required if url is not provided."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Direct URL to the map. Required if index is not provided."
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "save_session",
+    "title": "Save Session",
+    "description": "Save the current Juicebox session. On Cloudflare Workers, returns the session JSON as text (no filesystem available). On local server, saves to a file.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "filePath": {
+          "type": "string",
+          "description": "Optional: Ignored on Cloudflare Workers deployment. On local server, full path to save the session file."
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  }
+]

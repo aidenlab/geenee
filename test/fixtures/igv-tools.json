@@ -1,0 +1,395 @@
+[
+  {
+    "name": "open_viewer",
+    "title": "Open igv-bot",
+    "description": "Get the Join link that opens igv-bot, an igv.js genome browser, connected to a Room. Use this when the user asks to open a genome browser or says things like \"open igv-bot\", \"open IGV\", \"launch igv-bot\" or \"show me the genome browser\". A greeting addressed to igv-bot (\"hello igv-bot\", \"hello IGV bot\", \"hi igv\") is also a request to open it: call this tool straight away instead of only greeting back. It opens on hg38 in whole-genome view with the default gene annotation track, or on the genome and locus you pass. A card is shown to the user with an Open igv-bot button. If, and only if, you have the built-in browser of the Claude desktop app (the browser panel beside the conversation), open the Join link in it right away: the page connects to its Room and later tool calls redraw it there. Never use Claude in Chrome or any other browser tool for this; if the built-in browser is not available, do not try anything else. Do not repeat the link or the Room id in your reply. The result of this tool names the Room id: pass it as room on every later igv-bot tool call in this conversation, so the calls reach this igv-bot whichever MCP session they arrive through.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "Only when igv-bot was already opened in this conversation: the Room id from that reply of open_viewer, to get the same igv-bot back, showing what it last showed. Leave it out the first time: igv-bot then opens in a new Room, on the default view.",
+          "type": "string"
+        },
+        "genome": {
+          "description": "Only when opening a new igv-bot, without room: genome id as on the igv.org genome list, such as \"hg19\", \"mm39\" or \"hs1\", to open on that genome with its default tracks. Leave it out for hg38. For an igv-bot that was already opened, use change_genome instead.",
+          "type": "string"
+        },
+        "locus": {
+          "description": "Only when opening a new igv-bot, without room: where it opens, as coordinates chr:start-end, a chromosome name, or a gene name such as \"MYC\". Leave it out for the genome's default view. For an igv-bot that was already opened, use go_to_locus or go_to_gene instead.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://igv-bot/join"
+      },
+      "ui/resourceUri": "ui://igv-bot/join"
+    }
+  },
+  {
+    "name": "go_to_locus",
+    "title": "Go to a locus",
+    "description": "Move igv-bot to a locus given as coordinates, such as \"chr8:127,735,434-127,742,951\", or to a whole chromosome, such as \"chr8\". Use \"all\" for the whole-genome view. Several loci separated by spaces are shown side by side. For a gene name use go_to_gene. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "locus": {
+          "type": "string",
+          "description": "Coordinates as chr:start-end (1-based, commas allowed), a chromosome name, or \"all\""
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "locus"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "go_to_gene",
+    "title": "Go to a gene",
+    "description": "Move igv-bot to a gene by its name, such as \"MYC\" or \"BRCA1\", looked up in the current genome. An unknown gene is reported as an error and the view does not move. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "gene": {
+          "type": "string",
+          "description": "Gene name or symbol, such as \"MYC\""
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gene"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "zoom_in",
+    "title": "Zoom in",
+    "description": "Zoom igv-bot in by a factor of two, keeping the centre of the view. Call it again to zoom further. The whole-genome view does not zoom: go to a locus or gene first. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "zoom_out",
+    "title": "Zoom out",
+    "description": "Zoom igv-bot out by a factor of two, keeping the centre of the view where possible. Call it again to zoom further. The whole-genome view does not zoom. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "change_genome",
+    "title": "Change genome",
+    "description": "Change igv-bot to another genome assembly, such as \"hg19\", \"mm39\" or \"hs1\" (human T2T). The tracks now loaded are removed and the new genome opens with its own default tracks, at its default view. Only the genomes on the igv.org genome list are available; for one that is not, the reply says so, lists those that are, and igv-bot is left as it was. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "genome": {
+          "type": "string",
+          "description": "Genome id as on the igv.org genome list, such as \"hg38\", \"hg19\", \"mm39\" or \"hs1\""
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "genome"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_tracks",
+    "title": "Load tracks",
+    "description": "Load one or several tracks into igv-bot, each from the URL of its file. The URLs come from a reply of search_catalogues (pass the row's url, and its name as the track's name) or from the user, who may give any URL their browser can fetch. Load every track a request asks for in one call: they are shown in the order given, and the Session summary of the reply says where igv.js put them, as a rule above the genome's own annotation track. A track given no name gets igv.js's default, the name of its file. When a loose request matches many tracks in the Catalogues, pick a sensible default, say in one line what you picked, and load it; ask the user only when the candidates differ in a way they would care about. A track that does not load is reported as an error carrying igv.js's own message, as for a file that does not exist or a host that does not permit cross-origin requests; the other tracks of the call are still loaded, and the Session summary shows which. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "tracks": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "The URL of the track's file, such as the url of a search_catalogues row"
+              },
+              "name": {
+                "description": "The name to show the track under, such as the name of a search_catalogues row. Leave it out for the file's name.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
+          "description": "The tracks to load, in the order they are to be shown, top to bottom"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tracks"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "remove_track",
+    "title": "Remove a track",
+    "description": "Remove one track from igv-bot, addressed by its name or by its position in the tracks of the Session summary, counted from 1 at the top: \"the second track\" is position 2 and \"the bottom one\" is the last. Give name or position, not both. The user also reorders and removes tracks by hand, so take a position from the Session summary of the reply just before, or call read_session_summary first. A name or position that matches no track is reported as an error listing the tracks, and a name that several tracks share as an error giving their positions; either way nothing is removed. The sequence track cannot be removed. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "The name of the track as the Session summary gives it. Case does not matter.",
+          "type": "string"
+        },
+        "position": {
+          "description": "The position of the track in the tracks of the Session summary: 1 is the top track",
+          "type": "number"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_track_height",
+    "title": "Set track height",
+    "description": "Set the height of one, several or all tracks of igv-bot: to a number of pixels, or \"taller\" (half as high again) or \"shorter\" (two thirds as high), so that one undoes the other. A height runs from 1 to 1000 pixels: a number outside that is an error, and taller and shorter stop there. Address the tracks by their names, by their positions in the tracks of the Session summary, counted from 1 at the top, or pass all for every track. Change every track a request means in one call. The user also reorders, resizes and removes tracks by hand, so take positions and heights from the Session summary of the reply just before, or call read_session_summary first. A name or position that matches no track is reported as an error listing the tracks, and a name that several tracks share as an error giving their positions; either way no height is changed. The sequence track keeps its height: all leaves it as it is, and addressing it is an error. The Session summary gives heights in whole pixels. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "height": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "taller",
+                "shorter"
+              ]
+            }
+          ],
+          "description": "The height in pixels, from 1 to 1000, or \"taller\" for 1.5 times the height each track has now, or \"shorter\" for two thirds of it"
+        },
+        "names": {
+          "description": "The names of the tracks as the Session summary gives them. Case does not matter.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "positions": {
+          "description": "The positions of the tracks in the tracks of the Session summary: 1 is the top track",
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "all": {
+          "description": "True for every track, in place of names and positions",
+          "type": "boolean"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "height"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_crosshairs",
+    "title": "Show or hide the crosshairs",
+    "description": "Show or hide igv-bot's crosshairs: a vertical and a horizontal line that follow the pointer across the tracks. The Session summary says whether they are showing, as crosshairs; the user also turns them on and off by hand. The whole-genome view has no crosshairs: showing them there is an error, so go to a locus or gene first, and going to the whole-genome view hides them. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "show": {
+          "type": "boolean",
+          "description": "True to show the crosshairs, false to hide them"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "show"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_centre_line",
+    "title": "Show or hide the centre line",
+    "description": "Show or hide igv-bot's centre line: a vertical line marking the middle of the view, the point that zoom_in and zoom_out keep in place. Where several loci are shown side by side, each has its own. The Session summary says whether it is showing, as centreLine; the user also turns it on and off by hand. The whole-genome view has no centre line: showing it there is an error, so go to a locus or gene first, and going to the whole-genome view hides it. The reply is the resulting Session summary: genome, loci, and tracks in display order.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "show": {
+          "type": "boolean",
+          "description": "True to show the centre line, false to hide it"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "show"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "read_session_summary",
+    "title": "Read the Session summary",
+    "description": "Read what igv-bot is showing now, without changing anything: genome, loci, tracks in display order with name, type, URL and height, and whether the crosshairs and centre line are showing. The user also changes igv-bot by hand (panning, zooming, reordering, resizing or removing tracks) and you are not told when they do. Call this before describing the view or acting on a reference to it, such as \"this region\" or \"the second track\", unless a reply from another igv-bot tool has just given you the Session summary.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_shareable_url",
+    "title": "Get the Shareable URL",
+    "description": "Get a Shareable URL for what igv-bot is showing now: a link that opens the same genome, loci and tracks in igv-webapp, the IGV web application at igv.org, for anyone the user sends it to. Use this when the user asks for a link to share, send or keep. The link carries the whole Session in itself, so it is long, needs no igv-bot and no Room, and does not expire; it shows the view as it is now, so get a new one after the view changes. Give the user the link exactly as it is in the reply, whole and unshortened. It is not the Join link, which opens igv-bot itself: never give one for the other. The user can also copy the same link from igv-bot itself, where it is shown above the genome browser unless the user has hidden the controls. Nothing in igv-bot changes. The reply is the Shareable URL on a line of its own, then the Session summary of the view it opens.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "search_catalogues",
+    "title": "Search the ENCODE and 4DN Catalogues",
+    "description": "Find tracks for a loose request, such as \"CTCF ChIP-seq in K562\", in the ENCODE and 4DN Catalogues: the tables of signal, peak and annotation files those projects publish for a genome. Use this whenever the user asks for data by what it is instead of by URL. Both Catalogues are searched at once, for the genome igv-bot is showing. Matching ignores case and punctuation, so \"H3K27ac\", \"h3k27ac\" and \"H3-K27ac\" find the same rows; there are no synonyms, so use the Catalogues' own terms (a cell line as \"K562\" or \"GM12878\", an assay as \"ChIP-seq\" or \"DNase-seq\"). The reply holds the count of all matching rows, in total and in each Catalogue, and at most 20 of them in full, each with the name and url to load it as a track. When more match than are shown, narrow the search with the filters or with more words. The 4DN rows are the compartments, boundaries and insulation scores of Hi-C experiments: ask for them by outputType. When a loose request matches many tracks, pick a sensible default (for ChIP-seq, a \"fold change over control\" signal of the replicates together, such as bioRep \"1,2\"), say in one line what you picked, and load it; ask the user only when the candidates differ in a way they would care about. Hi-C contact matrices and tables of gene or transcript quantifications are never offered: igv-bot cannot show them.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Free text, such as \"CTCF K562\". Every word must be somewhere in a row, in any column, so use the few words that name the data and leave out words like \"tracks\" or \"data\".",
+          "type": "string"
+        },
+        "biosample": {
+          "description": "Only rows whose biosample (cell line, tissue or cell type) carries these words, such as \"K562\" or \"liver\"",
+          "type": "string"
+        },
+        "assay": {
+          "description": "Only rows whose assay carries these words, such as \"ChIP-seq\", \"DNase-seq\", \"RNA-seq\" or \"Hi-C\"",
+          "type": "string"
+        },
+        "target": {
+          "description": "Only rows whose target (the protein or histone mark of a ChIP-seq experiment) carries these words, such as \"CTCF\" or \"H3K27ac\". 4DN rows have no target.",
+          "type": "string"
+        },
+        "outputType": {
+          "description": "Only rows whose output type carries these words, such as \"fold change over control\", \"signal p-value\" or \"peaks\" in ENCODE, and \"compartments\", \"boundaries\" or \"insulation score\" in 4DN",
+          "type": "string"
+        },
+        "genome": {
+          "description": "Genome id as on the igv.org genome list, such as \"hg38\" or \"mm10\". Leave it out to search for the genome igv-bot is showing, which is nearly always what is wanted.",
+          "type": "string"
+        },
+        "room": {
+          "description": "The Room id igv-bot was opened with, as given in the reply of open_viewer. Pass it on every call: the search is for the genome that igv-bot is showing.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  }
+]
