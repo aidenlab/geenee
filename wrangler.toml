@@ -1,0 +1,38 @@
+# The top level is local development (`npm run dev`) and the build's defaults; it
+# is never deployed. Deployments are the named environments at the bottom.
+name = "geenee"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+# The Cloudflare account that owns the 3dg.io zone (Theaidenlab@gmail.com's
+# Account), which also holds both Upstreams. Named so that a login with access
+# to several accounts does not have to choose.
+account_id = "1eadb18bb8557fd1bd06b1d0310a902e"
+
+[vars]
+# The two Upstreams geenee forwards to (ADR 0001): the /mcp address of each.
+# Local development uses the deployed dev Upstreams too, as geenee holds no
+# Viewer of its own to run beside it.
+IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
+JUICEBOX_UPSTREAM_URL = "https://juicebot-mcp-dev.3dg.io/mcp"
+
+# ── Development deployment: "geenee dev" ─────────────────────────────────────
+# Worker geenee-dev at https://geenee-dev.3dg.io: Hosts use /mcp, and a person
+# sees the Workspace at /. Wrangler creates the DNS record for the custom
+# domain; the zone is on the same account. No *.workers.dev hostname and no
+# preview URLs, so there is one public address. Named environments do not
+# inherit `vars`, so those are repeated. Deployed by scripts/deploy-dev.sh.
+[env.dev]
+name = "geenee-dev"
+routes = [
+  { pattern = "geenee-dev.3dg.io", custom_domain = true },
+]
+workers_dev = false
+preview_urls = false
+
+[env.dev.observability.logs]
+enabled = true
+
+[env.dev.vars]
+IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
+JUICEBOX_UPSTREAM_URL = "https://juicebot-mcp-dev.3dg.io/mcp"

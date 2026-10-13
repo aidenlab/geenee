@@ -1,0 +1,164 @@
+/**
+ * geenee: the Connector at /mcp, forwarding to the two Upstreams (ADR 0001).
+ *
+ * Routes:
+ *   POST /mcp     - MCP protocol (stateless Streamable HTTP, JSON responses)
+ *   GET  /mcp     - 405 (no SSE stream)
+ *   OPTIONS /mcp  - CORS preflight
+ *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace
+ *
+ * The Workspace page itself is a static asset, served beside this.
+ */
+import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
+import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js'
+import { INSTRUCTIONS } from './instructions.ts'
+import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
+import { parseRoomId } from './roomId.ts'
+import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
+import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
+
+export interface GeeneeConfig {
+  /** The igv Upstream's /mcp address. */
+  igvUpstream: string
+  /** The Juicebox Upstream's /mcp address. */
+  juiceboxUpstream: string
+  /** How the Upstreams are reached; the tests pass stand-ins. */
+  fetch: typeof globalThis.fetch
+}
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, mcp-session-id, mcp-protocol-version',
+}
+
+function withCors(response: Response): Response {
+  const patched = new Response(response.body, response)
+  for (const [key, value] of Object.entries(CORS_HEADERS)) patched.headers.set(key, value)
+  return patched
+}
+
+function errorReply(text: string): ToolResult {
+  return { content: [{ type: 'text', text: `Error: ${text}` }], isError: true }
+}
+
+/** The Room a call names, undefined when it names none. An empty string is an argument left out, not a malformed Room id. */
+function roomNamed(room: unknown): { id: string } | { refusal: ToolResult } | undefined {
+  if (room === undefined || room === null || (typeof room === 'string' && room.trim() === '')) return undefined
+  const id = typeof room === 'string' ? parseRoomId(room) : null
+  if (id) return { id }
+  return { refusal: errorReply(`${JSON.stringify(room)} is not a Room id. Pass the Room id from the reply of ${OPEN_GEENEE}.`) }
+}
+
+interface Target {
+  viewer: Viewer
+  upstream: Upstream
+}
+
+/** Calls an Upstream's tool, by the Upstream's own name for it, for a Room. */
+function callInRoom({ viewer, upstream }: Target, upstreamName: string, args: Record<string, unknown>, room: string): Promise<ToolResult> {
+  return viewer.roomGoesIn === 'argument' ? upstream.callTool(upstreamName, { ...args, room }) : upstream.callTool(upstreamName, args, room)
+}
+
+/**
+ * Passes a call of a tool geenee serves to its Upstream, and the reply back.
+ * Undefined when the Upstream has no such tool, or geenee hides it. An Upstream
+ * that cannot be reached throws.
+ */
+async function forward(target: Target, name: string, args: Record<string, unknown>, room: string): Promise<ToolResult | undefined> {
+  const served = serveTools(target.viewer, await target.upstream.listTools())
+  const called = served.tools.find(({ tool }) => tool.name === name)
+  if (!called) return undefined
+  const result = await callInRoom(target, called.upstreamName, args, room)
+  // One log line per forwarded call, so a run can be read back from the Worker's log.
+  console.log(`[mcp] ${name} | ${target.viewer.name} Upstream ${called.upstreamName} | Room ${room}${result.isError ? ' | error' : ''}`)
+  return served.reply(result)
+}
+
+/** A Viewer's Join link for a Room, as its Upstream's own open tool gives it; null when the Upstream does not give one. */
+async function joinLink(target: Target, room: string): Promise<string | null> {
+  try {
+    const { isError, structuredContent } = await callInRoom(target, target.viewer.openTool, {}, room)
+    return !isError && typeof structuredContent?.joinUrl === 'string' ? structuredContent.joinUrl : null
+  } catch (error) {
+    console.warn(`[viewers] the ${target.viewer.name} Upstream could not be reached:`, error)
+    return null
+  }
+}
+
+export function createGeenee({ igvUpstream, juiceboxUpstream, fetch }: GeeneeConfig): (request: Request) => Promise<Response> {
+  const targets: Target[] = [
+    { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
+    { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
+  ]
+
+  /** Workers are stateless, so every request gets a fresh server and transport, as in both Upstreams. */
+  async function handleMcpRequest(request: Request): Promise<Response> {
+    const server = new Server({ name: 'geenee', version: '0.0.0' }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
+    server.setRequestHandler(ListToolsRequestSchema, async () => {
+      // An Upstream that cannot be reached leaves its tools out; the other's are still served.
+      const lists = await Promise.all(
+        targets.map(async ({ viewer, upstream }) => {
+          try {
+            return serveTools(viewer, await upstream.listTools()).tools.map(({ tool }) => tool)
+          } catch (error) {
+            console.warn(`[mcp] tools/list | the ${viewer.name} Upstream could not be reached:`, error)
+            return []
+          }
+        }),
+      )
+      return { tools: [OPEN_GEENEE_TOOL, ...lists.flat()] }
+    })
+    server.setRequestHandler(CallToolRequestSchema, async ({ params: { name, arguments: { room: named, ...args } = {} } }) => {
+      const room = roomNamed(named)
+      if (room && 'refusal' in room) return room.refusal
+      if (name === OPEN_GEENEE) return openGeenee(new URL(request.url).origin, room?.id)
+
+      const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))
+      if (!target) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
+      if (!room) {
+        return errorReply(
+          `${name} was called without room. Call ${OPEN_GEENEE} first if geenee is not open yet, then pass the Room id from its reply as room.`,
+        )
+      }
+      let result: ToolResult | undefined
+      try {
+        result = await forward(target, name, args, room.id)
+      } catch (error) {
+        const { viewer } = target
+        console.warn(`[mcp] ${name} | the ${viewer.name} Upstream could not be reached:`, error)
+        const others = targets.filter((other) => other !== target).map((other) => other.viewer.name)
+        return errorReply(
+          `geenee could not reach the server of the ${viewer.name} viewer, so ${name} was not sent. The ${others.join(' and ')} tools are not affected. Try again in a moment.`,
+        )
+      }
+      if (!result) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
+      return result
+    })
+    const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
+    await server.connect(transport)
+    return transport.handleRequest(request)
+  }
+
+  return async (request) => {
+    const url = new URL(request.url)
+    if (url.pathname === '/mcp') {
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS })
+      if (request.method !== 'POST') {
+        return new Response('Method not allowed. Use Streamable HTTP (POST).', {
+          status: 405,
+          headers: { ...CORS_HEADERS, Allow: 'POST, OPTIONS' },
+        })
+      }
+      return withCors(await handleMcpRequest(request))
+    }
+    if (url.pathname === '/viewers' && request.method === 'GET') {
+      const room = parseRoomId(url.searchParams.get('room') ?? '')
+      if (!room) return new Response('Missing or malformed room', { status: 400 })
+      const links = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await joinLink(target, room)]))
+      return Response.json(Object.fromEntries(links))
+    }
+    return new Response('Not Found', { status: 404 })
+  }
+}

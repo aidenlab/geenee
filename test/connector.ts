@@ -1,0 +1,54 @@
+/**
+ * The Host's side of the Connector: JSON-RPC over POST /mcp on a geenee whose
+ * Upstreams are stand-ins.
+ */
+import { createGeenee } from '../src/geenee.ts'
+import { IGV_UPSTREAM, JUICEBOX_UPSTREAM, standInUpstreams } from './upstreams.ts'
+
+export const GEENEE = 'https://geenee.test'
+
+export interface Tool {
+  name: string
+  description: string
+  inputSchema: { properties: Record<string, { description?: string }>; required?: string[] }
+  _meta?: Record<string, unknown>
+}
+
+export interface ToolResult {
+  content: Array<{ type: string; text?: string; uri?: string; name?: string; mimeType?: string }>
+  structuredContent?: Record<string, unknown>
+  isError?: boolean
+}
+
+export function geenee() {
+  const upstreams = standInUpstreams()
+  const handle = createGeenee({ igvUpstream: IGV_UPSTREAM, juiceboxUpstream: JUICEBOX_UPSTREAM, fetch: upstreams.fetch })
+
+  let rpcId = 0
+  async function rpc<Result>(method: string, params: object = {}) {
+    const response = await handle(
+      new Request(`${GEENEE}/mcp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: ++rpcId, method, params }),
+      }),
+    )
+    return (await response.json()) as { result?: Result; error?: { code: number; message: string } }
+  }
+
+  return {
+    ...upstreams,
+    handle,
+    rpc,
+    async initialize() {
+      const params = { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '0' } }
+      return (await rpc<{ instructions?: string; serverInfo: { name: string } }>('initialize', params)).result!
+    },
+    async listTools() {
+      return (await rpc<{ tools: Tool[] }>('tools/list')).result!.tools
+    },
+    async callTool(name: string, args: object = {}) {
+      return (await rpc<ToolResult>('tools/call', { name, arguments: args })).result!
+    },
+  }
+}

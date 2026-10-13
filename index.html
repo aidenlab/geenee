@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>geenee</title>
+  </head>
+  <body>
+    <nav class="tabs" role="tablist" aria-label="Viewer">
+      <button class="tab" role="tab" id="tab-igv" aria-controls="viewer-igv" data-viewer="igv">IGV</button>
+      <button class="tab" role="tab" id="tab-juicebox" aria-controls="viewer-juicebox" data-viewer="juicebox">Juicebox</button>
+    </nav>
+    <main class="viewers">
+      <section class="viewer" role="tabpanel" id="viewer-igv" aria-labelledby="tab-igv" data-viewer="igv"></section>
+      <section class="viewer" role="tabpanel" id="viewer-juicebox" aria-labelledby="tab-juicebox" data-viewer="juicebox"></section>
+    </main>
+    <script type="module" src="/src/workspace/main.ts"></script>
+  </body>
+</html>
