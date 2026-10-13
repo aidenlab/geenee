@@ -20,13 +20,38 @@ export interface Viewer {
    * whose id is the session id, so geenee sends the Room id as the session.
    */
   roomGoesIn: 'argument' | 'session'
+  /**
+   * How geenee learns whether this Viewer is connected in a Room: an Upstream
+   * tool that changes nothing in the Viewer, and what its reply says. Neither
+   * Upstream has more of a contract for this than the wording of that reply.
+   */
+  connection: { tool: string; connected(reply: ToolResult): boolean }
 }
 
 /** geenee's own tool: it opens the Workspace, and so both Viewers. */
 export const OPEN_GEENEE = 'open_geenee'
 
-export const IGV: Viewer = { name: 'igv', prefix: 'igv', openTool: 'open_viewer', hidden: ['open_viewer'], roomGoesIn: 'argument' }
-export const JUICEBOX: Viewer = { name: 'Juicebox', prefix: 'juicebox', openTool: 'get_juicebox_url', hidden: ['get_juicebox_url', 'join_room'], roomGoesIn: 'session' }
+export const IGV: Viewer = {
+  name: 'igv',
+  prefix: 'igv',
+  openTool: 'open_viewer',
+  hidden: ['open_viewer'],
+  roomGoesIn: 'argument',
+  // The igv Upstream asks the Viewer for its summary, and answers with an error when no Viewer is in the Room.
+  connection: { tool: 'read_session_summary', connected: (reply) => !reply.isError },
+}
+export const JUICEBOX: Viewer = {
+  name: 'Juicebox',
+  prefix: 'juicebox',
+  openTool: 'get_juicebox_url',
+  hidden: ['get_juicebox_url', 'join_room'],
+  roomGoesIn: 'session',
+  // The Juicebox Upstream answers from its own count of the Viewers in the Room.
+  connection: {
+    tool: 'get_server_status',
+    connected: (reply) => reply.content.some((block) => block.text?.includes('Browser Connected: Yes')),
+  },
+}
 
 /** A tool as geenee serves it, and the name its Upstream knows it by. */
 export interface ServedTool {
