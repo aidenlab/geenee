@@ -1,9 +1,10 @@
 /**
  * The Host's side of the Connector: JSON-RPC over POST /mcp on a geenee whose
- * Upstreams are stand-ins.
+ * Upstreams and Rooms are stand-ins.
  */
 import { createGeenee } from '../src/geenee.ts'
 import { IGV_UPSTREAM, JUICEBOX_UPSTREAM, standInUpstreams } from './upstreams.ts'
+import { standInRooms } from './workspaces.ts'
 
 export const GEENEE = 'https://geenee.test'
 
@@ -22,7 +23,13 @@ export interface ToolResult {
 
 export function geenee() {
   const upstreams = standInUpstreams()
-  const handle = createGeenee({ igvUpstream: IGV_UPSTREAM, juiceboxUpstream: JUICEBOX_UPSTREAM, fetch: upstreams.fetch })
+  const rooms = standInRooms()
+  const handle = createGeenee({
+    igvUpstream: IGV_UPSTREAM,
+    juiceboxUpstream: JUICEBOX_UPSTREAM,
+    fetch: upstreams.fetch,
+    channelTo: (room) => rooms.channelTo(room),
+  })
 
   let rpcId = 0
   async function rpc<Result>(method: string, params: object = {}) {
@@ -38,6 +45,8 @@ export function geenee() {
 
   return {
     ...upstreams,
+    rooms,
+    openWorkspace: (room: string) => rooms.openWorkspace(room),
     handle,
     rpc,
     async initialize() {

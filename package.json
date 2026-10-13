@@ -9,8 +9,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "typecheck": "npm run types && tsc",
-    "types": "wrangler types --include-runtime=false --strict-vars false",
+    "typecheck": "npm run types && tsc && tsc -p src/workspace",
+    "types": "wrangler types --strict-vars false",
     "deploy:dev": "CLOUDFLARE_ENV=dev vite build && wrangler deploy"
   },
   "devDependencies": {

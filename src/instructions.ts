@@ -14,4 +14,4 @@ Tools whose names start with juicebox_ drive the Juicebox contact map viewer: Hi
 
 When a request names a viewer, or something only one of them shows, use that viewer's tools. When a request fits both ("zoom in", "go to MYC", "load the CTCF track", "remove the second track", "give me a link"), use the viewer this conversation last used, and ask which one is meant only when neither has been used. Send a request to both viewers only when the user asks for both.
 
-A tool changes its own viewer only. The page shows one viewer at a time, and the user picks which with the IGV and Juicebox tabs.`
+A tool changes its own viewer only. The page shows one viewer at a time: the one a tool was last called for, until the user picks the other with the IGV and Juicebox tabs.`

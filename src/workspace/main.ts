@@ -1,12 +1,17 @@
 /**
  * The Workspace: the one geenee page a person opens beside the conversation
  * (ADR 0002). It frames the igv Viewer and the Juicebox Viewer, loads both when
- * it opens, and shows one at a time, picked with a tab.
+ * it opens, and shows one at a time: the one a tool was last called for, until
+ * a person picks the other with a tab. Each tab carries a mark showing whether
+ * its Viewer is connected.
  */
+import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
 
-const VIEWERS = { igv: 'igv', juicebox: 'Juicebox' } as const
-type ViewerKey = keyof typeof VIEWERS
+const VIEWERS: Record<ViewerKey, string> = { igv: 'igv', juicebox: 'Juicebox' }
+
+/** How often the Workspace asks whether each Viewer is connected. */
+const CONNECTIONS_EVERY_MS = 4000
 
 /** What GET /viewers answers: each Viewer's Join link for the Room, null when its Upstream gave none. */
 type JoinLinks = Record<ViewerKey, string | null>
@@ -38,13 +43,73 @@ function frame(viewer: ViewerKey, joinLink: string): void {
   panel(viewer).replaceChildren(iframe)
 }
 
+function mark(viewer: ViewerKey, connected: boolean): void {
+  const element = document.querySelector<HTMLElement>(`.tab[data-viewer="${viewer}"] .mark`)!
+  element.classList.toggle('connected', connected)
+  element.title = element.ariaLabel = connected ? 'connected' : 'not connected'
+}
+
+/**
+ * Keeps the mark on each tab to what geenee says of its Viewer (GET
+ * /connections), asking again a while after each answer. When geenee cannot be
+ * asked, neither Viewer is known to be connected.
+ */
+async function watchConnections(room: string): Promise<void> {
+  let connections: Partial<Record<ViewerKey, boolean>> = {}
+  try {
+    // A Workspace nobody is looking at keeps its marks as they were.
+    if (document.hidden) return
+    const response = await fetch(`/connections?room=${encodeURIComponent(room)}`)
+    if (!response.ok) throw new Error(`/connections answered ${response.status}`)
+    connections = await response.json()
+  } catch (error) {
+    console.warn('[workspace] could not learn which Viewers are connected:', error)
+  } finally {
+    if (!document.hidden) for (const viewer of Object.keys(VIEWERS) as ViewerKey[]) mark(viewer, connections[viewer] === true)
+    setTimeout(() => void watchConnections(room), CONNECTIONS_EVERY_MS)
+  }
+}
+
+/**
+ * Joins the Room's channel from geenee and brings forward the Viewer each
+ * report names. When the socket drops it joins again, waiting 1 s, 2 s, … up
+ * to 5 s between attempts. A Room repeats its last report to a Workspace that
+ * joins, so one already acted on is left alone: the tab a person has clicked
+ * since stays picked until the next tool call.
+ */
+function followConversation(room: string): void {
+  let actedOn = 0
+  let failedAttempts = 0
+  function join(): void {
+    const address = new URL(`/ws?room=${encodeURIComponent(room)}`, location.href)
+    address.protocol = address.protocol === 'https:' ? 'wss:' : 'ws:'
+    const socket = new WebSocket(address)
+    socket.onopen = () => (failedAttempts = 0)
+    socket.onmessage = (event) => {
+      let message: ViewerUsed
+      try {
+        message = JSON.parse(String(event.data))
+      } catch {
+        return // not ours; ignored
+      }
+      if (message?.type !== 'viewerUsed' || !(message.viewer in VIEWERS) || message.count === actedOn) return
+      actedOn = message.count
+      show(message.viewer)
+    }
+    socket.onclose = () => setTimeout(join, Math.min(++failedAttempts, 5) * 1000)
+  }
+  join()
+}
+
 async function open(): Promise<void> {
   const viewers = Object.keys(VIEWERS) as ViewerKey[]
+  for (const viewer of viewers) mark(viewer, false)
   const room = new URLSearchParams(location.search).get('room')
   if (!room) {
     for (const viewer of viewers) say(viewer, 'geenee is opened from a conversation: ask for "open geenee" there.')
     return
   }
+  followConversation(room)
   let links: JoinLinks
   try {
     const response = await fetch(`/viewers?room=${encodeURIComponent(room)}`)
@@ -60,6 +125,7 @@ async function open(): Promise<void> {
     if (joinLink) frame(viewer, joinLink)
     else say(viewer, `The ${VIEWERS[viewer]} viewer could not be reached. Reload this page to try again.`)
   }
+  void watchConnections(room)
 }
 
 for (const tab of document.querySelectorAll<HTMLElement>('.tab')) {

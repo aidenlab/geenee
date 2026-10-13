@@ -6,6 +6,8 @@
  *   GET  /mcp     - 405 (no SSE stream)
  *   OPTIONS /mcp  - CORS preflight
  *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace
+ *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
+ *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
  *
  * The Workspace page itself is a static asset, served beside this.
  */
@@ -17,6 +19,15 @@ import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
+import type { ViewerKey } from './workspaceChannel.ts'
+
+/** geenee's channel to the Workspaces of one Room. */
+export interface WorkspaceChannel {
+  /** Tells the Room's Workspaces that a tool call was for `viewer`. */
+  viewerUsed(viewer: ViewerKey): Promise<void>
+  /** Takes the WebSocket upgrade of a Workspace joining the Room. */
+  connect(request: Request): Promise<Response>
+}
 
 export interface GeeneeConfig {
   /** The igv Upstream's /mcp address. */
@@ -25,6 +36,8 @@ export interface GeeneeConfig {
   juiceboxUpstream: string
   /** How the Upstreams are reached; the tests pass stand-ins. */
   fetch: typeof globalThis.fetch
+  /** The channel to the Workspaces of a Room, by Room id; the tests pass stand-ins. */
+  channelTo: (room: string) => WorkspaceChannel
 }
 
 const CORS_HEADERS = {
@@ -62,15 +75,26 @@ function callInRoom({ viewer, upstream }: Target, upstreamName: string, args: Re
 }
 
 /**
- * Passes a call of a tool geenee serves to its Upstream, and the reply back.
+ * Passes a call of a tool geenee serves to its Upstream, and the reply back,
+ * telling the Room's Workspaces meanwhile which Viewer the call is for.
  * Undefined when the Upstream has no such tool, or geenee hides it. An Upstream
  * that cannot be reached throws.
  */
-async function forward(target: Target, name: string, args: Record<string, unknown>, room: string): Promise<ToolResult | undefined> {
+async function forward(
+  target: Target,
+  name: string,
+  args: Record<string, unknown>,
+  room: string,
+  workspaces: WorkspaceChannel,
+): Promise<ToolResult | undefined> {
   const served = serveTools(target.viewer, await target.upstream.listTools())
   const called = served.tools.find(({ tool }) => tool.name === name)
   if (!called) return undefined
-  const result = await callInRoom(target, called.upstreamName, args, room)
+  // Alongside the call, so that the Viewer is in front while it redraws. A Workspace that is not told still has its tabs.
+  const told = workspaces.viewerUsed(target.viewer.prefix).catch((error) => {
+    console.warn(`[mcp] ${name} | the Workspaces of Room ${room} could not be told:`, error)
+  })
+  const [result] = await Promise.all([callInRoom(target, called.upstreamName, args, room), told])
   // One log line per forwarded call, so a run can be read back from the Worker's log.
   console.log(`[mcp] ${name} | ${target.viewer.name} Upstream ${called.upstreamName} | Room ${room}${result.isError ? ' | error' : ''}`)
   return served.reply(result)
@@ -87,7 +111,18 @@ async function joinLink(target: Target, room: string): Promise<string | null> {
   }
 }
 
-export function createGeenee({ igvUpstream, juiceboxUpstream, fetch }: GeeneeConfig): (request: Request) => Promise<Response> {
+/** Whether a Viewer is connected in a Room, as its Upstream says; a Viewer whose Upstream cannot be reached is not. */
+async function isConnected(target: Target, room: string): Promise<boolean> {
+  const { tool, connected } = target.viewer.connection
+  try {
+    return connected(await callInRoom(target, tool, {}, room))
+  } catch (error) {
+    console.warn(`[connections] the ${target.viewer.name} Upstream could not be reached:`, error)
+    return false
+  }
+}
+
+export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
     { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
@@ -124,7 +159,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch }: GeeneeCon
       }
       let result: ToolResult | undefined
       try {
-        result = await forward(target, name, args, room.id)
+        result = await forward(target, name, args, room.id, channelTo(room.id))
       } catch (error) {
         const { viewer } = target
         console.warn(`[mcp] ${name} | the ${viewer.name} Upstream could not be reached:`, error)
@@ -158,6 +193,17 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch }: GeeneeCon
       if (!room) return new Response('Missing or malformed room', { status: 400 })
       const links = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await joinLink(target, room)]))
       return Response.json(Object.fromEntries(links))
+    }
+    if (url.pathname === '/connections' && request.method === 'GET') {
+      const room = parseRoomId(url.searchParams.get('room') ?? '')
+      if (!room) return new Response('Missing or malformed room', { status: 400 })
+      const connected = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await isConnected(target, room)]))
+      return Response.json(Object.fromEntries(connected))
+    }
+    if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
+      const room = parseRoomId(url.searchParams.get('room') ?? '')
+      if (!room) return new Response('Missing or malformed room', { status: 400 })
+      return channelTo(room).connect(request)
     }
     return new Response('Not Found', { status: 404 })
   }

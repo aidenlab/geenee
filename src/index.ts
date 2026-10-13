@@ -1,11 +1,14 @@
 /**
  * Cloudflare Worker entry point for geenee: the Connector at /mcp and what the
- * Workspace asks of it (see geenee.ts). The Workspace page is a static asset of
- * this Worker, built from index.html.
+ * Workspace asks of it (see geenee.ts), with one Durable Object per Room for
+ * the channel to its Workspaces (room.ts). The Workspace page is a static asset
+ * of this Worker, built from index.html.
  */
 import { createGeenee } from './geenee.ts'
 
-// One geenee for the life of the isolate: the Upstreams' addresses do not change between requests.
+export { Room } from './room.ts'
+
+// One geenee for the life of the isolate: the Upstreams' addresses and the Rooms' namespace do not change between requests.
 let geenee: ((request: Request) => Promise<Response>) | undefined
 
 export default {
@@ -15,6 +18,10 @@ export default {
       juiceboxUpstream: env.JUICEBOX_UPSTREAM_URL,
       // Each Upstream is a Worker on a custom domain, which a Worker of the same zone may fetch.
       fetch: (input, init) => fetch(input, init),
+      channelTo: (room) => {
+        const stub = env.ROOM.get(env.ROOM.idFromName(room))
+        return { viewerUsed: (viewer) => stub.viewerUsed(viewer), connect: (upgrade) => stub.fetch(upgrade) }
+      },
     })
     return geenee(request)
   },
