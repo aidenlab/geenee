@@ -46,7 +46,8 @@ export const IGV: Viewer = {
   roomGoesIn: 'argument',
   // The igv Upstream asks the Viewer for its summary, and answers with an error when no Viewer is in the Room.
   connection: { tool: 'read_session_summary', connected: (reply) => !reply.isError },
-  // Its commands' error for a named Room, as geenee always names one.
+  // Its commands' error for a named Room, as geenee always names one. Its search's "no Viewer has reported" is left alone:
+  // that reply is about the genome not being known, which passing genome puts right, and it sends the model to no page.
   notConnected: [/no Viewer is in Room \w+\.[^\n]*/g],
 }
 export const JUICEBOX: Viewer = {
