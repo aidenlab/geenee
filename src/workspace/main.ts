@@ -128,8 +128,24 @@ async function open(): Promise<void> {
   void watchConnections(room)
 }
 
+/**
+ * Shows a deployed build's number and its Connector's address at the right end
+ * of the tab bar, so a person testing it can tell which build is live and what
+ * to add as a connector. The Worker serves both, so the Connector is this
+ * page's /mcp. `npm run dev` has no build number, and shows none.
+ */
+function showBuild(): void {
+  const build = import.meta.env.VITE_BUILD
+  if (!build) return
+  const label = document.createElement('p')
+  label.className = 'build'
+  label.textContent = `Build ${build} · ${new URL('/mcp', location.href)}`
+  document.body.append(label)
+}
+
 for (const tab of document.querySelectorAll<HTMLElement>('.tab')) {
   tab.addEventListener('click', () => show(tab.dataset.viewer as ViewerKey))
 }
 show('igv')
+showBuild()
 void open()
