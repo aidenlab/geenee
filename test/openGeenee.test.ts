@@ -14,15 +14,6 @@ describe('open_geenee', () => {
     expect(tools).toHaveLength(44)
   })
 
-  it('says in its description that opening the link is the only thing the model does in the Pane', async () => {
-    const [openGeenee] = await geenee().listTools()
-
-    expect(openGeenee.description).toContain('open the geenee link there: that is the only thing you do in that page')
-    expect(openGeenee.description).toContain('Never click, type, scroll, take screenshots, read the page or pick a tab in it')
-    expect(openGeenee.description).toContain("everything else goes through geenee's tools")
-    expect(openGeenee.description).not.toMatch(/if you have a browser|in-app browser/i)
-  })
-
   it('gives the model one new Room id and the link that opens the Workspace in that Room', async () => {
     const { callTool } = geenee()
 
@@ -37,24 +28,6 @@ describe('open_geenee', () => {
     expect(result.content[0].text).toContain(`\n${link}\n`) // on a line of its own, so Hosts render it clickable
     expect(result.content[0].text).toContain(`Room id: ${room}. Pass it as room on every later geenee tool call`)
     expect(result.content[1]).toMatchObject({ type: 'resource_link', uri: link, name: 'Open geenee', mimeType: 'text/html' })
-  })
-
-  it('states the Pane rule in its result, rather than a sequence of browser steps', async () => {
-    const [text] = (await geenee().callTool('open_geenee')).content
-
-    expect(text.text).toContain('open the geenee link there: that is the only thing you do in that page')
-    expect(text.text).toContain('Never click, type, scroll, take screenshots, read the page or pick a tab in it')
-    expect(text.text).toContain("everything else goes through geenee's tools")
-    expect(text.text).not.toContain('Next step')
-    expect(text.text).not.toMatch(/if you have a browser|in-app browser/i)
-  })
-
-  it('says to go straight on with geenee tools when the user already asked for something, and only otherwise to ask what to look at', async () => {
-    const [text] = (await geenee().callTool('open_geenee')).content
-
-    expect(text.text).toContain('If the user already asked for something, go straight on to it with geenee tools')
-    expect(text.text).toContain('Otherwise reply in one short sentence')
-    expect(text.text).toContain('and ask what to look at')
   })
 
   it('opens a Room of its own each time it is called without a room', async () => {

@@ -3,7 +3,6 @@
  * Viewers (ADR 0002), and gives the model the one Room id every other tool
  * takes back. It stands in for each Upstream's own open tool, which geenee hides.
  */
-import { PANE_RULE } from './instructions.ts'
 import { mintRoomId } from './roomId.ts'
 import { OPEN_GEENEE } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
@@ -11,7 +10,8 @@ import type { Tool, ToolResult } from './upstream.ts'
 export const OPEN_GEENEE_TOOL: Tool = {
   name: OPEN_GEENEE,
   title: 'Open geenee',
-  description: `Get the geenee link, which opens one page beside the conversation holding the igv genome browser and the Juicebox contact-map viewer. Use this before any other geenee tool, and when the user asks to open geenee, IGV, a genome browser, Juicebox or a contact map, or greets any of them ("hello geenee", "hi igv", "hello juicebox"): call this tool straight away instead of only greeting back. One call opens both viewers; there is no separate tool to open either. Both connect once the link is open, and later tool calls redraw them. ${PANE_RULE} Do not repeat the link or the Room id in your reply. The result of this tool names the Room id: pass it as room on every later geenee tool call in this conversation.`,
+  description:
+    'Get the link that opens geenee: one page beside the conversation holding the igv genome browser and the Juicebox contact-map viewer. Use this before any other geenee tool, and when the user asks to open geenee, IGV, a genome browser, Juicebox or a contact map, or greets any of them ("hello geenee", "hi igv", "hello juicebox"): call this tool straight away instead of only greeting back. One call opens both viewers; there is no separate tool to open either. If you have a browser that shows pages inside this app, beside the conversation, open the link in it right away: both viewers connect there and later tool calls redraw them. Use only such an in-app browser; a tool that drives the user\'s own web browser is not one, and if there is no in-app browser do not try anything else. Do not repeat the link or the Room id in your reply. The result of this tool names the Room id: pass it as room on every later geenee tool call in this conversation.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -41,7 +41,7 @@ export function openGeenee(origin: string, room: string = mintRoomId()): ToolRes
     content: [
       {
         type: 'text',
-        text: `geenee link:\n${link}\n\nRoom id: ${room}. Pass it as room on every later geenee tool call in this conversation, for igv and Juicebox tools alike.\n\nBoth viewers connect once this link is open, and later tool calls redraw them. ${PANE_RULE}\n\nIf the user already asked for something, go straight on to it with geenee tools. Otherwise reply in one short sentence (geenee is opening beside the conversation, or: here is the link to open geenee) and ask what to look at. Do not repeat the Room id in your reply.`,
+        text: `geenee link:\n${link}\n\nRoom id: ${room}. Pass it as room on every later geenee tool call in this conversation, for igv and Juicebox tools alike.\n\nNext step: if you have a browser that shows pages inside this app, beside the conversation, open this link in it now so geenee shows there. Never use a tool that drives the user's own web browser, and if there is no in-app browser do not attempt to open the link at all. Then reply in one short sentence (geenee is opening beside the conversation, or: here is the link to open geenee) and ask what to look at. Do not repeat the Room id in your reply.`,
       },
       { type: 'resource_link', uri: link, name: 'Open geenee', description: 'The link that opens geenee', mimeType: 'text/html' },
     ],
