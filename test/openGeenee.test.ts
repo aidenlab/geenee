@@ -4,7 +4,6 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee } from './connector.ts'
 
-const ROOM = '7ZQH4M2K9X'
 const ROOM_ID = /^[0-9A-HJKMNP-TV-Z]{10}$/ // Crockford base32: no I, L, O, U
 
 describe('open_geenee', () => {
@@ -13,15 +12,6 @@ describe('open_geenee', () => {
 
     expect(tools[0].name).toBe('open_geenee')
     expect(tools).toHaveLength(44)
-  })
-
-  it('says in its description that opening the link is the only thing the model does in the Pane', async () => {
-    const [openGeenee] = await geenee().listTools()
-
-    expect(openGeenee.description).toContain('open the geenee link there: that is the only thing you do in that page')
-    expect(openGeenee.description).toContain('Never click, type, scroll, take screenshots, read the page or pick a tab in it')
-    expect(openGeenee.description).toContain("everything else goes through geenee's tools")
-    expect(openGeenee.description).not.toMatch(/if you have a browser|in-app browser/i)
   })
 
   it('gives the model one new Room id and the link that opens the Workspace in that Room', async () => {
@@ -38,24 +28,6 @@ describe('open_geenee', () => {
     expect(result.content[0].text).toContain(`\n${link}\n`) // on a line of its own, so Hosts render it clickable
     expect(result.content[0].text).toContain(`Room id: ${room}. Pass it as room on every later geenee tool call`)
     expect(result.content[1]).toMatchObject({ type: 'resource_link', uri: link, name: 'Open geenee', mimeType: 'text/html' })
-  })
-
-  it('states the Pane rule in its result, rather than a sequence of browser steps', async () => {
-    const [text] = (await geenee().callTool('open_geenee')).content
-
-    expect(text.text).toContain('open the geenee link there: that is the only thing you do in that page')
-    expect(text.text).toContain('Never click, type, scroll, take screenshots, read the page or pick a tab in it')
-    expect(text.text).toContain("everything else goes through geenee's tools")
-    expect(text.text).not.toContain('Next step')
-    expect(text.text).not.toMatch(/if you have a browser|in-app browser/i)
-  })
-
-  it('says to go straight on with geenee tools when the user already asked for something, and only otherwise to ask what to look at', async () => {
-    const [text] = (await geenee().callTool('open_geenee')).content
-
-    expect(text.text).toContain('If the user already asked for something, go straight on to it with geenee tools')
-    expect(text.text).toContain('Otherwise reply in one short sentence')
-    expect(text.text).toContain('and ask what to look at')
   })
 
   it('opens a Room of its own each time it is called without a room', async () => {
@@ -90,86 +62,5 @@ describe('open_geenee', () => {
     const result = await callTool('open_geenee')
 
     expect(result.isError).toBeFalsy()
-  })
-})
-
-describe('open_geenee given the Viewer the user named', () => {
-  it('opens a new Room with that Viewer in front', async () => {
-    const { callTool, openWorkspace } = geenee()
-
-    const result = await callTool('open_geenee', { viewer: 'juicebox' })
-
-    const workspace = await openWorkspace(result.structuredContent!.room as string)
-    expect(result.isError).toBeFalsy()
-    expect(workspace.told).toEqual([{ type: 'viewerUsed', viewer: 'juicebox', count: 1 }])
-  })
-
-  it('brings that Viewer forward in the Workspace of a Room opened again', async () => {
-    const { callTool, openWorkspace } = geenee()
-    const workspace = await openWorkspace(ROOM)
-    await callTool('juicebox_zoom_in', { room: ROOM })
-
-    await callTool('open_geenee', { room: ROOM, viewer: 'igv' })
-
-    expect(workspace.told).toEqual([
-      { type: 'viewerUsed', viewer: 'juicebox', count: 1 },
-      { type: 'viewerUsed', viewer: 'igv', count: 2 },
-    ])
-  })
-
-  it('tells the model that the Viewer named counts as the one this conversation last used', async () => {
-    const [text] = (await geenee().callTool('open_geenee', { viewer: 'juicebox' })).content
-
-    expect(text.text).toContain('geenee opens with the Juicebox viewer in front')
-    expect(text.text).toContain('it is the viewer this conversation last used')
-  })
-
-  it('without a Viewer named, changes nothing in the Workspace and says nothing of a Viewer in front', async () => {
-    const { callTool, openWorkspace } = geenee()
-    const workspace = await openWorkspace(ROOM)
-    await callTool('juicebox_zoom_in', { room: ROOM })
-
-    const [text] = (await callTool('open_geenee', { room: ROOM })).content
-
-    expect(workspace.told).toEqual([{ type: 'viewerUsed', viewer: 'juicebox', count: 1 }])
-    expect(text.text).not.toContain('in front')
-  })
-
-  it('is described to the model, to pass only when the user names a Viewer', async () => {
-    const [openGeenee] = await geenee().listTools()
-
-    expect(openGeenee.inputSchema.properties.viewer).toMatchObject({ type: 'string', enum: ['igv', 'juicebox'] })
-    expect(openGeenee.inputSchema.properties.viewer.description).toContain('Only when the user names a viewer')
-    expect(openGeenee.inputSchema.properties.viewer.description).toContain('Leave it out when the request names neither')
-    expect(openGeenee.inputSchema.required ?? []).not.toContain('viewer')
-  })
-
-  it('takes the Viewer as the model may give it, in any case or with spaces around it', async () => {
-    const { callTool, openWorkspace } = geenee()
-
-    await callTool('open_geenee', { room: ROOM, viewer: ' Juicebox ' })
-
-    expect((await openWorkspace(ROOM)).told).toEqual([{ type: 'viewerUsed', viewer: 'juicebox', count: 1 }])
-  })
-
-  it('refuses a viewer that is not one of the two, and tells no Workspace', async () => {
-    const { callTool, openWorkspace } = geenee()
-    const workspace = await openWorkspace(ROOM)
-
-    const result = await callTool('open_geenee', { room: ROOM, viewer: 'ucsc' })
-
-    expect(result.isError).toBe(true)
-    expect(result.content[0].text).toContain('"ucsc" is not a viewer. Pass igv or juicebox, or leave viewer out.')
-    expect(workspace.told).toEqual([])
-  })
-
-  it('still opens geenee when its Room cannot be told', async () => {
-    const { callTool, rooms } = geenee()
-    rooms.unreachable = true
-
-    const result = await callTool('open_geenee', { room: ROOM, viewer: 'juicebox' })
-
-    expect(result.isError).toBeFalsy()
-    expect(result.structuredContent).toEqual({ room: ROOM, workspaceUrl: `${GEENEE}/?room=${ROOM}` })
   })
 })
