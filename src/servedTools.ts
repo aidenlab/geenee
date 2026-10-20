@@ -26,6 +26,13 @@ export interface Viewer {
    * Upstream has more of a contract for this than the wording of that reply.
    */
   connection: { tool: string; connected(reply: ToolResult): boolean }
+  /**
+   * How the Upstream says, in a reply, that no Viewer is connected in the Room:
+   * each pattern matches the sentence saying so, through the end of its line.
+   * The Upstream goes on to say how to open its Viewer in the Pane, and geenee
+   * says what to do in its own words instead (the Pane rule).
+   */
+  notConnected: RegExp[]
 }
 
 /** geenee's own tool: it opens the Workspace, and so both Viewers. */
@@ -39,6 +46,9 @@ export const IGV: Viewer = {
   roomGoesIn: 'argument',
   // The igv Upstream asks the Viewer for its summary, and answers with an error when no Viewer is in the Room.
   connection: { tool: 'read_session_summary', connected: (reply) => !reply.isError },
+  // Its commands' error for a named Room, as geenee always names one. Its search's "no Viewer has reported" is left alone:
+  // that reply is about the genome not being known, which passing genome puts right, and it sends the model to no page.
+  notConnected: [/no Viewer is in Room \w+\.[^\n]*/g],
 }
 export const JUICEBOX: Viewer = {
   name: 'Juicebox',
@@ -51,6 +61,8 @@ export const JUICEBOX: Viewer = {
     tool: 'get_server_status',
     connected: (reply) => reply.content.some((block) => block.text?.includes('Browser Connected: Yes')),
   },
+  // Its commands' error, and the line its status ends with.
+  notConnected: [/No page is connected to this room\.[^\n]*/g, /No page is connected:[^\n]*/g],
 }
 
 /** A tool as geenee serves it, and the name its Upstream knows it by. */
@@ -114,10 +126,23 @@ function withRoomArgument(inputSchema: Tool['inputSchema']): Tool['inputSchema']
   }
 }
 
+/**
+ * What geenee says in place of an Upstream's reply that a Viewer is not
+ * connected. Right after geenee opens, a Viewer may simply not have connected
+ * yet; anything the model does in the Pane only ever follows open_geenee.
+ */
+function notConnectedText({ name }: Viewer, room: string): string {
+  return `The ${name} viewer has not connected yet. Wait a moment and retry this tool once. If it is still not connected, call ${OPEN_GEENEE} with room set to ${room}. Do not open, click or look at the page beside the conversation in any other way.`
+}
+
 export interface ServedTools {
   tools: ServedTool[]
-  /** A reply from the Upstream, as geenee passes it on: its text names tools by the names geenee serves. */
-  reply(result: ToolResult): ToolResult
+  /**
+   * A reply from the Upstream to a call for `room`, as geenee passes it on: its
+   * text names tools by the names geenee serves, and says in geenee's words
+   * what to do when the Viewer is not connected.
+   */
+  reply(result: ToolResult, room: string): ToolResult
 }
 
 export function serveTools(viewer: Viewer, upstreamTools: Tool[]): ServedTools {
@@ -135,9 +160,13 @@ export function serveTools(viewer: Viewer, upstreamTools: Tool[]): ServedTools {
     }))
   return {
     tools,
-    reply: (result) => ({
-      ...result,
-      content: result.content.map((block) => (typeof block.text === 'string' ? { ...block, text: rename(block.text) } : block)),
-    }),
+    reply: (result, room) => {
+      const reword = (text: string) =>
+        viewer.notConnected.reduce((reworded, sentence) => reworded.replace(sentence, notConnectedText(viewer, room)), rename(text))
+      return {
+        ...result,
+        content: result.content.map((block) => (typeof block.text === 'string' ? { ...block, text: reword(block.text) } : block)),
+      }
+    },
   }
 }

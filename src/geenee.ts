@@ -97,7 +97,7 @@ async function forward(
   const [result] = await Promise.all([callInRoom(target, called.upstreamName, args, room), told])
   // One log line per forwarded call, so a run can be read back from the Worker's log.
   console.log(`[mcp] ${name} | ${target.viewer.name} Upstream ${called.upstreamName} | Room ${room}${result.isError ? ' | error' : ''}`)
-  return served.reply(result)
+  return served.reply(result, room)
 }
 
 /** A Viewer's Join link for a Room, as its Upstream's own open tool gives it; null when the Upstream does not give one. */
