@@ -32,6 +32,20 @@ body {
   border-bottom: 1px solid var(--edge);
 }
 
+/* A deployed build's number and Connector address, over the right end of the
+   tab bar: the bar is a tablist, so it holds nothing but tabs. Selectable, so
+   the address can be copied. */
+.build {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  margin: 0;
+  padding: 7px 0;
+  color: var(--muted);
+  font-size: 11px;
+  user-select: text;
+}
+
 .tab {
   padding: 6px 12px;
   border: 0;

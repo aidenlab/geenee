@@ -145,7 +145,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in both Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
-    const server = new Server({ name: 'geenee', version: '0.0.0' }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
+    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       // An Upstream that cannot be reached leaves its tools out; the other's are still served.
       const lists = await Promise.all(

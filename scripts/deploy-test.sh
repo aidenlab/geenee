@@ -64,6 +64,14 @@ mcp() {
     -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d "$1"
 }
 
+# The deployed Connector should be this build: it gives its build number as its version.
+build="$(mcp '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"deploy-test","version":"0"}}}' \
+  | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')"
+if [[ "$build" != *"($(git rev-parse --short HEAD),"* ]]; then
+  echo "the Connector at $ADDRESS/mcp is not this build: it gives its version as '$build'" >&2
+  exit 1
+fi
+
 # The deployed Connector should list open_geenee and the tools of both Upstreams.
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
@@ -75,4 +83,4 @@ if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
   exit 1
 fi
 
-echo "deployed $STACK to $ADDRESS: the Connector is $ADDRESS/mcp and lists $listed tools (44 with both Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"
+echo "deployed build $build of $STACK to $ADDRESS: the Connector is $ADDRESS/mcp and lists $listed tools (44 with both Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"

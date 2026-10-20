@@ -107,7 +107,9 @@ scripts/deploy-test.sh view           # or web; deploys HEAD
 scripts/deploy-test.sh view <ref>     # a branch, tag or commit instead
 ```
 
-The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. There it installs, type-checks, runs the tests, builds and deploys. It then counts the tools the deployed Connector lists and checks that its Workspace frames that stack's Juicebox page.
+The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. There it installs, type-checks, runs the tests, builds and deploys. It then checks that the deployed Connector is this build, counts the tools it lists and checks that its Workspace frames that stack's Juicebox page.
+
+Each deploy is stamped with a build number: the commit count, short hash and build time, e.g. `18 (793af76, 2026-10-20 14:58 EDT)`. The count and hash say which code it is, the time which deploy (`-dirty` follows the hash when `npm run deploy:*` builds a working copy with uncommitted changes; `scripts/build-number.sh`). The Connector gives it as its version, the Workspace shows it with the Connector URL at the right end of its tab bar, and the script prints both when it finishes. `npm run dev` shows none.
 
 geenee only forwards, so the script deploys geenee alone. The Juicebox stack it forwards to is deployed from `juicebox-mcp`, with its own `scripts/deploy-test.sh <web|view> <page-repo>`, and has to be up for the final check to pass.
 
