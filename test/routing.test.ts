@@ -47,7 +47,7 @@ describe('a reply from an Upstream', () => {
       isError: true,
     })
     juicebox.reply = () => ({
-      content: [{ type: 'text', text: 'Error: panel 2 has no map. Load one with load_map, or see list_panels.' }],
+      content: [{ type: 'text', text: 'Error: No page is connected to this room. Use get_juicebox_url to get the join link and open it in a browser.' }],
       isError: true,
     })
 
@@ -58,7 +58,9 @@ describe('a reply from an Upstream', () => {
       content: [{ type: 'text', text: 'Error: no track is named "CTCF". Call igv_read_session_summary, or load it with igv_load_tracks.' }],
       isError: true,
     })
-    expect(fromJuicebox.content[0].text).toBe('Error: panel 2 has no map. Load one with juicebox_load_map, or see juicebox_list_panels.')
+    expect(fromJuicebox.content[0].text).toBe(
+      'Error: No page is connected to this room. Use open_geenee to get the join link and open it in a browser.',
+    )
   })
 
   it("passes on an Upstream's refusal of a call in the Upstream's words, naming tools as geenee serves them", async () => {
@@ -81,79 +83,6 @@ describe('a reply from an Upstream', () => {
     const result = await callTool('igv_get_shareable_url', { room: ROOM })
 
     expect(result.content[0].text).toBe(text)
-  })
-})
-
-describe('a reply that a Viewer is not connected', () => {
-  it("reaches the model in geenee's words, from the Juicebox Upstream", async () => {
-    const { callTool, juicebox } = geenee()
-    juicebox.reply = () => ({
-      content: [
-        {
-          type: 'text',
-          text: 'Error: No page is connected to this room. Call get_juicebox_url and open the join link in the browser panel beside the conversation (in Claude Desktop, its built-in browser), then retry this tool once the page has connected.',
-        },
-      ],
-      isError: true,
-    })
-
-    const result = await callTool('juicebox_zoom_in', { room: ROOM })
-
-    expect(result).toEqual({
-      content: [
-        {
-          type: 'text',
-          text: `Error: The Juicebox viewer has not connected yet. Wait a moment and retry this tool once. If it is still not connected, call open_geenee with room set to ${ROOM}. Do not open, click or look at the page beside the conversation in any other way.`,
-        },
-      ],
-      isError: true,
-    })
-  })
-
-  it("is said in geenee's words at the end of the Juicebox Upstream's status, the rest of which passes through", async () => {
-    const { callTool, juicebox } = geenee()
-    const status = `Server Status:\n\nMode: Cloudflare Workers\nCurrent Session ID: ${ROOM}\nRoom: ${ROOM}\nBrowser Connected: No\nBrowser URL: https://juicebot-dev.3dg.io/`
-    juicebox.reply = () => ({
-      content: [
-        {
-          type: 'text',
-          text: `${status}\n\nNo page is connected: call get_juicebox_url and open the join link in the browser panel beside the conversation.`,
-        },
-      ],
-    })
-
-    const result = await callTool('juicebox_get_server_status', { room: ROOM })
-
-    expect(result).toEqual({
-      content: [
-        {
-          type: 'text',
-          text: `${status}\n\nThe Juicebox viewer has not connected yet. Wait a moment and retry this tool once. If it is still not connected, call open_geenee with room set to ${ROOM}. Do not open, click or look at the page beside the conversation in any other way.`,
-        },
-      ],
-    })
-  })
-
-  it("reaches the model in geenee's words, from the igv Upstream", async () => {
-    const { callTool, igv } = geenee()
-    igv.reply = () => ({
-      content: [
-        { type: 'text', text: `Error: no Viewer is in Room ${ROOM}. Call open_viewer with this room and open its Join link, then try again.` },
-      ],
-      isError: true,
-    })
-
-    const result = await callTool('igv_go_to_locus', { locus: 'MYC', room: ROOM })
-
-    expect(result).toEqual({
-      content: [
-        {
-          type: 'text',
-          text: `Error: The igv viewer has not connected yet. Wait a moment and retry this tool once. If it is still not connected, call open_geenee with room set to ${ROOM}. Do not open, click or look at the page beside the conversation in any other way.`,
-        },
-      ],
-      isError: true,
-    })
   })
 })
 
