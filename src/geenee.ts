@@ -16,8 +16,8 @@ import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js'
 import { INSTRUCTIONS } from './instructions.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
-import { mintRoomId, parseRoomId } from './roomId.ts'
-import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, VIEWERS, type Viewer } from './servedTools.ts'
+import { parseRoomId } from './roomId.ts'
+import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
 
@@ -64,23 +64,6 @@ function roomNamed(room: unknown): { id: string } | { refusal: ToolResult } | un
   return { refusal: errorReply(`${JSON.stringify(room)} is not a Room id. Pass the Room id from the reply of ${OPEN_GEENEE}.`) }
 }
 
-/** The Viewer an open_geenee call names, undefined when it names none. An empty string is an argument left out, as for a Room. */
-function viewerNamed(viewer: unknown): { viewer: Viewer } | { refusal: ToolResult } | undefined {
-  if (viewer === undefined || viewer === null || (typeof viewer === 'string' && viewer.trim() === '')) return undefined
-  const key = typeof viewer === 'string' ? viewer.trim().toLowerCase() : null
-  const named = VIEWERS.find(({ prefix }) => prefix === key)
-  if (named) return { viewer: named }
-  const keys = VIEWERS.map(({ prefix }) => prefix).join(' or ')
-  return { refusal: errorReply(`${JSON.stringify(viewer)} is not a viewer. Pass ${keys}, or leave viewer out.`) }
-}
-
-/** Tells the Workspaces of `room` that `call` was for `viewer`. A Workspace that is not told still has its tabs, so a failure is only logged. */
-function tellWorkspaces(workspaces: WorkspaceChannel, viewer: Viewer, call: string, room: string): Promise<void> {
-  return workspaces.viewerUsed(viewer.prefix).catch((error) => {
-    console.warn(`[mcp] ${call} | the Workspaces of Room ${room} could not be told:`, error)
-  })
-}
-
 interface Target {
   viewer: Viewer
   upstream: Upstream
@@ -107,8 +90,10 @@ async function forward(
   const served = serveTools(target.viewer, await target.upstream.listTools())
   const called = served.tools.find(({ tool }) => tool.name === name)
   if (!called) return undefined
-  // Alongside the call, so that the Viewer is in front while it redraws.
-  const told = tellWorkspaces(workspaces, target.viewer, name, room)
+  // Alongside the call, so that the Viewer is in front while it redraws. A Workspace that is not told still has its tabs.
+  const told = workspaces.viewerUsed(target.viewer.prefix).catch((error) => {
+    console.warn(`[mcp] ${name} | the Workspaces of Room ${room} could not be told:`, error)
+  })
   const [result] = await Promise.all([callInRoom(target, called.upstreamName, args, room), told])
   // One log line per forwarded call, so a run can be read back from the Worker's log.
   console.log(`[mcp] ${name} | ${target.viewer.name} Upstream ${called.upstreamName} | Room ${room}${result.isError ? ' | error' : ''}`)
@@ -163,15 +148,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }
     server.setRequestHandler(CallToolRequestSchema, async ({ params: { name, arguments: { room: named, ...args } = {} } }) => {
       const room = roomNamed(named)
       if (room && 'refusal' in room) return room.refusal
-      if (name === OPEN_GEENEE) {
-        const chosen = viewerNamed(args.viewer)
-        if (chosen && 'refusal' in chosen) return chosen.refusal
-        const id = room?.id ?? mintRoomId()
-        // Through the same path as a tool call, so the Viewer is in front, and last used, from the start. Before the
-        // reply, so that the Room keeps the report for a Workspace that joins once the link is opened.
-        if (chosen) await tellWorkspaces(channelTo(id), chosen.viewer, name, id)
-        return openGeenee(new URL(request.url).origin, id, chosen?.viewer)
-      }
+      if (name === OPEN_GEENEE) return openGeenee(new URL(request.url).origin, room?.id)
 
       const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))
       if (!target) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
