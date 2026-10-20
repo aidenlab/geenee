@@ -65,6 +65,9 @@ export const JUICEBOX: Viewer = {
   notConnected: [/No page is connected to this room\.[^\n]*/g, /No page is connected:[^\n]*/g],
 }
 
+/** Both Viewers, in the order geenee names them. */
+export const VIEWERS: Viewer[] = [IGV, JUICEBOX]
+
 /** A tool as geenee serves it, and the name its Upstream knows it by. */
 export interface ServedTool {
   tool: Tool
