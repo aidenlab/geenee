@@ -20,8 +20,12 @@ _Avoid_: Backend, sub-server, source
 One of the two existing web pages showing a tool: the igv Viewer or the Juicebox Viewer. Each belongs to its Upstream and is shown inside the Workspace.
 _Avoid_: Page, widget, app
 
+**Pane**:
+The place beside the conversation where a Host shows a web page. The Workspace is opened there, and opening it is the only thing the model does in the Pane: everything else goes through geenee's tools.
+_Avoid_: In-app browser, browser panel, side panel
+
 **Workspace**:
-The one geenee web page a person opens beside the conversation, holding both Viewers and showing one at a time. A person knows it simply as geenee.
+The one geenee web page a person opens in the Pane, holding both Viewers and showing one at a time. A person knows it simply as geenee.
 _Avoid_: Viewer, shell, dashboard, page
 
 **Room**:
