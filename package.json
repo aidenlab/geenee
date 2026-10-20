@@ -11,7 +11,8 @@
     "test:run": "vitest run",
     "typecheck": "npm run types && tsc && tsc -p src/workspace",
     "types": "wrangler types --strict-vars false",
-    "deploy:dev": "CLOUDFLARE_ENV=dev vite build && wrangler deploy"
+    "deploy:dev": "CLOUDFLARE_ENV=dev vite build && wrangler deploy",
+    "deploy:view-dev": "CLOUDFLARE_ENV=view-dev vite build && wrangler deploy"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.63.2",

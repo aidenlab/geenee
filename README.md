@@ -9,6 +9,7 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 ## How it works
 
 - geenee contains neither tool set. It **forwards** to two **Upstreams**, the deployed dev servers of [`igvjs-mcp`](https://github.com/aidenlab/igvjs-mcp) and `juicebox-mcp`, and neither of them is changed (ADR 0001). Each stays a working Connector in its own right.
+- `juicebox-mcp` has two dev stacks, one for each Juicebox page: **web**, the juicebox-web page that Juicebox is moving away from, and **view**, the juicebox-view page it is moving to. Their Upstreams serve the same tools and differ only in the page their Join link opens. geenee has one deployment for each stack (see [Deploying](#deploying)), and local development uses the view stack.
 - The **server** is a Cloudflare Worker with an MCP endpoint (`/mcp`, stateless Streamable HTTP) for the Host. It also serves the Workspace page. The Connector keeps no state between requests; the one thing geenee keeps is in a Durable Object per Room, which holds the sockets of the Room's Workspaces and the Viewer last used.
 - The **tool list** is the two Upstreams' lists put together, asked for afresh on each request, so a change to an Upstream's tools appears without a geenee release. Every tool is served under a name prefixed with its Viewer: `igv_zoom_in`, `juicebox_zoom_in`. A name that already says which Viewer it belongs to is left alone (`juicebox_help`).
 - An Upstream's descriptions and replies name its tools by their own names ("call read_session_summary first"). geenee **rewrites those names** to the ones it serves, in tool descriptions, argument descriptions and reply text.
@@ -35,7 +36,11 @@ npm install
 npm run dev   # the Worker and the Workspace together, on http://localhost:5173
 ```
 
-Local development is the local Worker and Workspace against the **deployed dev Upstreams** and their Viewers: geenee has no Viewer of its own to run beside it. There is no stdio entry point.
+Local development is the local Worker and Workspace against the **deployed dev Upstreams** and their Viewers: geenee has no Viewer of its own to run beside it. There is no stdio entry point. The Juicebox Upstream is the view stack's. To run against the web stack's instead, build the `dev` environment of `wrangler.toml`:
+
+```sh
+CLOUDFLARE_ENV=dev npm run dev
+```
 
 An MCP client running on this machine can use `http://localhost:5173/mcp` directly, for example Claude Code:
 
@@ -87,20 +92,28 @@ The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Ro
 
 ## Deploying
 
-There is one deployment, for development. Nothing deploys from CI.
+There are two deployments, both for development, one for each Juicebox dev stack of `juicebox-mcp`. Deploying one never affects the other: each is its own Worker with its own Rooms. Nothing deploys from CI.
 
-| Part                 | Cloudflare name | Address                                                                      |
-| -------------------- | --------------- | ---------------------------------------------------------------------------- |
-| Worker and Workspace | `geenee-dev`    | `https://geenee-dev.3dg.io` (`/mcp` for Hosts, `/` for the Workspace) |
+| Stack | Part                 | Cloudflare name    | Address                           | Juicebox Upstream                     | Juicebox Viewer page                    |
+| ----- | -------------------- | ------------------ | --------------------------------- | ------------------------------------- | --------------------------------------- |
+| web   | Worker and Workspace | `geenee-dev`       | `https://geenee-dev.3dg.io`       | `https://juicebot-mcp-dev.3dg.io`      | `https://juicebot-dev.3dg.io/`           |
+| view  | Worker and Workspace | `geenee-view-dev`  | `https://geenee-view-dev.3dg.io`  | `https://juicebot-view-mcp-dev.3dg.io` | `https://juicebot-view-dev.pages.dev/`   |
+
+Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both use the igv Upstream `https://igv-bot-mcp-dev.3dg.io`.
 
 ```sh
-npx wrangler login       # first time on a machine
-scripts/deploy-dev.sh    # typecheck, run the tests, build, deploy, then count the tools the deployed Connector lists
+npx wrangler login                    # first time on a machine
+scripts/deploy-test.sh view           # or web; deploys HEAD
+scripts/deploy-test.sh view <ref>     # a branch, tag or commit instead
 ```
 
-It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds both Upstreams. The first deploy creates the DNS record for the custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
+The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. There it installs, type-checks, runs the tests, builds and deploys. It then counts the tools the deployed Connector lists and checks that its Workspace frames that stack's Juicebox page.
 
-The connector URL to give Claude or ChatGPT is `https://geenee-dev.3dg.io/mcp`. In Claude: Settings, Connectors, Add custom connector, with the OAuth fields left blank.
+geenee only forwards, so the script deploys geenee alone. The Juicebox stack it forwards to is deployed from `juicebox-mcp`, with its own `scripts/deploy-test.sh <web|view> <page-repo>`, and has to be up for the final check to pass.
+
+It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds both Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
+
+The connector URL to give Claude or ChatGPT is `https://geenee-view-dev.3dg.io/mcp` for the view stack, or `https://geenee-dev.3dg.io/mcp` for the web stack. In Claude: Settings, Connectors, Add custom connector, with the OAuth fields left blank. Both can be added side by side, for example as "geenee dev (view)" and "geenee dev (web)".
 
 ## Scripts
 
@@ -115,7 +128,8 @@ Run from the repository root.
 | `npm run typecheck`  | Write the types, then type-check the Worker and the tests, and the Workspace apart from them |
 | `npm run test:run`   | Run every test once                                                       |
 | `npm test`           | Run the tests in watch mode                                               |
-| `npm run deploy:dev` | Build the `dev` environment and deploy it; `scripts/deploy-dev.sh` runs the checks first |
+| `npm run deploy:dev` | Build the `dev` environment (web stack) and deploy it, with no checks; `scripts/deploy-test.sh web` runs them first |
+| `npm run deploy:view-dev` | Build the `view-dev` environment (view stack) and deploy it, with no checks; `scripts/deploy-test.sh view` runs them first |
 
 Run a single test file by adding its path: `npx vitest run test/routing.test.ts`.
 
@@ -124,7 +138,7 @@ Run a single test file by adding its path: `npx vitest run test/routing.test.ts`
 One package: a Worker and the page it serves, built together by Vite through Cloudflare's Vite plugin.
 
 ```
-wrangler.toml            Worker configuration: the two Upstream addresses, the Room Durable Object, the dev deployment
+wrangler.toml            Worker configuration: the two Upstream addresses, the Room Durable Object, the two dev deployments
 tsconfig.json            Type-checking of the Worker and the tests; src/workspace has its own, with the DOM
 vite.config.ts           The build of the Worker and the Workspace
 vitest.config.ts         The tests, kept apart from the Cloudflare plugin
@@ -148,7 +162,7 @@ test/
   connector.ts           The Host's side of the Connector, for the tests
   *.test.ts              Tests
 scripts/
-  deploy-dev.sh          Deploy geenee-dev
+  deploy-test.sh         Deploy geenee-dev (web) or geenee-view-dev (view)
 docs/
   adr/                   The decisions: forwarding, and the Workspace
   research/              The research on merging the two servers
@@ -160,6 +174,6 @@ docs/
 - `wrangler.toml`, `IGV_UPSTREAM_URL`: the `/mcp` address of the igv Upstream.
 - `wrangler.toml`, `JUICEBOX_UPSTREAM_URL`: the `/mcp` address of the Juicebox Upstream.
 
-The top-level values are for local development and the `[env.dev]` values for the dev deployment; today both name the deployed dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
+The top-level values are for local development, the `[env.dev]` values for the web deployment and the `[env.view-dev]` values for the view deployment. All of them name deployed dev Upstreams. They differ only in the Juicebox Upstream, which is the view stack's at the top level. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
 
 To refresh a fixture after an Upstream's tools change, save the `tools` array of its `tools/list` reply over the file in `test/fixtures/`.
