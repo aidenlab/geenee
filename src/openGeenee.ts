@@ -4,8 +4,7 @@
  * takes back. It stands in for each Upstream's own open tool, which geenee hides.
  */
 import { PANE_RULE } from './instructions.ts'
-import { mintRoomId } from './roomId.ts'
-import { OPEN_GEENEE, type Viewer } from './servedTools.ts'
+import { OPEN_GEENEE, VIEWERS, type Viewer } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
 
 export const OPEN_GEENEE_TOOL: Tool = {
@@ -22,7 +21,7 @@ export const OPEN_GEENEE_TOOL: Tool = {
       },
       viewer: {
         type: 'string',
-        enum: ['igv', 'juicebox'],
+        enum: VIEWERS.map(({ prefix }) => prefix),
         description:
           'Only when the user names a viewer: igv for the igv genome browser, juicebox for the Juicebox contact map viewer. geenee then opens with that viewer in front, and it counts as the viewer this conversation last used. Leave it out when the request names neither: the viewer in front stays as it was.',
       },
@@ -42,8 +41,8 @@ function inFront(viewer: Viewer | undefined): string {
   return viewer ? ` geenee opens with the ${viewer.name} viewer in front: it is the viewer this conversation last used.` : ''
 }
 
-/** Opens geenee in `room`, or in a new Room when none is given, with `viewer` in front when the user named one. */
-export function openGeenee(origin: string, room: string = mintRoomId(), viewer?: Viewer): ToolResult {
+/** Opens geenee in `room`, with `viewer` in front when the user named one. */
+export function openGeenee(origin: string, room: string, viewer?: Viewer): ToolResult {
   const link = workspaceLinkFor(origin, room)
   // A bare URL on its own line: Hosts render it clickable, which a code block
   // would not be. The resource link is the same link for Hosts that render

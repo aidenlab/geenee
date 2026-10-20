@@ -2,7 +2,7 @@
 
 A Host shows one web page beside the conversation, and a Connector cannot swap that page for another: it can only hand over a link to open. Two separately opened Viewers would leave the swapping to the model or the person, and a Viewer that has been navigated away from can no longer receive commands. So geenee has one page of its own, the Workspace, which the Host opens once. It holds the igv Viewer and the Juicebox Viewer, each in a frame, loads both when it opens, and shows one at a time.
 
-The Workspace brings forward the Viewer the model last sent a command to; a person can pick the other with a tab. Each tab carries a mark showing whether its Viewer is connected.
+The Workspace brings forward the Viewer the model last sent a command to, or the one it named when opening geenee; a person can pick the other with a tab. Each tab carries a mark showing whether its Viewer is connected.
 
 ## Considered Options
 
