@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>How geenee deploys</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one 38rem reading column, notes in the right margin, figures across both. Ink for geenee, blue for igv, red for Juicebox. */
+:root {
+  --bg: #f5f6f4;
+  --box: #ffffff;
+  --fg: #1b1d1c;
+  --muted: #636966;
+  --rule: #cdd2ce;
+  --igv: #2a5f9e;               /* igv's blue */
+  --jb: #b8231a;                /* the red of a contact map */
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+.page {
+  max-width: 64rem;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 3.5rem 5rem;
+}
+.page :is(h1, h2, h3, p, ol, ul, .tablewrap) { max-width: 38rem; }
+
+h1 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 2rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+  text-wrap: balance;
+}
+.lede {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0 0 2.5rem;
+}
+h2 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  margin: 3.25rem 0 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--fg);
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 2rem 0 0.5rem;
+}
+p { margin: 0 0 1rem; }
+ol, ul { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; }
+code { font-family: var(--mono); font-size: 0.84em; }
+.igv { color: var(--igv); }
+.jb { color: var(--jb); }
+a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: currentColor; }
+a:focus-visible { outline: 2px solid var(--igv); outline-offset: 2px; }
+
+/* Contents */
+.toc {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  max-width: 38rem;
+  columns: 2 14rem;
+}
+.toc li { margin: 0 0 0.2rem; break-inside: avoid; }
+.toc a { text-decoration: none; color: var(--muted); }
+.toc a:hover { color: var(--fg); }
+
+/* Margin notes */
+.note {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 38rem;
+  margin: 0 0 1rem;
+}
+@media (min-width: 64rem) {
+  .note {
+    float: right;
+    clear: right;
+    width: 17rem;
+    margin: 0.35rem 0 1rem 2rem;
+  }
+}
+
+/* Figures */
+figure { clear: both; margin: 2rem 0 2.25rem; }
+.figwrap { overflow-x: auto; }
+svg.fig {
+  display: block;
+  width: 100%;
+  min-width: 46rem;
+  height: auto;
+  color: var(--fg);
+  font-family: var(--sans);
+}
+figcaption {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 38rem;
+  margin-top: 0.75rem;
+}
+figcaption b { color: var(--fg); font-weight: 600; }
+.fig text { fill: currentColor; font-size: 12.5px; }
+.fig .t-h { font-weight: 600; }
+.fig .t-s { font-size: 10.5px; fill: var(--muted); }
+.fig .t-m { font-family: var(--mono); font-size: 11px; }
+.fig .t-n { font-size: 11px; font-weight: 600; fill: var(--muted); }
+.fig .t-band { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; fill: var(--muted); }
+.fig .tag { font-size: 11px; font-weight: 600; fill: var(--muted); }
+.fig .k { paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+.fig .ci { fill: var(--igv); }
+.fig .cj { fill: var(--jb); }
+.fig .bx { fill: var(--box); stroke: currentColor; stroke-width: 1; }
+.fig .bx-g { fill: var(--box); stroke: currentColor; stroke-width: 1.75; }
+.fig .bx-i { fill: var(--box); stroke: var(--igv); stroke-width: 1.25; }
+.fig .bx-j { fill: var(--box); stroke: var(--jb); stroke-width: 1.25; }
+.fig .bx-q { fill: none; stroke: var(--rule); stroke-width: 1; }
+.fig .win { fill: none; stroke: var(--muted); stroke-width: 1; }
+.fig .sep { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+.fig .life { stroke: var(--rule); stroke-width: 1; }
+/* Wires: thin is a request and its reply, thick a WebSocket that stays open, dashed a page fetched once. */
+.fig .w { stroke: currentColor; stroke-width: 1; fill: none; }
+.fig .ws { stroke-width: 2.75; }
+.fig .pg { stroke-dasharray: 5 4; }
+.fig .wi { stroke: var(--igv); }
+.fig .wj { stroke: var(--jb); }
+.fig .ah { fill: currentColor; }
+.fig .ahi { fill: var(--igv); }
+.fig .ahj { fill: var(--jb); }
+.fig .dot { fill: currentColor; }
+.fig .hollow { fill: var(--box); stroke: currentColor; stroke-width: 1; }
+
+/* Key to the line styles */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.75rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.9rem 0 0;
+  max-width: 50rem;
+}
+.key span { display: inline-flex; align-items: center; gap: 0.5rem; }
+.key svg { width: 34px; height: 8px; color: var(--fg); }
+
+/* Tables */
+.tablewrap { overflow-x: auto; margin: 1.25rem 0 1.5rem; }
+.page .tablewrap.wide { max-width: 64rem; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 1.1rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+thead th { font-weight: 600; border-bottom: 1px solid var(--fg); }
+tbody th { font-weight: 600; white-space: nowrap; }
+tbody tr:last-child :is(th, td) { border-bottom: 0; }
+td code, th code { font-size: 0.92em; }
+td.n, th.n { font-weight: 600; color: var(--muted); width: 1.5rem; }
+td.how { white-space: nowrap; }
+.end {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 3.5rem;
+  max-width: 38rem;
+}
+
+/* Pages projects are drawn with a dashed outline, Workers with a solid one. */
+.fig .pgbx { stroke-dasharray: 4 3; }
+.fig .t-ok { font-size: 10.5px; font-weight: 600; }
+
+/* The three-way answer at the top: replaced, kept, never touched. */
+.sum {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  max-width: 64rem;
+  margin: 1.5rem 0 2.25rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.sum section {
+  background: var(--box);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--fg);
+  padding: 0.85rem 1rem 0.6rem;
+}
+.sum section.kept { border-top-color: var(--muted); }
+.sum section.never { border-top-style: dashed; border-top-color: var(--muted); }
+.sum h3 { margin: 0 0 0.5rem; font-size: 0.9rem; }
+.sum ul { margin: 0; padding-left: 1.1rem; }
+.sum li { margin-bottom: 0.35rem; }
+pre {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  background: var(--box);
+  border: 1px solid var(--rule);
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  max-width: 38rem;
+  margin: 0 0 1.25rem;
+}
+</style>
+</head>
+<body>
+
+<!-- Arrowheads shared by every figure. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="a" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--fg)"/></marker>
+  </defs>
+</svg>
+
+<main class="page">
+
+<h1>How geenee deploys</h1>
+<p class="lede">One run of <code>scripts/deploy-test.sh</code> replaces exactly one Cloudflare Worker: its code, the Workspace page it serves, and its settings. The Worker’s Durable Object storage is kept. Nothing that belongs to igv or Juicebox is touched. This document shows what is uploaded, what is replaced, what survives, and what to run when you change something elsewhere.</p>
+
+<ul class="toc">
+  <li><a href="#short">The short answer</a></li>
+  <li><a href="#pieces">The Cloudflare pieces</a></li>
+  <li><a href="#map">Everything on the account</a></li>
+  <li><a href="#steps">What the script does, step by step</a></li>
+  <li><a href="#upload">What one upload contains</a></li>
+  <li><a href="#moment">The moment it goes live</a></li>
+  <li><a href="#two">web or view</a></li>
+  <li><a href="#which">I changed X: what do I deploy?</a></li>
+  <li><a href="#live">Which build is live?</a></li>
+  <li><a href="#gotchas">Shortcuts and traps</a></li>
+</ul>
+
+<h2 id="short">The short answer</h2>
+
+<p>Say you run <code>scripts/deploy-test.sh view</code>. This is what changes on Cloudflare:</p>
+
+<div class="sum">
+  <section>
+    <h3>Replaced</h3>
+    <ul>
+      <li>The code of the Worker <code>geenee-view-dev</code>: <code>/mcp</code>, <code>/viewers</code>, <code>/connections</code>, <code>/ws</code>, the tool renaming, the server instructions, <code>open_geenee</code>.</li>
+      <li>The Workspace page: <code>index.html</code> and its JavaScript and CSS, served by the same Worker.</li>
+      <li>The Worker’s settings: the two Upstream addresses, the binding to the Room Durable Object, logging.</li>
+      <li>The code of the Room Durable Object, which is part of the Worker.</li>
+      <li>The build number the Connector and the Workspace report.</li>
+    </ul>
+  </section>
+  <section class="kept">
+    <h3>Kept</h3>
+    <ul>
+      <li>Every Room’s storage: the last “Viewer used” report.</li>
+      <li>Room ids. A Room id the model already holds still finds the same Room.</li>
+      <li>The custom domain <code>geenee-view-dev.3dg.io</code> and its DNS record.</li>
+      <li>Open Viewers, and everything on their screens: they talk to their own Upstreams, which were not redeployed.</li>
+      <li>Earlier versions of the Worker, in Cloudflare’s version history.</li>
+    </ul>
+  </section>
+  <section class="never">
+    <h3>Never touched</h3>
+    <ul>
+      <li>The other geenee deployment, <code>geenee-dev</code> (web).</li>
+      <li>The <span class="igv">igv</span> Upstream Worker and the igv Viewer’s Pages project.</li>
+      <li>Both <span class="jb">Juicebox</span> Upstream Workers and both Juicebox Viewer Pages projects.</li>
+      <li>Your working copy. The script builds from a commit in a throwaway checkout, so uncommitted changes never ship and your <code>dist/</code> is not rewritten.</li>
+    </ul>
+  </section>
+</div>
+
+<p>Two things <em>do</em> notice a deploy. A Workspace that is open drops its socket to geenee and rejoins within a few seconds. And it keeps running the old Workspace code until you reload the tab.</p>
+
+<h2 id="pieces">The Cloudflare pieces</h2>
+
+<p>Three Cloudflare products are in play across the three repositories. geenee uses two of them directly.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Piece</th><th>What it is</th><th>Who uses it</th></tr></thead>
+  <tbody>
+    <tr><th>Worker</th><td>A program Cloudflare runs on every request to its address. It keeps nothing between requests. You replace it by uploading a new version with <code>wrangler deploy</code>.</td><td>geenee, and each of the Upstreams</td></tr>
+    <tr><th>Durable Object</th><td>The object that holds state. A Worker finds one by name (here, a Room id); there is exactly one per name anywhere in the world, with its own small storage. Its code ships inside the Worker; its storage lives apart from the code and survives deploys.</td><td>geenee’s <code>Room</code>; igv’s <code>Room</code>; Juicebox’s <code>WebSocketRoom</code> and <code>McpSession</code></td></tr>
+    <tr><th>Pages</th><td>A project that holds uploaded static files and serves them at <code>&lt;project&gt;.pages.dev</code>, and optionally at a custom domain.</td><td>The two Viewers only. geenee has no Pages project.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="note">geenee’s Workspace page is a <em>static asset of the Worker</em> (Cloudflare calls this Workers Static Assets). It is uploaded with the Worker’s code in the same <code>wrangler deploy</code>, so the page and the Connector can never be out of step.</p>
+
+<p>The object that holds state is the <b>Durable Object</b>. In geenee it is the class <code>Room</code> in <code>src/room.ts</code>. One instance exists per Room id. It holds the WebSockets of the Workspaces open in that Room, and stores a single value under the key <code>lastUse</code>: which Viewer the last tool call was for, so a Workspace opened later can bring that Viewer forward.</p>
+
+<p>The Workspace page is not on Pages, even though it is a web page. It is a set of files that the geenee Worker itself serves. Pages appears in this story only as the home of the two Viewers that the Workspace frames.</p>
+
+<h2 id="map">Everything on the account</h2>
+
+<p>All three repositories deploy to one Cloudflare account, in the <code>3dg.io</code> zone. Each one has its own deploy script, and each script touches only its own boxes.</p>
+
+<figure>
+  <div class="figwrap">
+  <svg class="fig" viewBox="0 0 1000 548" role="img" aria-label="The Cloudflare account, in three columns. geenee: two Workers, geenee-view-dev and geenee-dev, each holding its code, the Workspace page as static assets, and a Room Durable Object; each is replaced by its own run of geenee's deploy script. igvjs-mcp: the Worker igv-bot-mcp-dev with its Room Durable Object, and the Pages project igv-bot-web-dev, shared by both geenee deployments. juicebox-mcp: for the view stack the Worker juicebot-view-mcp-dev and the Pages project juicebot-view-dev; for the web stack the Worker juicebot-mcp-dev and the Pages project juicebot-web-dev. geenee's script touches neither of the other two columns.">
+    <rect x="8" y="8" width="984" height="532" rx="6" class="bx-q"/>
+    <text x="24" y="30" class="t-band">CLOUDFLARE ACCOUNT · ZONE 3DG.IO</text>
+
+    <!-- Column heads -->
+    <text x="24" y="58" class="t-h" style="font-size:14px">geenee</text>
+    <text x="24" y="76" class="t-m">scripts/deploy-test.sh &lt;web|view&gt;</text>
+    <text x="350" y="58" class="t-h ci" style="font-size:14px">igvjs-mcp</text>
+    <text x="350" y="76" class="t-m ci">scripts/deploy-dev.sh [worker|viewer]</text>
+    <text x="676" y="58" class="t-h cj" style="font-size:14px">juicebox-mcp</text>
+    <text x="676" y="76" class="t-m cj">scripts/deploy-test.sh &lt;web|view&gt; &lt;page&gt;</text>
+
+    <!-- geenee: view -->
+    <text x="24" y="100" class="t-band">FOR THE VIEW STACK</text>
+    <rect x="24" y="108" width="300" height="160" class="bx-g"/>
+    <text x="38" y="127" class="t-n">Worker</text>
+    <text x="38" y="146" class="t-h">geenee-view-dev</text>
+    <text x="38" y="163" class="t-m">geenee-view-dev.3dg.io</text>
+    <text x="38" y="180" class="t-s">forwards to igv-bot-mcp-dev, juicebot-view-mcp-dev</text>
+    <rect x="38" y="192" width="86" height="62" class="bx"/>
+    <text x="46" y="211" class="t-h" style="font-size:11px">Worker code</text>
+    <text x="46" y="227" class="t-s">src/ + settings</text>
+    <text x="46" y="244" class="t-ok">replaced</text>
+    <rect x="134" y="192" width="86" height="62" class="bx"/>
+    <text x="142" y="211" class="t-h" style="font-size:11px">Static assets</text>
+    <text x="142" y="227" class="t-s">the Workspace</text>
+    <text x="142" y="244" class="t-ok">replaced</text>
+    <rect x="230" y="192" width="86" height="62" class="bx"/>
+    <text x="238" y="211" class="t-h" style="font-size:11px">Durable Obj.</text>
+    <text x="238" y="227" class="t-s">Room × n</text>
+    <text x="238" y="244" class="t-s" style="font-weight:600">storage kept</text>
+    <text x="24" y="286" class="tag">↑ one run of deploy-test.sh view replaces this</text>
+
+    <!-- geenee: web -->
+    <text x="24" y="314" class="t-band">FOR THE WEB STACK</text>
+    <rect x="24" y="322" width="300" height="160" class="bx-g"/>
+    <text x="38" y="341" class="t-n">Worker</text>
+    <text x="38" y="360" class="t-h">geenee-dev</text>
+    <text x="38" y="377" class="t-m">geenee-dev.3dg.io</text>
+    <text x="38" y="394" class="t-s">forwards to igv-bot-mcp-dev, juicebot-mcp-dev</text>
+    <rect x="38" y="406" width="86" height="62" class="bx"/>
+    <text x="46" y="425" class="t-h" style="font-size:11px">Worker code</text>
+    <text x="46" y="441" class="t-s">src/ + settings</text>
+    <text x="46" y="458" class="t-ok">replaced</text>
+    <rect x="134" y="406" width="86" height="62" class="bx"/>
+    <text x="142" y="425" class="t-h" style="font-size:11px">Static assets</text>
+    <text x="142" y="441" class="t-s">the Workspace</text>
+    <text x="142" y="458" class="t-ok">replaced</text>
+    <rect x="230" y="406" width="86" height="62" class="bx"/>
+    <text x="238" y="425" class="t-h" style="font-size:11px">Durable Obj.</text>
+    <text x="238" y="441" class="t-s">Room × n</text>
+    <text x="238" y="458" class="t-s" style="font-weight:600">storage kept</text>
+    <text x="24" y="500" class="tag">↑ one run of deploy-test.sh web replaces this</text>
+
+    <!-- igv -->
+    <text x="350" y="100" class="t-band">SHARED BY BOTH</text>
+    <rect x="350" y="108" width="300" height="104" class="bx-i"/>
+    <text x="364" y="127" class="t-n">Worker · the igv Upstream</text>
+    <text x="364" y="146" class="t-h">igv-bot-mcp-dev</text>
+    <text x="364" y="163" class="t-m">igv-bot-mcp-dev.3dg.io</text>
+    <rect x="364" y="176" width="170" height="24" class="bx"/>
+    <text x="372" y="192" class="t-s">Durable Object · Room</text>
+    <rect x="350" y="222" width="300" height="72" class="bx-i pgbx"/>
+    <text x="364" y="241" class="t-n">Pages · the igv Viewer</text>
+    <text x="364" y="260" class="t-h">igv-bot-web-dev</text>
+    <text x="364" y="279" class="t-m">igv-bot-web-dev.pages.dev</text>
+    <text x="350" y="530" class="tag">geenee’s script never touches this column</text>
+
+    <!-- Juicebox: view -->
+    <text x="676" y="100" class="t-band">VIEW STACK</text>
+    <rect x="676" y="108" width="300" height="104" class="bx-j"/>
+    <text x="690" y="127" class="t-n">Worker · the Juicebox Upstream</text>
+    <text x="690" y="146" class="t-h">juicebot-view-mcp-dev</text>
+    <text x="690" y="163" class="t-m">juicebot-view-mcp-dev.3dg.io</text>
+    <rect x="690" y="176" width="272" height="24" class="bx"/>
+    <text x="698" y="192" class="t-s">Durable Objects · WebSocketRoom, McpSession</text>
+    <rect x="676" y="222" width="300" height="72" class="bx-j pgbx"/>
+    <text x="690" y="241" class="t-n">Pages · the Juicebox Viewer (juicebox-view)</text>
+    <text x="690" y="260" class="t-h">juicebot-view-dev</text>
+    <text x="690" y="279" class="t-m">juicebot-view-dev.pages.dev</text>
+
+    <!-- Juicebox: web -->
+    <text x="676" y="314" class="t-band">WEB STACK</text>
+    <rect x="676" y="322" width="300" height="104" class="bx-j"/>
+    <text x="690" y="341" class="t-n">Worker · the Juicebox Upstream</text>
+    <text x="690" y="360" class="t-h">juicebot-mcp-dev</text>
+    <text x="690" y="377" class="t-m">juicebot-mcp-dev.3dg.io</text>
+    <rect x="690" y="390" width="272" height="24" class="bx"/>
+    <text x="698" y="406" class="t-s">Durable Objects · WebSocketRoom, McpSession</text>
+    <rect x="676" y="436" width="300" height="72" class="bx-j pgbx"/>
+    <text x="690" y="455" class="t-n">Pages · the Juicebox Viewer (juicebox-web)</text>
+    <text x="690" y="474" class="t-h">juicebot-web-dev</text>
+    <text x="690" y="493" class="t-m">juicebot-dev.3dg.io</text>
+    <text x="676" y="530" class="tag">geenee’s script never touches this column</text>
+  </svg>
+  </div>
+  <figcaption><b>Figure 1. What lives on the account, by the repository that deploys it.</b> Solid outlines are Workers, dashed outlines are Pages projects. Ink is geenee, blue is igv, red is Juicebox. Only the two thick boxes on the left are geenee’s, and each run of its script replaces one of them.</figcaption>
+</figure>
+
+<p>Because geenee only <em>forwards</em> (ADR 0001), it holds no copy of the igv or Juicebox tools. When an Upstream changes its tools, geenee picks them up on the next request with no geenee deploy. The reverse is also true: a geenee deploy can never change what an Upstream or a Viewer does.</p>
+
+<h2 id="steps">What the script does, step by step</h2>
+
+<pre>scripts/deploy-test.sh view           # deploys HEAD to geenee-view-dev
+scripts/deploy-test.sh web            # deploys HEAD to geenee-dev
+scripts/deploy-test.sh view my-branch # any branch, tag or commit</pre>
+
+<figure>
+  <div class="figwrap">
+  <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="The eight steps of the script in a row. Steps 1 to 6 run on your machine in a throwaway worktree: check the Cloudflare login, check out the ref, install, type-check, test, build. Step 7 uploads with wrangler deploy. Step 8 checks the live Worker. The build writes dist/geenee for the Worker and dist/client for the Workspace page, and those are what step 7 uploads. A failure in steps 1 to 6 uploads nothing; a failure in step 8 means the build is already live.">
+    <text x="21" y="30" class="t-band">ON YOUR MACHINE, IN A THROWAWAY WORKTREE</text>
+    <text x="753" y="30" class="t-band">UPLOAD</text>
+    <text x="875" y="30" class="t-band">LIVE</text>
+    <line x1="742" y1="20" x2="742" y2="240" class="sep"/>
+    <line x1="864" y1="20" x2="864" y2="240" class="sep"/>
+
+    <g>
+      <rect x="21" y="48" width="104" height="66" class="bx"/>
+      <text x="31" y="66" class="t-n">1</text><text x="31" y="84" class="t-h">Logged in?</text><text x="31" y="101" class="t-s">wrangler whoami</text>
+      <rect x="143" y="48" width="104" height="66" class="bx"/>
+      <text x="153" y="66" class="t-n">2</text><text x="153" y="84" class="t-h">Check out</text><text x="153" y="101" class="t-s">git worktree, ref</text>
+      <rect x="265" y="48" width="104" height="66" class="bx"/>
+      <text x="275" y="66" class="t-n">3</text><text x="275" y="84" class="t-h">Install</text><text x="275" y="101" class="t-s">npm ci</text>
+      <rect x="387" y="48" width="104" height="66" class="bx"/>
+      <text x="397" y="66" class="t-n">4</text><text x="397" y="84" class="t-h">Type-check</text><text x="397" y="101" class="t-s">npm run typecheck</text>
+      <rect x="509" y="48" width="104" height="66" class="bx"/>
+      <text x="519" y="66" class="t-n">5</text><text x="519" y="84" class="t-h">Test</text><text x="519" y="101" class="t-s">npm run test:run</text>
+      <rect x="631" y="48" width="104" height="66" class="bx"/>
+      <text x="641" y="66" class="t-n">6</text><text x="641" y="84" class="t-h">Build</text><text x="641" y="101" class="t-s">vite build</text>
+      <rect x="753" y="48" width="104" height="66" class="bx-g"/>
+      <text x="763" y="66" class="t-n">7</text><text x="763" y="84" class="t-h">Deploy</text><text x="763" y="101" class="t-s">wrangler deploy</text>
+      <rect x="875" y="48" width="104" height="66" class="bx"/>
+      <text x="885" y="66" class="t-n">8</text><text x="885" y="84" class="t-h">Check</text><text x="885" y="101" class="t-s">curl the live URL</text>
+    </g>
+    <g class="w">
+      <line x1="125" y1="81" x2="141" y2="81" marker-end="url(#a)"/>
+      <line x1="247" y1="81" x2="263" y2="81" marker-end="url(#a)"/>
+      <line x1="369" y1="81" x2="385" y2="81" marker-end="url(#a)"/>
+      <line x1="491" y1="81" x2="507" y2="81" marker-end="url(#a)"/>
+      <line x1="613" y1="81" x2="629" y2="81" marker-end="url(#a)"/>
+      <line x1="735" y1="81" x2="751" y2="81" marker-end="url(#a)"/>
+      <line x1="857" y1="81" x2="873" y2="81" marker-end="url(#a)"/>
+      <line x1="683" y1="114" x2="683" y2="146" marker-end="url(#a)"/>
+      <line x1="805" y1="148" x2="805" y2="116" marker-end="url(#a)"/>
+    </g>
+
+    <rect x="631" y="148" width="226" height="62" class="bx"/>
+    <text x="641" y="168" class="t-m">dist/geenee/</text><text x="735" y="168" class="t-s">Worker code, settings</text>
+    <text x="641" y="186" class="t-m">dist/client/</text><text x="735" y="186" class="t-s">the Workspace page</text>
+    <text x="641" y="202" class="t-s">inside the worktree, not your repo</text>
+
+    <line x1="21" y1="134" x2="613" y2="134" class="sep"/>
+    <text x="21" y="156" class="t-s">A failure anywhere in steps 1 to 6 stops the script before anything is uploaded:</text>
+    <text x="21" y="172" class="t-s">the live Worker is left exactly as it was.</text>
+
+    <text x="875" y="140" class="t-s">Runs after the upload.</text>
+    <text x="875" y="156" class="t-s">A failure here means</text>
+    <text x="875" y="172" class="t-s">the new build is</text>
+    <text x="875" y="188" class="t-s">already live.</text>
+  </svg>
+  </div>
+  <figcaption><b>Figure 2. <code>scripts/deploy-test.sh</code>.</b> Everything before step 7 is local and harmless. Step 7 is the only one that changes Cloudflare.</figcaption>
+</figure>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th class="n"></th><th>Step</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td class="n">1</td><th>Logged in?</th><td><code>npx wrangler whoami</code>. If you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
+    <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. The ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not.</td></tr>
+    <tr><td class="n">3</td><th>Install</th><td><code>npm ci</code>: installs exactly what <code>package-lock.json</code> says, from scratch.</td></tr>
+    <tr><td class="n">4</td><th>Type-check</th><td><code>npm run typecheck</code>: regenerates the Worker’s types from <code>wrangler.toml</code>, then type-checks the Worker and tests, and the Workspace separately.</td></tr>
+    <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
+    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:view-dev</code> (or <code>deploy:dev</code> for web) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_BUILD</code> set to the build number from <code>scripts/build-number.sh</code>. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
+    <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
+    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must contain this commit’s short hash, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 44 means both Upstreams answered; this one is not a failure if it is lower. (c) <code>GET /viewers?room=0000000000</code>: the Juicebox Viewer address must be this stack’s Juicebox page, or the script fails. Check (c) needs the Juicebox Upstream to be up.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>When it succeeds, the last line names the build, the Connector URL, the number of tools, and the Juicebox Viewer page:</p>
+
+<pre>deployed build 24 (1c33760, 2026-10-22 10:41 EDT) of view to https://geenee-view-dev.3dg.io: …</pre>
+
+<h2 id="upload">What one upload contains</h2>
+
+<p><code>wrangler deploy</code> sends one bundle. Every item in it replaces the item of the previous version; none is merged with what was there.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>Item</th><th>Comes from</th><th>On Cloudflare</th></tr></thead>
+  <tbody>
+    <tr><th>Worker code</th><td><code>src/*.ts</code> and the MCP SDK, bundled into <code>dist/geenee/index.js</code></td><td>Replaced. The whole Worker, including the <code>Room</code> class.</td></tr>
+    <tr><th>Static assets</th><td><code>index.html</code>, <code>src/workspace/main.ts</code> and <code>workspace.css</code>, built into <code>dist/client/</code> with hashed file names such as <code>assets/index-BBYCN2yg.js</code></td><td>Replaced as a set. Wrangler uploads only the files Cloudflare does not already have, but afterwards only the new set is served. An old hashed file name stops resolving.</td></tr>
+    <tr><th>Settings (<code>vars</code>)</th><td><code>IGV_UPSTREAM_URL</code> and <code>JUICEBOX_UPSTREAM_URL</code> from the environment’s section of <code>wrangler.toml</code></td><td>Replaced. A change to an Upstream address takes effect only with a deploy.</td></tr>
+    <tr><th>Durable Object binding</th><td><code>ROOM</code> → class <code>Room</code></td><td>Unchanged in practice: the same binding each time.</td></tr>
+    <tr><th>Migration</th><td><code>[[migrations]] tag = "v1"</code>: “<code>Room</code> is a Durable Object class with SQLite storage”</td><td>Applied once, on the first deploy. Cloudflare remembers that <code>v1</code> ran, so later deploys skip it.</td></tr>
+    <tr><th>Route</th><td><code>geenee-view-dev.3dg.io</code> as a custom domain</td><td>Created, with its DNS record, on the first deploy. Kept after that.</td></tr>
+    <tr><th>Build number</th><td><code>VITE_BUILD</code>, written into both the Worker code and the Workspace JavaScript at build time</td><td>Replaced, because it is part of the code.</td></tr>
+    <tr><th>Logging</th><td><code>observability.logs.enabled = true</code></td><td>Kept on.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>What is <em>not</em> in the bundle: any Room’s stored data, any secret (geenee has none), any igv or Juicebox file, and any <code>*.workers.dev</code> or preview address (both are turned off, so each deployment has exactly one public address).</p>
+
+<p class="note">The top level of <code>wrangler.toml</code>, outside any <code>[env.…]</code>, is for <code>npm run dev</code> only and is never deployed. A deploy reads only <code>[env.dev]</code> or <code>[env.view-dev]</code>. Named environments do not inherit <code>vars</code> or Durable Object bindings, which is why the file repeats them.</p>
+
+<h2 id="moment">The moment it goes live</h2>
+
+<p>The new version takes all traffic within seconds of the upload. There is no gradual rollout. This is what each part sees:</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>Part</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><th>A Host calling <code>/mcp</code></th><td>The next request runs the new code. geenee keeps no state between MCP requests, so nothing is lost.</td></tr>
+    <tr><th>A Room Durable Object</th><td>Restarted on the new code. Its open WebSockets are closed. Its storage, the <code>lastUse</code> report, is untouched.</td></tr>
+    <tr><th>An open Workspace</th><td>Its socket to <code>/ws</code> drops. It rejoins after 1 s, then 2 s, and so on up to 5 s between tries. On rejoining it is told the last report again, and acts on it only if it had not seen it. <b>It is still the old Workspace code</b>: reload the tab to get the new page and the new build number.</td></tr>
+    <tr><th>The Viewers inside it</th><td>Not affected. Each is a frame loaded from its own Pages project and connected to its own Upstream, neither of which changed. The genome, the map and everything on screen stay as they were.</td></tr>
+    <tr><th>The model’s Room id</th><td>Still good. A Room is found by name (<code>idFromName(room)</code>), so the same id reaches the same Room and the same storage on the new version.</td></tr>
+    <tr><th>The Host’s view of geenee</th><td>geenee asks the Upstreams for their tools afresh on every request. But a Host usually reads geenee’s tool list and server instructions when a conversation connects, so after changing tool names, descriptions or <code>INSTRUCTIONS</code>, start a new conversation to be sure the model sees them.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="note">Durable Object storage is never rolled back. If you deploy an older version of the code, Rooms keep whatever the newer code stored. With today’s single <code>lastUse</code> value this does not matter.</p>
+
+<h2 id="two">web or view</h2>
+
+<p>geenee has two deployments because <code>juicebox-mcp</code> has two dev stacks, one per Juicebox page. They are two completely separate Workers. They share no code version, no Rooms and no storage. Only the argument to the script picks between them.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th></th><th><code>deploy-test.sh view</code></th><th><code>deploy-test.sh web</code></th></tr></thead>
+  <tbody>
+    <tr><th>Worker</th><td><code>geenee-view-dev</code></td><td><code>geenee-dev</code></td></tr>
+    <tr><th>wrangler.toml section</th><td><code>[env.view-dev]</code></td><td><code>[env.dev]</code></td></tr>
+    <tr><th>npm script</th><td><code>deploy:view-dev</code></td><td><code>deploy:dev</code></td></tr>
+    <tr><th>Connector URL</th><td><code>https://geenee-view-dev.3dg.io/mcp</code></td><td><code>https://geenee-dev.3dg.io/mcp</code></td></tr>
+    <tr><th>Workspace</th><td><code>https://geenee-view-dev.3dg.io/</code></td><td><code>https://geenee-dev.3dg.io/</code></td></tr>
+    <tr><th class="igv">igv Upstream</th><td colspan="2"><code>https://igv-bot-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
+    <tr><th class="jb">Juicebox Upstream</th><td><code>https://juicebot-view-mcp-dev.3dg.io/mcp</code></td><td><code>https://juicebot-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="jb">Juicebox Viewer page</th><td><code>https://juicebot-view-dev.pages.dev/</code> (juicebox-view)</td><td><code>https://juicebot-dev.3dg.io/</code> (juicebox-web)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The Viewer pages are not configured in geenee at all. The Workspace asks geenee (<code>/viewers</code>), geenee asks each Upstream for its Join link, and the Upstream’s own settings decide which page that is.</p>
+
+<h2 id="which">I changed X: what do I deploy?</h2>
+
+<p>Each repository deploys only itself, so a change is shipped by the script of the repository it lives in. A geenee deploy is needed only when geenee’s own code or settings change.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>What you changed</th><th>Run</th><th>Replaces</th></tr></thead>
+  <tbody>
+    <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-test.sh &lt;web|view&gt;</code></td><td>One geenee Worker, with its Workspace page</td></tr>
+    <tr><th>geenee: the Workspace page only</th><td>The same. Page and Worker always ship together.</td><td>The same</td></tr>
+    <tr><th>geenee: an Upstream address in <code>wrangler.toml</code></th><td>The same</td><td>The same</td></tr>
+    <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-bot-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
+    <tr><th class="igv">The igv Viewer page</th><td><code>igvjs-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>igv-bot-web-dev</code> Pages project. Reload the Workspace to load it.</td></tr>
+    <tr><th class="jb">The Juicebox tools (Juicebox Upstream)</th><td><code>juicebox-mcp/scripts/deploy-test.sh &lt;web|view&gt; &lt;page-repo&gt;</code></td><td>That stack’s Juicebox Worker <em>and</em> its Pages project. The script always redeploys the page too.</td></tr>
+    <tr><th class="jb">The Juicebox Viewer page only</th><td><code>WORKER=0 juicebox-mcp/scripts/deploy-test.sh &lt;web|view&gt; &lt;page-repo&gt;</code></td><td>That stack’s Juicebox Pages project only</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="note">The igv script deploys from your working copy, not from a throwaway checkout, so uncommitted igv changes <em>do</em> ship. The geenee and Juicebox scripts deploy from a commit.</p>
+
+<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. The <span class="jb">Juicebox</span> stacks are paired with geenee one to one: deploy Juicebox’s <code>view</code> stack to test with <code>geenee-view-dev</code>, and its <code>web</code> stack to test with <code>geenee-dev</code>.</p>
+
+<h2 id="live">Which build is live?</h2>
+
+<p>Every deploy is stamped with a build number: the commit count, the short hash, and the time of the build, for example <code>24 (1c33760, 2026-10-22 10:41 EDT)</code>. The count and hash say which code; the time says which deploy. You can read it in three places:</p>
+
+<ul>
+  <li><b>The Workspace</b> shows it at the right end of its tab bar, with the Connector URL. Remember that an open tab shows the build it was loaded with; reload to see the live one.</li>
+  <li><b>The Connector</b> gives it as its version in the reply to <code>initialize</code>:
+<pre>curl -s https://geenee-view-dev.3dg.io/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"me","version":"0"}}}'</pre></li>
+  <li><b>Cloudflare</b> lists the Worker’s versions, newest first: <code>npx wrangler deployments list --env view-dev</code>.</li>
+</ul>
+
+<h2 id="gotchas">Shortcuts and traps</h2>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>Situation</th><th>What to know</th></tr></thead>
+  <tbody>
+    <tr><th>You run <code>npm run deploy:view-dev</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. The build number then ends in <code>-dirty</code>. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
+    <tr><th>Step 8 fails</th><td>The new build is already live. A version mismatch usually means the upload did not go through; a Juicebox page mismatch usually means the Juicebox Upstream is down or is pointing at another page.</td></tr>
+    <tr><th>The tool count is below 44</th><td>An Upstream did not answer. geenee still works with the other one. Not a failure of the deploy.</td></tr>
+    <tr><th>You want to undo a deploy</th><td>Run the script again with the earlier commit: <code>scripts/deploy-test.sh view &lt;ref&gt;</code>. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env view-dev</code>), but redeploying a ref keeps git as the record of what is live.</td></tr>
+    <tr><th>Someone else deploys after you</th><td>The dev deployments are shared, and a deploy replaces the Worker for everyone. Agree who is testing.</td></tr>
+    <tr><th>You rename or remove the <code>Room</code> class</th><td>That needs a new <code>[[migrations]]</code> entry in <code>wrangler.toml</code>, or <code>wrangler deploy</code> refuses. Changing what is <em>inside</em> <code>Room</code> needs none.</td></tr>
+    <tr><th>First deploy on a new machine</th><td><code>npx wrangler login</code> with a login that can reach the account in <code>wrangler.toml</code>. There are no secrets to set.</td></tr>
+    <tr><th>The Workspace looks unchanged after a deploy</th><td>Reload the tab. The page’s files are fetched once, when it opens.</td></tr>
+    <tr><th>The model does not use a renamed tool or new instructions</th><td>Start a new conversation in the Host.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. How the parts talk to each other once deployed is in <a href="how-geenee-works.html">How geenee works</a>. The Juicebox side of deploying is covered in more depth by <code>docs/how-juicebot-deploys.html</code> in <code>juicebox-mcp</code>.</p>
+
+<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa.</p>
+
+</main>
+</body>
+</html>
