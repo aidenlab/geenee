@@ -13,7 +13,15 @@
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
-import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js'
+import {
+  CallToolRequestSchema,
+  ErrorCode,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  McpError,
+  ReadResourceRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js'
+import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { parseRoomId } from './roomId.ts'
@@ -130,7 +138,15 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in both Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
-    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {} }, instructions: INSTRUCTIONS })
+    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
+    // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
+    server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+      resources: [{ uri: CARD_URI, name: 'geenee card', mimeType: CARD_MIME_TYPE, _meta: CARD_META }],
+    }))
+    server.setRequestHandler(ReadResourceRequestSchema, async ({ params: { uri } }) => {
+      if (uri !== CARD_URI) throw new McpError(ErrorCode.InvalidParams, `Unknown resource: ${uri}`)
+      return { contents: [{ uri, mimeType: CARD_MIME_TYPE, text: CARD_HTML, _meta: CARD_META }] }
+    })
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       // An Upstream that cannot be reached leaves its tools out; the other's are still served.
       const lists = await Promise.all(
