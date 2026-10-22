@@ -50,6 +50,7 @@ describe('open_geenee', () => {
     expect(card.text).toContain('geenee should open in the panel on the right; if it does not, press Open geenee.')
     expect(card.text).not.toContain('<details') // the link and QR code are always shown, not tucked away
     expect(card.text).not.toContain('geenee room') // a Room id means nothing to a person
+    expect(card.text).toContain('$("link").onclick = open') // a plain link does nothing in the Card's sandbox
   })
 
   it('refuses a resource other than the Card', async () => {
@@ -70,6 +71,7 @@ describe('open_geenee', () => {
 
     expect(result.content[0].text).toContain('"geenee is opening beside the conversation"')
     expect(result.content[0].text).not.toContain('ask what to look at')
+    expect(result.content[0].text).not.toContain('use this link') // the Card shows the way in when the model cannot open geenee
   })
 
   it('opens a Room of its own each time it is called without a room', async () => {

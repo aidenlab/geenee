@@ -72,7 +72,8 @@ export const CARD_HTML = `<!DOCTYPE html>
     render();
   };
   app.onhostcontextchanged = render;
-  $("open").onclick = open;
+  // The link opens through the Host too: the Card's sandbox does not let a plain link open a window.
+  $("open").onclick = open; $("link").onclick = open;
   await app.connect();
   render();
 </script>
