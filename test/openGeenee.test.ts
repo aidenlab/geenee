@@ -48,6 +48,8 @@ describe('open_geenee', () => {
     expect(card.mimeType).toBe('text/html;profile=mcp-app')
     expect(card.text).toContain('<button id="open" hidden>Open geenee</button>')
     expect(card.text).toContain('geenee should open in the panel on the right; if it does not, press Open geenee.')
+    expect(card.text).not.toContain('<details') // the link and QR code are always shown, not tucked away
+    expect(card.text).not.toContain('geenee room') // a Room id means nothing to a person
   })
 
   it('refuses a resource other than the Card', async () => {

@@ -29,5 +29,5 @@ What ties one conversation to its Workspace and the two Viewers inside it, ident
 _Avoid_: Session, channel
 
 **Card**:
-What a Host shows in the conversation when geenee is opened: a short message and an Open geenee button, with the link, Room id and QR code tucked behind "Other ways to open". The way into the Workspace when the model cannot open it beside the conversation itself.
+What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the link, and a QR code of the link. The way into the Workspace when the model cannot open it beside the conversation itself.
 _Avoid_: Screen, view, widget
