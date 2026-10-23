@@ -9,7 +9,7 @@
  *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room id is malformed
- *   GET  /get     - Get geenee: what geenee is and how to add it to each Host
+ *   GET  /get - Get geenee: what geenee is and how to add it to each Host
  *
  * The Workspace page itself is a static asset, served beside this at /.
  */

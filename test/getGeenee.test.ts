@@ -4,10 +4,10 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee } from './connector.ts'
 
-const visit = (path: string, init?: RequestInit) => geenee().handle(new Request(`${GEENEE}${path}`, init))
+const visit = (path: string) => geenee().handle(new Request(`${GEENEE}${path}`))
 
 describe('the Get geenee page', () => {
-  it('is a page', async () => {
+  it('is served as a page at /get', async () => {
     const response = await visit('/get')
 
     expect(response.status).toBe(200)

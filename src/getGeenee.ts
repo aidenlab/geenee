@@ -1,8 +1,8 @@
 /**
  * Get geenee, the page at /get: what geenee is, and how to add it as a
  * Connector to each Host, with the Connector address ready to copy. In the
- * visual language of docs/how-geenee-works.html. Linked from the Hand-off, its
- * email, and the expired page.
+ * visual language of docs/how-geenee-works.html. For the Hand-off, its email,
+ * and the page of an expired Room to link to.
  */
 
 const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
@@ -61,7 +61,7 @@ footer { margin-top: 3rem; padding-top: 0.75rem; border-top: 1px solid var(--rul
 <main>
   <p class="brand">geenee</p>
   <h1>Get geenee</h1>
-  <p class="lede">Ask Claude or ChatGPT to show a genome or a Hi-C contact map, and watch it appear beside the conversation. geenee brings the igv genome browser and the Juicebox contact-map viewer to your chat as one Connector.</p>
+  <p class="lede">Ask Claude or ChatGPT to show a genome or a Hi-C contact map, and watch it appear beside the conversation. geenee brings the igv genome browser and the Juicebox contact-map viewer together as one Connector.</p>
 
   <p class="label" id="address-label">Connector address</p>
   <div class="address">
@@ -76,14 +76,14 @@ footer { margin-top: 3rem; padding-top: 0.75rem; border-top: 1px solid var(--rul
     <li>In a new conversation, say <q>open geenee</q>.</li>
   </ol>
 
-  <h2>ChatGPT</h2>
+  <h2>ChatGPT desktop</h2>
   <ol>
     <li>In ChatGPT desktop, in Codex mode, open <span class="ui">Settings → Plugins → Add → Add MCP server</span>.</li>
-    <li>Name it <span class="ui">geenee</span>, choose the type <span class="ui">Streamable HTTP</span>, and paste the Connector address as its URL. Leave everything else blank, and save.</li>
+    <li>Name it <span class="ui">geenee</span>, choose the type <span class="ui">Streamable HTTP</span>, and paste the Connector address as its URL. Leave everything else blank, and save. ChatGPT on the web has no place to add one.</li>
     <li>In a new conversation, say <q>open geenee</q>.</li>
   </ol>
 
-  <footer>Nothing to sign in to, nothing to install. geenee is a proof of concept from the Aiden Lab.</footer>
+  <footer>Nothing to sign in to. geenee is a proof of concept from the Aiden Lab.</footer>
 </main>
 <script>
   const copy = document.getElementById("copy");
