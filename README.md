@@ -25,6 +25,7 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 
 - `open_geenee` shows a **Card** in the conversation, an MCP App view (`ui://geenee/open`) copied from the Juicebox Upstream's: a short message, an **Open geenee** button, the link, and a QR code of it, all shown at once. The button is for when the model has not opened the Workspace beside the conversation. Hosts that do not render MCP Apps ignore it and show the text link.
 - The Card's text link and QR code carry the **Room link**, `/r/<Room id>`: shorter than the Workspace's `/?room=` link, so the QR code is less dense. The Worker serves the Workspace page at it, so the address bar keeps the short link; a malformed Room id gets a page saying so. The `/?room=` link still works, and the button and the model still use it.
+- **Get geenee**, at `/get`, is the page that tells a person what geenee is and how to add it as a Connector to Claude and to ChatGPT, with the Connector address of the deployment that serves it ready to copy.
 
 ChatGPT needs nothing of its own: it opens the Workspace from the same `open_geenee` result as Claude.
 
@@ -85,7 +86,7 @@ npm run typecheck
 npm run test:run   # the Connector, through its fetch handler, with stand-in Upstreams
 ```
 
-The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the two Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
+The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the two Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Get geenee page, which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
 
 The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Room's own logic (`src/workspaceChannel.ts`) over fake sockets. The Durable Object that wraps it (`src/room.ts`) and the Workspace page have no automated tests. They are checked by hand in a real Host, with the rest of each stage.
 
@@ -147,11 +148,12 @@ vitest.config.ts         The tests, kept apart from the Cloudflare plugin
 index.html               The Workspace page: the two tabs, each with its mark, and the two panels
 src/
   index.ts               Worker entry point
-  geenee.ts              Routes /mcp, /viewers, /connections and /ws; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached
+  geenee.ts              Routes /mcp, /viewers, /connections, /ws, /r/<Room id> and /get; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached
   servedTools.ts         The two Viewers, and the tools geenee serves for each: names, hidden tools, the room argument, rewriting, how each says it is connected
   upstream.ts            One Upstream as geenee reaches it: JSON-RPC over POST to its /mcp
   openGeenee.ts          The open_geenee tool
   instructions.ts        The server instructions
+  getGeenee.ts           The Get geenee page, at /get
   roomId.ts              Minting and recognising Room ids
   workspaceChannel.ts    What a Workspace is told, and what a Room does with a report
   room.ts                The Room Durable Object: the sockets of a Room's Workspaces

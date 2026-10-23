@@ -9,6 +9,7 @@
  *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room id is malformed
+ *   GET  /get     - Get geenee: what geenee is and how to add it to each Host
  *
  * The Workspace page itself is a static asset, served beside this at /.
  */
@@ -23,6 +24,7 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
+import { getGeeneePage } from './getGeenee.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
@@ -225,6 +227,9 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
       // The Workspace page itself, so that the address bar keeps the short link; the Workspace reads the Room id from it.
       if (parseRoomId(roomLink)) return workspacePage(request)
       return new Response(MALFORMED_ROOM_LINK_HTML, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+    }
+    if (url.pathname === '/get' && request.method === 'GET') {
+      return new Response(getGeeneePage(url.origin), { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
