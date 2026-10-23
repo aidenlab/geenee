@@ -51,6 +51,7 @@ export interface RoomRecord {
   expired(now: number): Promise<boolean>
   /** The Join link of each Viewer whose Upstream has given one for the Room. */
   joinLinks(): Promise<Partial<Record<ViewerKey, string>>>
+  /** Keeps `viewer`'s Join link for the Room, so that its Upstream is not asked again. */
   keepJoinLink(viewer: ViewerKey, link: string): Promise<void>
   /** Tells the Room's Workspaces that a tool call was for `viewer`. */
   viewerUsed(viewer: ViewerKey): Promise<void>
@@ -123,13 +124,13 @@ async function forward(
   name: string,
   args: Record<string, unknown>,
   room: string,
-  workspaces: RoomRecord,
+  record: RoomRecord,
 ): Promise<ToolResult | undefined> {
   const served = serveTools(target.viewer, await target.upstream.listTools())
   const called = served.tools.find(({ tool }) => tool.name === name)
   if (!called) return undefined
   // Alongside the call, so that the Viewer is in front while it redraws. A Workspace that is not told still has its tabs.
-  const told = workspaces.viewerUsed(target.viewer.prefix).catch((error) => {
+  const told = record.viewerUsed(target.viewer.prefix).catch((error) => {
     console.warn(`[mcp] ${name} | the Workspaces of Room ${room} could not be told:`, error)
   })
   const [result] = await Promise.all([callInRoom(target, called.upstreamName, args, room), told])

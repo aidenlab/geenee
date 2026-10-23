@@ -98,8 +98,8 @@ fi
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
 # And the Workspace should frame the juicebox-view page: the Upstream gives its page's
-# address in the Join link. Only a Room geenee opened has a Workspace (ADR 0003), so
-# open_geenee opens one first.
+# address in the Join link. A Room geenee never opened is as good as expired (ADR 0003),
+# so open_geenee opens one first.
 room="$(mcp '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"open_geenee","arguments":{}}}' \
   | grep -o '"room":"[0-9A-Z]*"' | head -1 | cut -d'"' -f4)"
 viewers="$(curl -fsS "$ADDRESS/viewers?room=$room")"
