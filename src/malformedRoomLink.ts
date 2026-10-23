@@ -3,7 +3,7 @@
  * what to do about it, in the visual language of docs/how-geenee-works.html.
  * Nothing from the address is shown, so the page cannot be made to say anything.
  */
-export const NO_SUCH_ROOM_HTML = `<!doctype html>
+export const MALFORMED_ROOM_LINK_HTML = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">

@@ -78,9 +78,9 @@ describe('open_geenee', () => {
     const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
 
     const card = read.result!.contents[0].text
-    expect(card).toContain('roomLink = sc?.roomUrl ?? link')
+    expect(card).toContain('roomLink = sc?.roomUrl ?? workspaceLink')
     expect(card).toContain('$("link").textContent = roomLink')
-    expect(card).toContain('$("open").onclick = (e) => open(e, link)')
+    expect(card).toContain('$("open").onclick = (e) => open(e, workspaceLink)')
   })
 
   it('has the model say only that geenee is opening', async () => {

@@ -24,9 +24,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { INSTRUCTIONS } from './instructions.ts'
-import { NO_SUCH_ROOM_HTML } from './noSuchRoom.ts'
+import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
-import { parseRoomId } from './roomId.ts'
+import { inRoomLinkPath, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
@@ -134,9 +134,6 @@ async function isConnected(target: Target, room: string): Promise<boolean> {
   }
 }
 
-/** The path of a Room link, `/r/<Room id>`, capturing whatever stands for the Room id. */
-const ROOM_LINK_PATH = /^\/r\/([^/]*)\/?$/
-
 export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
@@ -223,11 +220,11 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
       const connected = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await isConnected(target, room)]))
       return Response.json(Object.fromEntries(connected))
     }
-    const roomLink = url.pathname.match(ROOM_LINK_PATH)
-    if (roomLink && request.method === 'GET') {
+    const roomLink = inRoomLinkPath(url.pathname)
+    if (roomLink !== null && request.method === 'GET') {
       // The Workspace page itself, so that the address bar keeps the short link; the Workspace reads the Room id from it.
-      if (parseRoomId(roomLink[1])) return workspacePage(request)
-      return new Response(NO_SUCH_ROOM_HTML, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      if (parseRoomId(roomLink)) return workspacePage(request)
+      return new Response(MALFORMED_ROOM_LINK_HTML, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')

@@ -5,7 +5,7 @@
  */
 import { TOOL_META } from './card.ts'
 import { qrPng } from './qrPng.ts'
-import { mintRoomId } from './roomId.ts'
+import { mintRoomId, roomLinkPath } from './roomId.ts'
 import { OPEN_GEENEE } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
 
@@ -37,15 +37,15 @@ function workspaceLinkFor(origin: string, room: string): string {
 
 /** The Room link: the short link that brings anyone into a Room, shorter than the Workspace's and so a less dense QR code. */
 function roomLinkFor(origin: string, room: string): string {
-  return new URL(`/r/${room}`, origin).toString()
+  return new URL(roomLinkPath(room), origin).toString()
 }
 
 /** Opens geenee in `room`, or in a new Room when none is given. */
 export function openGeenee(origin: string, room: string = mintRoomId()): ToolResult {
-  const link = workspaceLinkFor(origin, room)
+  const workspaceLink = workspaceLinkFor(origin, room)
   const roomLink = roomLinkFor(origin, room)
   // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
-  const structuredContent: Record<string, unknown> = { room, workspaceUrl: link, roomUrl: roomLink }
+  const structuredContent: Record<string, unknown> = { room, workspaceUrl: workspaceLink, roomUrl: roomLink }
   try {
     structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
   } catch (error) {
@@ -58,9 +58,9 @@ export function openGeenee(origin: string, room: string = mintRoomId()): ToolRes
     content: [
       {
         type: 'text',
-        text: `geenee link:\n${link}\n\nRoom id: ${room}. Pass it as room on every later geenee tool call in this conversation, for igv and Juicebox tools alike.\n\nNext step: if you have a browser that shows pages inside this app, beside the conversation, open this link in it now so geenee shows there. Never use a tool that drives the user's own web browser, and if there is no in-app browser do not attempt to open the link at all. If you opened it, reply in one short sentence: "geenee is opening beside the conversation". If you have no in-app browser or opening failed, say nothing about it, nor about the button or the link: the Card already shows the user how to open geenee. If the user asked to load something, do it next; otherwise say nothing more. Do not repeat the Room id or a QR code in your reply.`,
+        text: `geenee link:\n${workspaceLink}\n\nRoom id: ${room}. Pass it as room on every later geenee tool call in this conversation, for igv and Juicebox tools alike.\n\nNext step: if you have a browser that shows pages inside this app, beside the conversation, open this link in it now so geenee shows there. Never use a tool that drives the user's own web browser, and if there is no in-app browser do not attempt to open the link at all. If you opened it, reply in one short sentence: "geenee is opening beside the conversation". If you have no in-app browser or opening failed, say nothing about it, nor about the button or the link: the Card already shows the user how to open geenee. If the user asked to load something, do it next; otherwise say nothing more. Do not repeat the Room id or a QR code in your reply.`,
       },
-      { type: 'resource_link', uri: link, name: 'Open geenee', description: 'The link that opens geenee', mimeType: 'text/html' },
+      { type: 'resource_link', uri: workspaceLink, name: 'Open geenee', description: 'The link that opens geenee', mimeType: 'text/html' },
     ],
     structuredContent,
   }

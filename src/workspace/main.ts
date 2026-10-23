@@ -5,6 +5,7 @@
  * a person picks the other with a tab. Each tab carries a mark showing whether
  * its Viewer is connected.
  */
+import { inRoomLinkPath, parseRoomId } from '../roomId.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
 
@@ -101,9 +102,13 @@ function followConversation(room: string): void {
   join()
 }
 
-/** The Room id this page was opened with: from a Room link, /r/<Room id>, or the older /?room=<Room id>. */
+/**
+ * The Room id this page was opened with: from a Room link, /r/<Room id>, or the
+ * older /?room=<Room id>. A phone gets the Workspace from a Room link too, until
+ * the Hand-off (#23) takes its place there.
+ */
 function roomOfThisPage(): string | null {
-  return location.pathname.match(/^\/r\/([^/]+)/)?.[1] ?? new URLSearchParams(location.search).get('room')
+  return parseRoomId(inRoomLinkPath(location.pathname) ?? new URLSearchParams(location.search).get('room') ?? '')
 }
 
 async function open(): Promise<void> {
