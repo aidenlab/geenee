@@ -47,14 +47,22 @@ esac
 if (( $# > 1 )); then usage >&2; exit 2; fi
 REF="${1:-HEAD}"
 
+# Every run ends by naming the Connector URL, whether it deployed or not, so it can be copied into a Host.
+WORK=""
+finish() {
+  status=$?
+  if [[ -n "$WORK" ]]; then
+    git -C "$REPO_ROOT" worktree remove --force "$WORK/geenee" 2>/dev/null || true
+    rm -rf "$WORK"
+  fi
+  echo
+  if (( status == 0 )); then echo "Connector URL: $ADDRESS/mcp"; else echo "Connector URL: $ADDRESS/mcp (this run failed; see above)"; fi
+}
+trap finish EXIT
+
 (cd "$REPO_ROOT" && npx wrangler whoami >/dev/null 2>&1) || { echo "not logged in to Cloudflare: run 'npx wrangler login' first" >&2; exit 1; }
 
 WORK="$(mktemp -d)"
-cleanup() {
-  git -C "$REPO_ROOT" worktree remove --force "$WORK/geenee" 2>/dev/null || true
-  rm -rf "$WORK"
-}
-trap cleanup EXIT
 
 git -C "$REPO_ROOT" worktree add -q --detach "$WORK/geenee" "$REF"
 echo "geenee $(git -C "$WORK/geenee" rev-parse --short HEAD) at $REF to $DEPLOYMENT"
@@ -97,4 +105,4 @@ if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
   exit 1
 fi
 
-echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector is $ADDRESS/mcp and lists $listed tools (44 with both Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"
+echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (44 with both Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"
