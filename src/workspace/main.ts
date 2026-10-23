@@ -101,10 +101,15 @@ function followConversation(room: string): void {
   join()
 }
 
+/** The Room id this page was opened with: from a Room link, /r/<Room id>, or the older /?room=<Room id>. */
+function roomOfThisPage(): string | null {
+  return location.pathname.match(/^\/r\/([^/]+)/)?.[1] ?? new URLSearchParams(location.search).get('room')
+}
+
 async function open(): Promise<void> {
   const viewers = Object.keys(VIEWERS) as ViewerKey[]
   for (const viewer of viewers) mark(viewer, false)
-  const room = new URLSearchParams(location.search).get('room')
+  const room = roomOfThisPage()
   if (!room) {
     for (const viewer of viewers) say(viewer, 'geenee is opened from a conversation: ask for "open geenee" there.')
     return

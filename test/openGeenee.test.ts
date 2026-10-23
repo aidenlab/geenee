@@ -2,6 +2,7 @@
  * open_geenee: geenee's own tool, which opens the Workspace.
  */
 import { describe, expect, it } from 'vitest'
+import { qrPng } from '../src/qrPng.ts'
 import { GEENEE, geenee, type Tool } from './connector.ts'
 
 const ROOM_ID = /^[0-9A-HJKMNP-TV-Z]{10}$/ // Crockford base32: no I, L, O, U
@@ -50,7 +51,7 @@ describe('open_geenee', () => {
     expect(card.text).toContain('geenee should open in the panel on the right; if it does not, press Open geenee.')
     expect(card.text).not.toContain('<details') // the link and QR code are always shown, not tucked away
     expect(card.text).not.toContain('geenee room') // a Room id means nothing to a person
-    expect(card.text).toContain('$("link").onclick = open') // a plain link does nothing in the Card's sandbox
+    expect(card.text).toContain('$("link").onclick = (e) => open(e, roomLink)') // a plain link does nothing in the Card's sandbox
   })
 
   it('refuses a resource other than the Card', async () => {
@@ -59,11 +60,27 @@ describe('open_geenee', () => {
     expect(error?.message).toContain('Unknown resource')
   })
 
-  it('gives the Card a QR code of the link, as a PNG', async () => {
-    const result = await geenee().callTool('open_geenee')
+  it('gives the Card the Room link, the short link that brings anyone into the Room', async () => {
+    const result = await geenee().callTool('open_geenee', { room: '7ZQH4M2K9X' })
+
+    expect(result.structuredContent!.roomUrl).toBe(`${GEENEE}/r/7ZQH4M2K9X`)
+  })
+
+  it('gives the Card a QR code of the Room link, as a PNG', async () => {
+    const result = await geenee().callTool('open_geenee', { room: '7ZQH4M2K9X' })
 
     const png = Uint8Array.from(atob(result.structuredContent!.qrPng as string), (c) => c.charCodeAt(0))
     expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
+    expect(result.structuredContent!.qrPng).toBe(qrPng(`${GEENEE}/r/7ZQH4M2K9X`))
+  })
+
+  it('has the Card show the Room link as its text link, with the button opening geenee as before', async () => {
+    const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
+
+    const card = read.result!.contents[0].text
+    expect(card).toContain('roomLink = sc?.roomUrl ?? link')
+    expect(card).toContain('$("link").textContent = roomLink')
+    expect(card).toContain('$("open").onclick = (e) => open(e, link)')
   })
 
   it('has the model say only that geenee is opening', async () => {

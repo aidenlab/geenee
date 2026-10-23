@@ -35,12 +35,19 @@ function workspaceLinkFor(origin: string, room: string): string {
   return link.toString()
 }
 
+/** The Room link: the short link that brings anyone into a Room, shorter than the Workspace's and so a less dense QR code. */
+function roomLinkFor(origin: string, room: string): string {
+  return new URL(`/r/${room}`, origin).toString()
+}
+
 /** Opens geenee in `room`, or in a new Room when none is given. */
 export function openGeenee(origin: string, room: string = mintRoomId()): ToolResult {
   const link = workspaceLinkFor(origin, room)
-  const structuredContent: Record<string, unknown> = { room, workspaceUrl: link }
+  const roomLink = roomLinkFor(origin, room)
+  // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
+  const structuredContent: Record<string, unknown> = { room, workspaceUrl: link, roomUrl: roomLink }
   try {
-    structuredContent.qrPng = qrPng(link) // drawn by the Card
+    structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
   } catch (error) {
     console.warn('[open_geenee] no QR code for the Card:', error)
   }

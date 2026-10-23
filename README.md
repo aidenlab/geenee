@@ -24,6 +24,7 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 - Each tab carries a **mark**, filled when its Viewer is connected and hollow when it is not. The Workspace asks the Worker every few seconds (`GET /connections?room=`), which asks each Upstream with a tool that changes nothing in the Viewer: `read_session_summary` for igv, which answers with an error when no Viewer is in the Room, and `get_server_status` for Juicebox, which says `Browser Connected: Yes` or `No`. Neither Upstream has more of a contract for this than those replies. A Viewer whose Upstream cannot be reached shows as not connected.
 
 - `open_geenee` shows a **Card** in the conversation, an MCP App view (`ui://geenee/open`) copied from the Juicebox Upstream's: a short message, an **Open geenee** button, the link, and a QR code of it, all shown at once. The button is for when the model has not opened the Workspace beside the conversation. Hosts that do not render MCP Apps ignore it and show the text link.
+- The Card's text link and QR code carry the **Room link**, `/r/<Room id>`: shorter than the Workspace's `/?room=` link, so the QR code is less dense. The Worker serves the Workspace page at it, so the address bar keeps the short link; a malformed Room id gets a page saying so. The `/?room=` link still works, and the button and the model still use it.
 
 ChatGPT needs nothing of its own: it opens the Workspace from the same `open_geenee` result as Claude.
 

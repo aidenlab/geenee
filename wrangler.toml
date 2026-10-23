@@ -9,6 +9,12 @@ compatibility_flags = ["nodejs_compat"]
 # to several accounts does not have to choose.
 account_id = "1eadb18bb8557fd1bd06b1d0310a902e"
 
+# The Workspace page (index.html, built by Vite) is a static asset. The binding
+# lets the Worker serve it at a Room link, /r/<Room id>, too. Named environments
+# inherit it.
+[assets]
+binding = "ASSETS"
+
 # One Durable Object per Room, holding geenee's channel to the Workspaces of the Room.
 [[durable_objects.bindings]]
 name = "ROOM"
