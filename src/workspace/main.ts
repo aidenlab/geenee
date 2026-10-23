@@ -5,7 +5,8 @@
  * a person picks the other with a tab. Each tab carries a mark showing whether
  * its Viewer is connected.
  */
-import { inRoomLinkPath, parseRoomId } from '../roomId.ts'
+import { handOffPath, inRoomLinkPath, parseRoomId } from '../roomId.ts'
+import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
 
@@ -104,11 +105,22 @@ function followConversation(room: string): void {
 
 /**
  * The Room id this page was opened with: from a Room link, /r/<Room id>, or the
- * older /?room=<Room id>. A phone gets the Workspace from a Room link too, until
- * the Hand-off (#23) takes its place there.
+ * older /?room=<Room id>.
  */
 function roomOfThisPage(): string | null {
   return parseRoomId(inRoomLinkPath(location.pathname) ?? new URLSearchParams(location.search).get('room') ?? '')
+}
+
+/**
+ * A Room link on a phone goes on to the Hand-off, in place of this page in the
+ * history. The /?room= link never does, so the Hand-off's "Open here anyway"
+ * can use it.
+ */
+function handOffOnPhone(): boolean {
+  const room = parseRoomId(inRoomLinkPath(location.pathname) ?? '')
+  if (!room || !onPhone()) return false
+  location.replace(handOffPath(room))
+  return true
 }
 
 async function open(): Promise<void> {
@@ -153,9 +165,11 @@ function showBuild(): void {
   document.body.append(label)
 }
 
-for (const tab of document.querySelectorAll<HTMLElement>('.tab')) {
-  tab.addEventListener('click', () => show(tab.dataset.viewer as ViewerKey))
+if (!handOffOnPhone()) {
+  for (const tab of document.querySelectorAll<HTMLElement>('.tab')) {
+    tab.addEventListener('click', () => show(tab.dataset.viewer as ViewerKey))
+  }
+  show('igv')
+  showBuild()
+  void open()
 }
-show('igv')
-showBuild()
-void open()
