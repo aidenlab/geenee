@@ -9,6 +9,7 @@
  *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room id is malformed
+ *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer
  *   GET  /get - Get geenee: what geenee is and how to add it to each Host
  *
  * The Workspace page itself is a static asset, served beside this at /.
@@ -25,10 +26,12 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { getGeeneePage } from './getGeenee.ts'
+import { handOffPage } from './handOff.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
-import { inRoomLinkPath, parseRoomId } from './roomId.ts'
+import { pageResponse } from './page.ts'
+import { inHandOffPath, inRoomLinkPath, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
@@ -226,10 +229,15 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
     if (roomLink !== null && request.method === 'GET') {
       // The Workspace page itself, so that the address bar keeps the short link; the Workspace reads the Room id from it.
       if (parseRoomId(roomLink)) return workspacePage(request)
-      return new Response(MALFORMED_ROOM_LINK_HTML, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
+    }
+    const handOff = inHandOffPath(url.pathname)
+    if (handOff !== null && request.method === 'GET') {
+      const room = parseRoomId(handOff)
+      return room ? pageResponse(handOffPage(url.origin, room)) : pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
     }
     if (url.pathname === '/get' && request.method === 'GET') {
-      return new Response(getGeeneePage(url.origin), { headers: { 'Content-Type': 'text/html; charset=utf-8' } })
+      return pageResponse(getGeeneePage(url.origin))
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')

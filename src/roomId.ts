@@ -14,6 +14,16 @@ export function roomLinkPath(room: string): string {
   return `/r/${room}`
 }
 
+/** The path of a Room's Hand-off, where a Room link opened on a phone goes. */
+export function handOffPath(room: string): string {
+  return `/h/${room}`
+}
+
+/** Whatever stands for the Room id in a Hand-off's path, `/h/<Room id>`, unchecked; null when `pathname` is not a Hand-off's. */
+export function inHandOffPath(pathname: string): string | null {
+  return pathname.match(/^\/h\/([^/]*)\/?$/)?.[1] ?? null
+}
+
 /** Whatever stands for the Room id in a Room link's path, `/r/<Room id>`, unchecked; null when `pathname` is not a Room link's. */
 export function inRoomLinkPath(pathname: string): string | null {
   return pathname.match(/^\/r\/([^/]*)\/?$/)?.[1] ?? null
