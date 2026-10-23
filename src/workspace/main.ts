@@ -5,7 +5,7 @@
  * a person picks the other with a tab. Each tab carries a mark showing whether
  * its Viewer is connected.
  */
-import { handOffPath, inRoomLinkPath, parseRoomId } from '../roomId.ts'
+import { handOffPath, inRoomLinkPath, parseRoomId, roomLinkPath } from '../roomId.ts'
 import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
@@ -14,6 +14,17 @@ const VIEWERS: Record<ViewerKey, string> = { igv: 'igv', juicebox: 'Juicebox' }
 
 /** How often the Workspace asks whether each Viewer is connected. */
 const CONNECTIONS_EVERY_MS = 4000
+
+/** What geenee answers about a Room that has expired. */
+const GONE = 410
+
+/**
+ * Leaves for the Room link, in place of this page in the history, where geenee
+ * shows that the Room has expired (ADR 0003).
+ */
+function showExpired(room: string): void {
+  location.replace(roomLinkPath(room))
+}
 
 /** What GET /viewers answers: each Viewer's Join link for the Room, null when its Upstream gave none. */
 type JoinLinks = Record<ViewerKey, string | null>
@@ -62,6 +73,7 @@ async function watchConnections(room: string): Promise<void> {
     // A Workspace nobody is looking at keeps its marks as they were.
     if (document.hidden) return
     const response = await fetch(`/connections?room=${encodeURIComponent(room)}`)
+    if (response.status === GONE) return showExpired(room)
     if (!response.ok) throw new Error(`/connections answered ${response.status}`)
     connections = await response.json()
   } catch (error) {
@@ -131,10 +143,10 @@ async function open(): Promise<void> {
     for (const viewer of viewers) say(viewer, 'geenee is opened from a conversation: ask for "open geenee" there.')
     return
   }
-  followConversation(room)
   let links: JoinLinks
   try {
     const response = await fetch(`/viewers?room=${encodeURIComponent(room)}`)
+    if (response.status === GONE) return showExpired(room)
     if (!response.ok) throw new Error(`/viewers answered ${response.status}`)
     links = await response.json()
   } catch (error) {
@@ -142,6 +154,7 @@ async function open(): Promise<void> {
     for (const viewer of viewers) say(viewer, 'geenee could not open this Room. Ask for "open geenee" again in the conversation.')
     return
   }
+  followConversation(room)
   for (const viewer of viewers) {
     const joinLink = links[viewer]
     if (joinLink) frame(viewer, joinLink)

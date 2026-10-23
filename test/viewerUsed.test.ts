@@ -10,7 +10,7 @@ const OTHER_ROOM = '3K9XQ7ZH4M'
 
 describe('a tool call that is forwarded', () => {
   it('is reported to the Workspace of its Room, for the Viewer whose tool it is', async () => {
-    const { callTool, openWorkspace } = geenee()
+    const { callTool, openWorkspace } = geenee({ opened: [ROOM, OTHER_ROOM] })
     const workspace = await openWorkspace(ROOM)
 
     await callTool('juicebox_zoom_in', { room: ROOM })
@@ -23,7 +23,7 @@ describe('a tool call that is forwarded', () => {
   })
 
   it('is reported for a tool that geenee serves under its own name', async () => {
-    const { callTool, openWorkspace } = geenee()
+    const { callTool, openWorkspace } = geenee({ opened: [ROOM, OTHER_ROOM] })
     const workspace = await openWorkspace(ROOM)
 
     await callTool('juicebox_help', { room: ROOM })
@@ -32,7 +32,7 @@ describe('a tool call that is forwarded', () => {
   })
 
   it('reaches every Workspace of its Room, and none of another Room', async () => {
-    const { callTool, openWorkspace } = geenee()
+    const { callTool, openWorkspace } = geenee({ opened: [ROOM, OTHER_ROOM] })
     const first = await openWorkspace(ROOM)
     const second = await openWorkspace(ROOM)
     const elsewhere = await openWorkspace(OTHER_ROOM)
@@ -45,7 +45,7 @@ describe('a tool call that is forwarded', () => {
   })
 
   it('is reported whatever the Upstream answers, an error included', async () => {
-    const { callTool, openWorkspace, igv } = geenee()
+    const { callTool, openWorkspace, igv } = geenee({ opened: [ROOM, OTHER_ROOM] })
     igv.reply = () => ({ content: [{ type: 'text', text: `Error: no Viewer is in Room ${ROOM}.` }], isError: true })
     const workspace = await openWorkspace(ROOM)
 
@@ -55,7 +55,7 @@ describe('a tool call that is forwarded', () => {
   })
 
   it('is still forwarded, and answered, when its Room cannot be told', async () => {
-    const { callTool, rooms, igv } = geenee()
+    const { callTool, rooms, igv } = geenee({ opened: [ROOM, OTHER_ROOM] })
     rooms.unreachable = true
 
     const result = await callTool('igv_zoom_in', { room: ROOM })
@@ -67,7 +67,7 @@ describe('a tool call that is forwarded', () => {
 
 describe('a Workspace that joins its Room after a tool call', () => {
   it('is told the Viewer last used, and nothing in a Room where none was', async () => {
-    const { callTool, openWorkspace } = geenee()
+    const { callTool, openWorkspace } = geenee({ opened: [ROOM, OTHER_ROOM] })
     await callTool('igv_zoom_in', { room: ROOM })
     await callTool('juicebox_zoom_in', { room: ROOM })
 
@@ -81,7 +81,7 @@ describe('a Workspace that joins its Room after a tool call', () => {
 
 describe('a call that is not forwarded', () => {
   it('is reported to no Workspace', async () => {
-    const { callTool, rpc, openWorkspace, igv } = geenee()
+    const { callTool, rpc, openWorkspace, igv } = geenee({ opened: [ROOM, OTHER_ROOM] })
     const workspace = await openWorkspace(ROOM)
 
     await callTool('open_geenee', { room: ROOM })

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee, WORKSPACE_PAGE } from './connector.ts'
 
-const visit = (path: string) => geenee().handle(new Request(`${GEENEE}${path}`))
+const visit = (path: string) => geenee({ opened: ['7ZQH4M2K9X'] }).handle(new Request(`${GEENEE}${path}`))
 
 describe('a Room link', () => {
   it('opens the Workspace, at the short link itself', async () => {

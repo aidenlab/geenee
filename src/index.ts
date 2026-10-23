@@ -18,10 +18,19 @@ export default {
       juiceboxUpstream: env.JUICEBOX_UPSTREAM_URL,
       // Each Upstream is a Worker on a custom domain, which a Worker of the same zone may fetch.
       fetch: (input, init) => fetch(input, init),
-      channelTo: (room) => {
+      roomRecord: (room) => {
         const stub = env.ROOM.get(env.ROOM.idFromName(room))
-        return { viewerUsed: (viewer) => stub.viewerUsed(viewer), connect: (upgrade) => stub.fetch(upgrade) }
+        return {
+          start: (now) => stub.start(now),
+          use: (now) => stub.use(now),
+          expired: (now) => stub.expired(now),
+          joinLinks: () => stub.joinLinks(),
+          keepJoinLink: (viewer, link) => stub.keepJoinLink(viewer, link),
+          viewerUsed: (viewer) => stub.viewerUsed(viewer),
+          connect: (upgrade) => stub.fetch(upgrade),
+        }
       },
+      now: Date.now,
       workspacePage: (request) => env.ASSETS.fetch(new URL('/', request.url)),
     })
     return geenee(request)

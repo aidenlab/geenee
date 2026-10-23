@@ -8,7 +8,7 @@ const ROOM = '7ZQH4M2K9X'
 
 describe('a call to an igv tool', () => {
   it('reaches the igv Upstream under its own name, with the Room id as its room argument', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
 
     const result = await callTool('igv_go_to_locus', { locus: 'chr8:127,000,000-128,000,000', room: ROOM })
 
@@ -22,7 +22,7 @@ describe('a call to an igv tool', () => {
 
 describe('a call to a Juicebox tool', () => {
   it('reaches the Juicebox Upstream under its own name, with the Room id as its MCP session and not as an argument', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
 
     await callTool('juicebox_zoom_in', { panel: 1, room: ROOM })
 
@@ -31,7 +31,7 @@ describe('a call to a Juicebox tool', () => {
   })
 
   it('reaches the Upstream under the same name when geenee serves that name unchanged', async () => {
-    const { callTool, juicebox } = geenee()
+    const { callTool, juicebox } = geenee({ opened: [ROOM] })
 
     await callTool('juicebox_help', { room: ROOM })
 
@@ -41,7 +41,7 @@ describe('a call to a Juicebox tool', () => {
 
 describe('a reply from an Upstream', () => {
   it('names tools by the names geenee serves', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
     igv.reply = () => ({
       content: [{ type: 'text', text: 'Error: no track is named "CTCF". Call read_session_summary, or load it with load_tracks.' }],
       isError: true,
@@ -64,7 +64,7 @@ describe('a reply from an Upstream', () => {
   })
 
   it("passes on an Upstream's refusal of a call in the Upstream's words, naming tools as geenee serves them", async () => {
-    const { callTool, igv } = geenee()
+    const { callTool, igv } = geenee({ opened: [ROOM] })
     igv.refusal = 'Invalid arguments for tool load_tracks: tracks is required'
 
     const result = await callTool('igv_load_tracks', { room: ROOM })
@@ -76,7 +76,7 @@ describe('a reply from an Upstream', () => {
   })
 
   it('keeps a link whose address happens to hold a tool name', async () => {
-    const { callTool, igv } = geenee()
+    const { callTool, igv } = geenee({ opened: [ROOM] })
     const text = 'Shareable URL:\nhttps://igv.org/app/?file=https://example.org/zoom_in/load_tracks.bw'
     igv.reply = () => ({ content: [{ type: 'text', text }] })
 
@@ -88,7 +88,7 @@ describe('a reply from an Upstream', () => {
 
 describe('a call the Connector does not forward', () => {
   it('refuses a tool it does not serve, hidden ones included', async () => {
-    const { rpc, igv, juicebox } = geenee()
+    const { rpc, igv, juicebox } = geenee({ opened: [ROOM] })
 
     for (const name of ['igv_open_viewer', 'juicebox_get_juicebox_url', 'juicebox_join_room', 'zoom_in', 'igv_no_such_tool']) {
       const { result, error } = await rpc('tools/call', { name, arguments: { room: ROOM } })
@@ -100,7 +100,7 @@ describe('a call the Connector does not forward', () => {
   })
 
   it('refuses a call that names no Room, for either Viewer, and says how to get one', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
 
     for (const [name, args] of [['igv_zoom_in', {}], ['juicebox_zoom_in', { room: '' }]] as const) {
       const result = await callTool(name, args)
@@ -114,7 +114,7 @@ describe('a call the Connector does not forward', () => {
   })
 
   it('refuses a room that is not a Room id, for either Viewer', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
 
     for (const name of ['igv_zoom_in', 'juicebox_zoom_in']) {
       const result = await callTool(name, { room: 'my-room' })
@@ -126,7 +126,7 @@ describe('a call the Connector does not forward', () => {
   })
 
   it('takes a Room id in lower case or with spaces around it', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
 
     await callTool('igv_zoom_in', { room: ' 7zqh4m2k9x ' })
     await callTool('juicebox_zoom_in', { room: ' 7zqh4m2k9x ' })

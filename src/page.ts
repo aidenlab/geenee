@@ -1,6 +1,6 @@
 /**
- * What geenee's own small pages share (the malformed Room link, Get geenee, the
- * Hand-off): the visual language of docs/how-geenee-works.html, in light and
+ * What geenee's own small pages share (the malformed Room link, the expired
+ * Room, Get geenee, the Hand-off): the visual language of docs/how-geenee-works.html, in light and
  * dark, and a Copy button.
  */
 

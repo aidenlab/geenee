@@ -27,7 +27,7 @@ function juiceboxStatus(connected: 'Yes' | 'No') {
 
 /** A geenee whose Upstreams answer for a Room with each Viewer connected or not. */
 function viewers(connected: { igv: boolean; juicebox: boolean }) {
-  const connector = geenee()
+  const connector = geenee({ opened: [ROOM] })
   connector.igv.reply = () => (connected.igv ? IGV_CONNECTED : IGV_NOT_CONNECTED)
   connector.juicebox.reply = () => juiceboxStatus(connected.juicebox ? 'Yes' : 'No')
   return connector
@@ -88,7 +88,7 @@ describe('GET /connections', () => {
 
 describe('GET /ws', () => {
   it('refuses a room that is not a Room id', async () => {
-    const { handle } = geenee()
+    const { handle } = geenee({ opened: [ROOM] })
 
     const response = await handle(new Request(`${GEENEE}/ws?room=my-room`, { headers: { Upgrade: 'websocket' } }))
 

@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee } from './connector.ts'
 
-const visit = (path: string) => geenee().handle(new Request(`${GEENEE}${path}`))
+const visit = (path: string) => geenee({ opened: ['7ZQH4M2K9X'] }).handle(new Request(`${GEENEE}${path}`))
 const handOff = async (room = '7ZQH4M2K9X') => (await visit(`/h/${room}`)).text()
 
 describe('the Hand-off', () => {

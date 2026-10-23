@@ -24,14 +24,27 @@ export interface ToolResult {
   isError?: boolean
 }
 
-export function geenee() {
+/** A clock that stands still until it is moved on. */
+function standInClock() {
+  let now = Date.parse('2026-10-23T09:00:00Z')
+  return {
+    now: () => now,
+    advance: (ms: number) => void (now += ms),
+  }
+}
+
+/** A geenee whose Upstreams, Rooms and clock are stand-ins. `opened` are Rooms open_geenee opened just before. */
+export function geenee({ opened = [] }: { opened?: string[] } = {}) {
   const upstreams = standInUpstreams()
   const rooms = standInRooms()
+  const clock = standInClock()
+  for (const room of opened) rooms.start(room, clock.now())
   const handle = createGeenee({
     igvUpstream: IGV_UPSTREAM,
     juiceboxUpstream: JUICEBOX_UPSTREAM,
     fetch: upstreams.fetch,
-    channelTo: (room) => rooms.channelTo(room),
+    roomRecord: (room) => rooms.roomRecord(room),
+    now: clock.now,
     workspacePage: async () => new Response(WORKSPACE_PAGE, { headers: { 'Content-Type': 'text/html' } }),
   })
 
@@ -50,6 +63,7 @@ export function geenee() {
   return {
     ...upstreams,
     rooms,
+    clock,
     openWorkspace: (room: string) => rooms.openWorkspace(room),
     handle,
     rpc,

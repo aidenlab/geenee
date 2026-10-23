@@ -19,7 +19,7 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 - The **server instructions** tell the model what each Viewer is for, and how to treat a request that fits both ("zoom in", "go to MYC"): use the Viewer the conversation last used, and ask only when neither has been used. The server cannot see the conversation, so choosing a Viewer is the model's work.
 - When one Upstream **cannot be reached**, the other's tools are still listed and forwarded. A call to a tool of the missing one gets an error reply that says so. A call an Upstream refuses, such as one with arguments it does not accept, is passed back in the Upstream's words.
 - The **Workspace** is the one geenee page a person opens beside the conversation (ADR 0002). It frames the igv Viewer and the Juicebox Viewer, loads both when it opens, and shows one at a time. Each Viewer is still served from its own address and talks to its own Upstream as before.
-- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room and passes on the Join link in its reply. So the two Upstream addresses are geenee's only configuration.
+- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room once, keeps the Join link in its reply, and passes it on. So the two Upstream addresses are geenee's only configuration.
 - The Workspace **brings forward the Viewer a tool was last called for**. Each tool call the Connector forwards is reported to the Room's Durable Object, alongside the call, and the Room tells every Workspace joined to it over a WebSocket (`/ws?room=`). Any forwarded tool counts, a search included; `open_geenee` and a call that is refused do not. A person can click the other tab, and it stays picked until the next tool call. The Room keeps the last report, and nothing else, for a Workspace that opens later.
 - Each tab carries a **mark**, filled when its Viewer is connected and hollow when it is not. The Workspace asks the Worker every few seconds (`GET /connections?room=`), which asks each Upstream with a tool that changes nothing in the Viewer: `read_session_summary` for igv, which answers with an error when no Viewer is in the Room, and `get_server_status` for Juicebox, which says `Browser Connected: Yes` or `No`. Neither Upstream has more of a contract for this than those replies. A Viewer whose Upstream cannot be reached shows as not connected.
 
@@ -87,7 +87,7 @@ npm run typecheck
 npm run test:run   # the Connector, through its fetch handler, with stand-in Upstreams
 ```
 
-The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the two Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Hand-off and the Get geenee page, which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
+The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the two Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Hand-off and the Get geenee page, a Room's expiry (with a stand-in clock), which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
 
 The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Room's own logic (`src/workspaceChannel.ts`) over fake sockets. The Durable Object that wraps it (`src/room.ts`) and the Workspace page have no automated tests. They are checked by hand in a real Host, with the rest of each stage.
 
@@ -149,7 +149,7 @@ vitest.config.ts         The tests, kept apart from the Cloudflare plugin
 index.html               The Workspace page: the two tabs, each with its mark, and the two panels
 src/
   index.ts               Worker entry point
-  geenee.ts              Routes /mcp, /viewers, /connections, /ws, /r/<Room id>, /h/<Room id> and /get; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached
+  geenee.ts              Routes /mcp, /viewers, /connections, /ws, /r/<Room id>, /h/<Room id> and /get; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached and for a Room that has expired
   servedTools.ts         The two Viewers, and the tools geenee serves for each: names, hidden tools, the room argument, rewriting, how each says it is connected
   upstream.ts            One Upstream as geenee reaches it: JSON-RPC over POST to its /mcp
   openGeenee.ts          The open_geenee tool
@@ -158,9 +158,11 @@ src/
   handOff.ts             The Hand-off, at /h/<Room id>
   getGeenee.ts           The Get geenee page, at /get
   malformedRoomLink.ts   The page for a Room link with a malformed Room id
+  expiredRoom.ts         The page for the link of a Room that has expired
   roomId.ts              Minting and recognising Room ids, and the paths of a Room link and a Hand-off
   workspaceChannel.ts    What a Workspace is told, and what a Room does with a report
-  room.ts                The Room Durable Object: the sockets of a Room's Workspaces
+  roomLife.ts            When a Room has expired: a day after its last use
+  room.ts                The Room Durable Object: geenee's record of a Room (its last use, its Join links) and the sockets of its Workspaces
   workspace/main.ts      The Workspace: frames the Viewers, the tabs and their marks, follows the channel; sends a phone on to the Hand-off
   workspace/phone.ts     Whether a page is on a phone
   workspace/workspace.css
@@ -168,7 +170,7 @@ test/
   fixtures/              Saved copies of the two Upstreams' tool lists
   upstreams.ts           The stand-in Upstreams
   workspaces.ts          The stand-in Rooms and their fake Workspaces
-  connector.ts           The Host's side of the Connector, for the tests
+  connector.ts           The Host's side of the Connector, for the tests, with a stand-in clock
   *.test.ts              Tests
 scripts/
   deploy.sh              Deploy geenee dev, the published Connector
