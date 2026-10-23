@@ -31,6 +31,20 @@ case "$DEPLOYMENT" in
   *)    echo "unknown deployment '$DEPLOYMENT'" >&2; exit 2 ;;
 esac
 JUICEBOX_PAGE=https://juicebot-view-dev.pages.dev/
+
+SCRIPT=scripts/deploy.sh
+[[ "$DEPLOYMENT" == test ]] && SCRIPT=scripts/deploy-test.sh
+usage() {
+  echo "usage: $SCRIPT [ref]"
+  echo
+  echo "Deploys geenee at [ref], a branch, tag or commit (default HEAD), to geenee $DEPLOYMENT,"
+  echo "$ADDRESS. The Connector is $ADDRESS/mcp."
+}
+case "${1:-}" in
+  -h|--help|-help|--h) usage; exit 0 ;;
+  -*) echo "unknown option '$1'" >&2; usage >&2; exit 2 ;;
+esac
+if (( $# > 1 )); then usage >&2; exit 2; fi
 REF="${1:-HEAD}"
 
 (cd "$REPO_ROOT" && npx wrangler whoami >/dev/null 2>&1) || { echo "not logged in to Cloudflare: run 'npx wrangler login' first" >&2; exit 1; }
