@@ -54,6 +54,24 @@ describe('open_geenee', () => {
     expect(card.text).toContain('$("link").onclick = (e) => open(e, roomLink)') // a plain link does nothing in the Card's sandbox
   })
 
+  it('has the Card speak to Guests under the QR code', async () => {
+    const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
+
+    const card = read.result!.contents[0].text
+    expect(card).toContain('Guests: scan to join this Room on your laptop. Expires after a day without use.')
+    expect(card).not.toContain('Scan the QR code to open the same room')
+  })
+
+  it('has the Card show its QR code large, for projecting or screen-sharing, and back', async () => {
+    const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
+
+    const card = read.result!.contents[0].text
+    expect(card).toContain('<button id="large" class="quiet" aria-pressed="false" hidden>Show large</button>')
+    expect(card).toContain('"Show small" : "Show large"')
+    expect(card).toContain('new App({ name: "geenee", version: "1.0.0" }, { availableDisplayModes: ["inline", "fullscreen"] })')
+    expect(card).toContain('app.requestDisplayMode({ mode: large ? "fullscreen" : "inline" })') // the whole Card, where the Host offers it
+  })
+
   it('refuses a resource other than the Card', async () => {
     const { error } = await geenee().rpc('resources/read', { uri: 'ui://geenee/other' })
 

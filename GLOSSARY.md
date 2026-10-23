@@ -45,5 +45,5 @@ The page a Room link opens on a phone, where a Guest sends the Room link on to a
 _Avoid_: Landing page, interstitial, redirect
 
 **Card**:
-What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan. The way into the Workspace when the model cannot open it beside the conversation itself.
+What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.
 _Avoid_: Screen, view, widget

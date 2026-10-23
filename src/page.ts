@@ -6,7 +6,8 @@
 
 export const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
-const STYLE = `
+/** The tokens of docs/how-geenee-works.html, light and dark; the Card uses them too. */
+export const TOKENS = `
 :root {
   --bg: #f5f6f4; --box: #ffffff; --fg: #1b1d1c; --muted: #636966; --rule: #cdd2ce;
   --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
@@ -17,6 +18,12 @@ const STYLE = `
   :root:not([data-theme="light"]) { --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; color-scheme: dark; }
 }
 :root[data-theme="dark"] { --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; color-scheme: dark; }
+`
+
+/** The fonts of docs/how-geenee-works.html, from Google; the Card uses them too. */
+export const FONTS = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400&display=swap'
+
+const STYLE = `${TOKENS}
 body { margin: 0; background: var(--bg); color: var(--fg); font: 1.0625rem/1.6 var(--serif); }
 main {
   max-width: 34rem; margin-inline: auto;
@@ -75,7 +82,7 @@ export function page({ title, description, style = '', body }: { title: string; 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${title}</title>${description ? `\n<meta name="description" content="${description}">` : ''}
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400&display=swap">
+<link rel="stylesheet" href="${FONTS}">
 <style>${STYLE}${style}</style>
 </head>
 <body>
