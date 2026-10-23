@@ -66,7 +66,7 @@ describe('open_geenee', () => {
     const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
 
     const card = read.result!.contents[0].text
-    expect(card).toContain('<button id="large" class="quiet" hidden>Show large</button>')
+    expect(card).toContain('<button id="large" class="quiet" aria-pressed="false" hidden>Show large</button>')
     expect(card).toContain('"Show small" : "Show large"')
     expect(card).toContain('new App({ name: "geenee", version: "1.0.0" }, { availableDisplayModes: ["inline", "fullscreen"] })')
     expect(card).toContain('app.requestDisplayMode({ mode: large ? "fullscreen" : "inline" })') // the whole Card, where the Host offers it

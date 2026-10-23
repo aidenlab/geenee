@@ -8,6 +8,7 @@
  * the user's own browser. The Workspace itself is not framed here: Claude's
  * sandbox forbids framing other origins.
  */
+import { FONTS, TOKENS } from './page.ts'
 
 export const CARD_URI = 'ui://geenee/open'
 export const CARD_MIME_TYPE = 'text/html;profile=mcp-app'
@@ -15,10 +16,7 @@ export const CARD_MIME_TYPE = 'text/html;profile=mcp-app'
 /** Client bundle the Card loads, as in Claude's no-build MCP Apps quickstart. */
 const APP_CLIENT = 'https://unpkg.com/@modelcontextprotocol/ext-apps@1.7.5/dist/src/app-with-deps.js'
 
-/** Fonts of geenee's pages (docs/how-geenee-works.html): Google's stylesheet and the font files it names. */
-const FONTS = 'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@500&family=Source+Serif+4:opsz,wght@8..60,400&display=swap'
-
-/** `_meta` for the resource: the sandbox may load the client and the fonts; the QR is a data: image. */
+/** `_meta` for the resource: the sandbox may load the client and the fonts (Google's stylesheet and the font files it names); the QR is a data: image. */
 export const CARD_META = { ui: { csp: { resourceDomains: [new URL(APP_CLIENT).origin, new URL(FONTS).origin, 'https://fonts.gstatic.com'] } } }
 
 /** `_meta` for the tool: the current key and the flat one older Hosts read. */
@@ -28,17 +26,7 @@ export const CARD_HTML = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="color-scheme" content="light dark"><title>geenee</title>
 <link rel="stylesheet" href="${FONTS}">
 <style>
-  /* The tokens of docs/how-geenee-works.html; the Host's theme, when it gives one, wins over the system's. */
-  :root {
-    --bg: #f5f6f4; --fg: #1b1d1c; --muted: #636966; --rule: #cdd2ce;
-    --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
-    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --bg: #151716; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; color-scheme: dark; }
-  }
-  :root[data-theme="dark"] { --bg: #151716; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; color-scheme: dark; }
+  /* geenee's tokens; the Host's theme, when it gives one, wins over the system's. */${TOKENS}
   :root[data-theme="light"] { color-scheme: light; }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 1rem/1.5 var(--serif); }
   #text { display: flex; flex-direction: column; gap: 12px; min-width: 200px; }
@@ -60,7 +48,7 @@ export const CARD_HTML = `<!DOCTYPE html>
   body.large :is(#text, #code) { align-items: center; }
   body.large button { align-self: center; }
   body.large #code { flex-direction: column; width: 100%; }
-  body.large img { width: min(100%, 36rem); padding: 4%; }
+  body.large img { width: min(100%, 36rem); padding: 7%; } /* about four modules of quiet zone */
   :root[data-mode="fullscreen"] body.large img { width: min(100%, calc(100vh - 9rem)); }
   body.large #hint { font-size: 1.1rem; text-align: center; }
 </style></head>
@@ -70,7 +58,7 @@ export const CARD_HTML = `<!DOCTYPE html>
   <div id="status">Waiting for the geenee link…</div>
   <button id="open" hidden>Open geenee</button>
   <a id="link" href="#" target="_blank" rel="noopener" hidden></a>
-  <div id="code"><img id="qr" alt="QR code of the Room link" hidden><button id="large" class="quiet" hidden>Show large</button></div>
+  <div id="code"><img id="qr" alt="QR code of the Room link" hidden><button id="large" class="quiet" aria-pressed="false" hidden>Show large</button></div>
   <div id="hint" hidden>Guests: scan to join this Room on your laptop. Expires after a day without use.</div>
 </div>
 <script type="module">
@@ -79,8 +67,8 @@ export const CARD_HTML = `<!DOCTYPE html>
   const app = new App({ name: "geenee", version: "1.0.0" }, { availableDisplayModes: ["inline", "fullscreen"] });
   // workspaceLink opens the Workspace from the button; roomLink, the Room link, is the text link and the QR code.
   let workspaceLink, roomLink, qrPng, openFailed = false;
-  // large: the QR code fills the Card; mode: how the Host last said it shows the Card.
-  let large = false, mode;
+  // large: the QR code fills the Card; hostMode: how the Host's context last said it shows the Card; granted: the mode the Host gave on request.
+  let large = false, hostMode, granted;
   // The Host answers the open request; on a refusal (or no answer) the link and QR are the way in.
   const open = async (e, url) => {
     e?.preventDefault();
@@ -93,7 +81,8 @@ export const CARD_HTML = `<!DOCTYPE html>
   const toggleLarge = async () => {
     large = !large;
     if (hostContext()?.availableDisplayModes?.includes("fullscreen")) {
-      try { await app.requestDisplayMode({ mode: large ? "fullscreen" : "inline" }); } catch (err) { /* large within the Card */ }
+      // The Host's answer counts, should its context lag behind.
+      try { granted = (await app.requestDisplayMode({ mode: large ? "fullscreen" : "inline" })).mode; } catch (err) { granted = undefined; /* large within the Card */ }
     }
     render();
   };
@@ -101,9 +90,10 @@ export const CARD_HTML = `<!DOCTYPE html>
     const ctx = hostContext();
     if (ctx?.theme) document.documentElement.dataset.theme = ctx.theme;
     // The Host leaving full screen by itself (Escape, its own control) is the way back too.
-    if (mode === "fullscreen" && ctx?.displayMode !== "fullscreen") large = false;
-    mode = ctx?.displayMode;
-    document.documentElement.dataset.mode = mode ?? "inline";
+    const now = ctx?.displayMode;
+    if (hostMode === "fullscreen" && now && now !== "fullscreen") { large = false; granted = undefined; }
+    hostMode = now ?? hostMode;
+    document.documentElement.dataset.mode = large && (granted ?? hostMode) === "fullscreen" ? "fullscreen" : "inline";
     if (!workspaceLink) return;
     const desktop = ctx?.platform === "desktop";
     $("status").textContent = openFailed
@@ -115,7 +105,7 @@ export const CARD_HTML = `<!DOCTYPE html>
     $("link").textContent = roomLink; $("link").href = roomLink; $("link").hidden = false;
     if (qrPng) { $("qr").src = "data:image/png;base64," + qrPng; $("qr").hidden = false; $("large").hidden = false; $("hint").hidden = false; }
     document.body.classList.toggle("large", large);
-    $("large").textContent = large ? "Show small" : "Show large";
+    $("large").textContent = large ? "Show small" : "Show large"; $("large").ariaPressed = String(large);
   };
   app.ontoolresult = ({ structuredContent: sc, content }) => {
     workspaceLink = sc?.workspaceUrl ?? content?.find((c) => c.type === "text")?.text.match(/https?:\\/\\/\\S+/)?.[0];
