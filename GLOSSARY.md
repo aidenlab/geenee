@@ -25,9 +25,25 @@ The one geenee web page a person opens beside the conversation, holding both Vie
 _Avoid_: Viewer, shell, dashboard, page
 
 **Room**:
-What ties one conversation to its Workspace and the two Viewers inside it, identified by a single Room id that the model is given when geenee is opened and passes back on every tool call.
+What ties one conversation to its Workspace and the two Viewers inside it, identified by a single Room id that the model is given when geenee is opened and passes back on every tool call. A Room expires after a day without use, and an expired Room stays expired.
 _Avoid_: Session, channel
 
+**Room link**:
+The short link that brings anyone into a Room: on a computer straight into the Workspace, on a phone to the Hand-off.
+_Avoid_: URL, invite, share link
+
+**Driver**:
+The person whose conversation a Room belongs to: their model makes the tool calls. A role in one Room, not a kind of person.
+_Avoid_: Presenter, owner, host, user
+
+**Guest**:
+A person who joins a Room through its Room link, with no conversation and nothing installed, as an equal of the Driver in what the Viewers show.
+_Avoid_: Bystander, viewer, participant, collaborator
+
+**Hand-off**:
+The page a Room link opens on a phone, where a Guest sends the Room link on to a computer, since geenee is too small to use on a phone.
+_Avoid_: Landing page, interstitial, redirect
+
 **Card**:
-What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the link, and a QR code of the link. The way into the Workspace when the model cannot open it beside the conversation itself.
+What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan. The way into the Workspace when the model cannot open it beside the conversation itself.
 _Avoid_: Screen, view, widget
