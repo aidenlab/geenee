@@ -21,31 +21,30 @@ new_sqlite_classes = ["Room"]
 [vars]
 # The two Upstreams geenee forwards to (ADR 0001): the /mcp address of each.
 # Local development uses the deployed dev Upstreams too, as geenee holds no
-# Viewer of its own to run beside it. The Juicebox Upstream is the view stack's,
-# the one Juicebox is moving to; `CLOUDFLARE_ENV=dev npm run dev` runs against
-# the web stack's instead.
+# Viewer of its own to run beside it. The Juicebox Upstream is juicebox-mcp's
+# view stack, whose Viewer is the juicebox-view page; juicebox-web is retired.
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
 
-# ── The two development deployments ──────────────────────────────────────────
-# juicebox-mcp has two Juicebot dev stacks side by side, one per Juicebox page,
-# while juicebox-view replaces juicebox-web (its docs/test-deployment.md). geenee
-# has one deployment for each, and each forwards to its own stack's Juicebox
-# Upstream; both use the same igv Upstream. They share nothing else: each is its
-# own Worker with its own Rooms, so a deploy to one never touches the other.
-# Wrangler creates the DNS record for each custom domain; the zone is on the
-# same account. No *.workers.dev hostname and no preview URLs, so each has one
-# public address. Named environments do not inherit `vars` or `durable_objects`,
-# so those are repeated; migrations are top-level and apply to every
-# environment. Both are deployed by scripts/deploy-test.sh.
+# ── The two deployments ──────────────────────────────────────────────────────
+# dev is the one people add as a Connector; test is a single slot for trying a
+# branch without touching it. Both forward to the same Upstreams. They share
+# nothing else: each is its own Worker with its own Rooms, so a deploy to one
+# never touches the other. Wrangler creates the DNS record for each custom
+# domain; the zone is on the same account. No *.workers.dev hostname and no
+# preview URLs, so each has one public address. Named environments do not
+# inherit `vars` or `durable_objects`, so those are repeated; migrations are
+# top-level and apply to every environment. dev is deployed by
+# scripts/deploy.sh, test by scripts/deploy-test.sh.
 
-# "geenee dev" (web): Worker geenee-dev at https://geenee-dev.3dg.io. Hosts use
-# /mcp, and a person sees the Workspace at /, which uses /ws. Its Juicebox Viewer
-# is the juicebox-web page, https://juicebot-dev.3dg.io/.
+# "geenee dev": Worker geenee-view-dev at https://geenee-view-dev.3dg.io, the
+# published Connector address. Hosts use /mcp, and a person sees the Workspace
+# at /, which uses /ws. The Worker keeps its name from when there was also a
+# juicebox-web deployment, so that the address and its Rooms stay.
 [env.dev]
-name = "geenee-dev"
+name = "geenee-view-dev"
 routes = [
-  { pattern = "geenee-dev.3dg.io", custom_domain = true },
+  { pattern = "geenee-view-dev.3dg.io", custom_domain = true },
 ]
 workers_dev = false
 preview_urls = false
@@ -59,26 +58,25 @@ class_name = "Room"
 
 [env.dev.vars]
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
-JUICEBOX_UPSTREAM_URL = "https://juicebot-mcp-dev.3dg.io/mcp"
+JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
 
-# "geenee view dev" (view): Worker geenee-view-dev at
-# https://geenee-view-dev.3dg.io, laid out as geenee dev. Its Juicebox Viewer is
-# the juicebox-view page, https://juicebot-view-dev.pages.dev/.
-[env.view-dev]
-name = "geenee-view-dev"
+# "geenee test": Worker geenee-test at https://geenee-test.3dg.io, laid out as
+# geenee dev. Whichever ref was deployed to it last is what it runs.
+[env.test]
+name = "geenee-test"
 routes = [
-  { pattern = "geenee-view-dev.3dg.io", custom_domain = true },
+  { pattern = "geenee-test.3dg.io", custom_domain = true },
 ]
 workers_dev = false
 preview_urls = false
 
-[env.view-dev.observability.logs]
+[env.test.observability.logs]
 enabled = true
 
-[[env.view-dev.durable_objects.bindings]]
+[[env.test.durable_objects.bindings]]
 name = "ROOM"
 class_name = "Room"
 
-[env.view-dev.vars]
+[env.test.vars]
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
