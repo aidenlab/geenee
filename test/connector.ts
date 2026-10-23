@@ -8,6 +8,9 @@ import { standInRooms } from './workspaces.ts'
 
 export const GEENEE = 'https://geenee.test'
 
+/** What the stand-in serves as the Workspace page. */
+export const WORKSPACE_PAGE = '<!doctype html><title>geenee</title>'
+
 export interface Tool {
   name: string
   description: string
@@ -29,6 +32,7 @@ export function geenee() {
     juiceboxUpstream: JUICEBOX_UPSTREAM,
     fetch: upstreams.fetch,
     channelTo: (room) => rooms.channelTo(room),
+    workspacePage: async () => new Response(WORKSPACE_PAGE, { headers: { 'Content-Type': 'text/html' } }),
   })
 
   let rpcId = 0

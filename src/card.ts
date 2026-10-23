@@ -36,25 +36,26 @@ export const CARD_HTML = `<!DOCTYPE html>
   <div id="status">Waiting for the geenee link…</div>
   <button id="open" hidden>Open geenee</button>
   <a id="link" href="#" target="_blank" rel="noopener" hidden></a>
-  <div><img id="qr" alt="QR code of the geenee link" hidden></div>
+  <div><img id="qr" alt="QR code of the Room link" hidden></div>
   <div id="hint" hidden>Scan the QR code to open the same room on a phone or another device.</div>
 </div>
 <script type="module">
   import { App } from "${APP_CLIENT}";
   const $ = (id) => document.getElementById(id);
   const app = new App({ name: "geenee", version: "1.0.0" });
-  let link, qrPng, openFailed = false;
+  // workspaceLink opens the Workspace from the button; roomLink, the Room link, is the text link and the QR code.
+  let workspaceLink, roomLink, qrPng, openFailed = false;
   // The Host answers the open request; on a refusal (or no answer) the link and QR are the way in.
-  const open = async (e) => {
+  const open = async (e, url) => {
     e?.preventDefault();
-    if (!link) return;
-    try { openFailed = Boolean((await app.openLink({ url: link }))?.isError); } catch (err) { openFailed = true; }
+    if (!url) return;
+    try { openFailed = Boolean((await app.openLink({ url }))?.isError); } catch (err) { openFailed = true; }
     render();
   };
   const render = () => {
     let ctx;
     try { ctx = app.getHostContext?.(); } catch (e) { ctx = undefined; }
-    if (!link) return;
+    if (!workspaceLink) return;
     const desktop = ctx?.platform === "desktop";
     $("status").textContent = openFailed
       ? "Could not open geenee from here: use the link below or scan the code."
@@ -62,18 +63,19 @@ export const CARD_HTML = `<!DOCTYPE html>
       ? "geenee should open in the panel on the right; if it does not, press Open geenee. If asked, choose to always allow this website."
       : "geenee is ready.";
     $("open").hidden = false;
-    $("link").textContent = link; $("link").href = link; $("link").hidden = false;
+    $("link").textContent = roomLink; $("link").href = roomLink; $("link").hidden = false;
     if (qrPng) { $("qr").src = "data:image/png;base64," + qrPng; $("qr").hidden = false; $("hint").hidden = false; }
   };
   app.ontoolresult = ({ structuredContent: sc, content }) => {
-    link = sc?.workspaceUrl ?? content?.find((c) => c.type === "text")?.text.match(/https?:\\/\\/\\S+/)?.[0];
-    if (!link) { $("status").textContent = "No geenee link in the tool result."; return; }
+    workspaceLink = sc?.workspaceUrl ?? content?.find((c) => c.type === "text")?.text.match(/https?:\\/\\/\\S+/)?.[0];
+    if (!workspaceLink) { $("status").textContent = "No geenee link in the tool result."; return; }
+    roomLink = sc?.roomUrl ?? workspaceLink;
     qrPng = sc?.qrPng;
     render();
   };
   app.onhostcontextchanged = render;
   // The link opens through the Host too: the Card's sandbox does not let a plain link open a window.
-  $("open").onclick = open; $("link").onclick = open;
+  $("open").onclick = (e) => open(e, workspaceLink); $("link").onclick = (e) => open(e, roomLink);
   await app.connect();
   render();
 </script>

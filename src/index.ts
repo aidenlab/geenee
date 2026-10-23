@@ -22,6 +22,7 @@ export default {
         const stub = env.ROOM.get(env.ROOM.idFromName(room))
         return { viewerUsed: (viewer) => stub.viewerUsed(viewer), connect: (upgrade) => stub.fetch(upgrade) }
       },
+      workspacePage: (request) => env.ASSETS.fetch(new URL('/', request.url)),
     })
     return geenee(request)
   },

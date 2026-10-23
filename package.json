@@ -12,7 +12,7 @@
     "typecheck": "npm run types && tsc && tsc -p src/workspace",
     "types": "wrangler types --strict-vars false",
     "deploy:dev": "CLOUDFLARE_ENV=dev VITE_BUILD=\"$(scripts/build-number.sh)\" vite build && wrangler deploy",
-    "deploy:view-dev": "CLOUDFLARE_ENV=view-dev VITE_BUILD=\"$(scripts/build-number.sh)\" vite build && wrangler deploy"
+    "deploy:test": "CLOUDFLARE_ENV=test VITE_BUILD=\"$(scripts/build-number.sh)\" vite build && wrangler deploy"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.63.2",

@@ -8,8 +8,9 @@
  *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace
  *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
+ *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room id is malformed
  *
- * The Workspace page itself is a static asset, served beside this.
+ * The Workspace page itself is a static asset, served beside this at /.
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
@@ -23,8 +24,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { INSTRUCTIONS } from './instructions.ts'
+import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
-import { parseRoomId } from './roomId.ts'
+import { inRoomLinkPath, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
@@ -46,6 +48,8 @@ export interface GeeneeConfig {
   fetch: typeof globalThis.fetch
   /** The channel to the Workspaces of a Room, by Room id; the tests pass stand-ins. */
   channelTo: (room: string) => WorkspaceChannel
+  /** The Workspace page, the static asset served at / beside `request`; the tests pass a stand-in. */
+  workspacePage: (request: Request) => Promise<Response>
 }
 
 const CORS_HEADERS = {
@@ -130,7 +134,7 @@ async function isConnected(target: Target, room: string): Promise<boolean> {
   }
 }
 
-export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }: GeeneeConfig): (request: Request) => Promise<Response> {
+export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
     { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
@@ -215,6 +219,12 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo }
       if (!room) return new Response('Missing or malformed room', { status: 400 })
       const connected = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await isConnected(target, room)]))
       return Response.json(Object.fromEntries(connected))
+    }
+    const roomLink = inRoomLinkPath(url.pathname)
+    if (roomLink !== null && request.method === 'GET') {
+      // The Workspace page itself, so that the address bar keeps the short link; the Workspace reads the Room id from it.
+      if (parseRoomId(roomLink)) return workspacePage(request)
+      return new Response(MALFORMED_ROOM_LINK_HTML, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
