@@ -5,7 +5,7 @@
  */
 import { TOOL_META } from './card.ts'
 import { qrPng } from './qrPng.ts'
-import { mintRoomId, roomLinkPath } from './roomId.ts'
+import { roomLinkPath } from './roomId.ts'
 import { OPEN_GEENEE } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
 
@@ -40,8 +40,8 @@ function roomLinkFor(origin: string, room: string): string {
   return new URL(roomLinkPath(room), origin).toString()
 }
 
-/** Opens geenee in `room`, or in a new Room when none is given. */
-export function openGeenee(origin: string, room: string = mintRoomId()): ToolResult {
+/** Opens geenee in `room`, a Room that has not expired. */
+export function openGeenee(origin: string, room: string): ToolResult {
   const workspaceLink = workspaceLinkFor(origin, room)
   const roomLink = roomLinkFor(origin, room)
   // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.

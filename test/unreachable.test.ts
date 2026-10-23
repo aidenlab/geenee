@@ -9,7 +9,7 @@ const ROOM = '7ZQH4M2K9X'
 
 describe('with the igv Upstream unreachable', () => {
   it('still lists open_geenee and the Juicebox tools', async () => {
-    const { listTools, igv } = geenee()
+    const { listTools, igv } = geenee({ opened: [ROOM] })
     igv.unreachable = true
 
     const names = (await listTools()).map((tool) => tool.name)
@@ -20,7 +20,7 @@ describe('with the igv Upstream unreachable', () => {
   })
 
   it('still forwards a call to a Juicebox tool', async () => {
-    const { callTool, igv, juicebox } = geenee()
+    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
     igv.unreachable = true
 
     const result = await callTool('juicebox_zoom_in', { room: ROOM })
@@ -30,7 +30,7 @@ describe('with the igv Upstream unreachable', () => {
   })
 
   it('answers a call to an igv tool by saying the igv Viewer cannot be reached', async () => {
-    const { callTool, igv } = geenee()
+    const { callTool, igv } = geenee({ opened: [ROOM] })
     igv.unreachable = true
 
     const result = await callTool('igv_zoom_in', { room: ROOM })
@@ -44,7 +44,7 @@ describe('with the igv Upstream unreachable', () => {
 
 describe('with the Juicebox Upstream unreachable', () => {
   it('still lists open_geenee and the igv tools', async () => {
-    const { listTools, juicebox } = geenee()
+    const { listTools, juicebox } = geenee({ opened: [ROOM] })
     juicebox.unreachable = true
 
     const names = (await listTools()).map((tool) => tool.name)
@@ -54,7 +54,7 @@ describe('with the Juicebox Upstream unreachable', () => {
   })
 
   it('answers a call to a Juicebox tool by saying the Juicebox Viewer cannot be reached', async () => {
-    const { callTool, juicebox } = geenee()
+    const { callTool, juicebox } = geenee({ opened: [ROOM] })
     juicebox.unreachable = true
 
     const result = await callTool('juicebox_zoom_in', { room: ROOM })

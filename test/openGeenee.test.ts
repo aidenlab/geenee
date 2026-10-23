@@ -61,13 +61,13 @@ describe('open_geenee', () => {
   })
 
   it('gives the Card the Room link, the short link that brings anyone into the Room', async () => {
-    const result = await geenee().callTool('open_geenee', { room: '7ZQH4M2K9X' })
+    const result = await geenee({ opened: ['7ZQH4M2K9X'] }).callTool('open_geenee', { room: '7ZQH4M2K9X' })
 
     expect(result.structuredContent!.roomUrl).toBe(`${GEENEE}/r/7ZQH4M2K9X`)
   })
 
   it('gives the Card a QR code of the Room link, as a PNG', async () => {
-    const result = await geenee().callTool('open_geenee', { room: '7ZQH4M2K9X' })
+    const result = await geenee({ opened: ['7ZQH4M2K9X'] }).callTool('open_geenee', { room: '7ZQH4M2K9X' })
 
     const png = Uint8Array.from(atob(result.structuredContent!.qrPng as string), (c) => c.charCodeAt(0))
     expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10])
@@ -101,7 +101,7 @@ describe('open_geenee', () => {
   })
 
   it('given the Room id of an earlier reply, gives the link to that Room again', async () => {
-    const { callTool } = geenee()
+    const { callTool } = geenee({ opened: ['7ZQH4M2K9X'] })
 
     const result = await callTool('open_geenee', { room: ' 7zqh4m2k9x ' })
 
@@ -113,6 +113,15 @@ describe('open_geenee', () => {
 
     expect(result.isError).toBe(true)
     expect(result.content[0].text).toContain('"my-room" is not a Room id')
+  })
+
+  it('says so, and gives no link, when it cannot start a new Room', async () => {
+    const { callTool, rooms } = geenee()
+    rooms.unreachable = true
+
+    const result = await callTool('open_geenee')
+
+    expect(result).toEqual({ content: [{ type: 'text', text: 'Error: geenee could not open a Room. Try again in a moment.' }], isError: true })
   })
 
   it('asks nothing of the Upstreams', async () => {

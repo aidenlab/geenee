@@ -10,7 +10,7 @@ const ROOM = '7ZQH4M2K9X'
 
 /** Each Upstream's own open tool, as it answers: a Join link for the Room it was asked for. */
 function joinLinks() {
-  const connector = geenee()
+  const connector = geenee({ opened: [ROOM] })
   connector.igv.reply = (call: UpstreamCall) => ({
     content: [{ type: 'text', text: 'igv-bot Join link' }],
     structuredContent: { room: call.arguments.room, joinUrl: `https://igv-viewer.test/?room=${call.arguments.room}` },

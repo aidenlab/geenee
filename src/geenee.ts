@@ -5,11 +5,11 @@
  *   POST /mcp     - MCP protocol (stateless Streamable HTTP, JSON responses)
  *   GET  /mcp     - 405 (no SSE stream)
  *   OPTIONS /mcp  - CORS preflight
- *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace
- *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs
+ *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace; 410 when the Room has expired
+ *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs; 410 likewise
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
- *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room id is malformed
- *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer
+ *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room has expired or its id is malformed
+ *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer, or the same expired page
  *   GET  /get - Get geenee: what geenee is and how to add it to each Host
  *
  * The Workspace page itself is a static asset, served beside this at /.
@@ -25,19 +25,33 @@ import {
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
+import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
 import { getGeeneePage } from './getGeenee.ts'
 import { handOffPage } from './handOff.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { pageResponse } from './page.ts'
-import { inHandOffPath, inRoomLinkPath, parseRoomId } from './roomId.ts'
+import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
 
-/** geenee's channel to the Workspaces of one Room. */
-export interface WorkspaceChannel {
+/**
+ * geenee's record of one Room (room.ts), which never expires: when the Room was
+ * last used (roomLife.ts), its Viewers' Join links, and the channel to its
+ * Workspaces.
+ */
+export interface RoomRecord {
+  /** A new Room, opened at `now`. */
+  start(now: number): Promise<void>
+  /** A use of the Room at `now`: false, and nothing kept, when it has expired. */
+  use(now: number): Promise<boolean>
+  /** Whether the Room has expired at `now`. Asking is not a use. */
+  expired(now: number): Promise<boolean>
+  /** The Join link of each Viewer whose Upstream has given one for the Room. */
+  joinLinks(): Promise<Partial<Record<ViewerKey, string>>>
+  keepJoinLink(viewer: ViewerKey, link: string): Promise<void>
   /** Tells the Room's Workspaces that a tool call was for `viewer`. */
   viewerUsed(viewer: ViewerKey): Promise<void>
   /** Takes the WebSocket upgrade of a Workspace joining the Room. */
@@ -51,10 +65,17 @@ export interface GeeneeConfig {
   juiceboxUpstream: string
   /** How the Upstreams are reached; the tests pass stand-ins. */
   fetch: typeof globalThis.fetch
-  /** The channel to the Workspaces of a Room, by Room id; the tests pass stand-ins. */
-  channelTo: (room: string) => WorkspaceChannel
+  /** geenee's record of a Room, by Room id; the tests pass stand-ins. */
+  roomRecord: (room: string) => RoomRecord
+  /** The time, in milliseconds since the epoch; the tests pass a clock of their own. */
+  now: () => number
   /** The Workspace page, the static asset served at / beside `request`; the tests pass a stand-in. */
   workspacePage: (request: Request) => Promise<Response>
+}
+
+/** What the Workspace is told of a Room that has expired, from which it goes to the Room link and so to the expired page. */
+function roomExpired(): Response {
+  return new Response('This Room has expired', { status: 410 })
 }
 
 const CORS_HEADERS = {
@@ -102,7 +123,7 @@ async function forward(
   name: string,
   args: Record<string, unknown>,
   room: string,
-  workspaces: WorkspaceChannel,
+  workspaces: RoomRecord,
 ): Promise<ToolResult | undefined> {
   const served = serveTools(target.viewer, await target.upstream.listTools())
   const called = served.tools.find(({ tool }) => tool.name === name)
@@ -139,11 +160,28 @@ async function isConnected(target: Target, room: string): Promise<boolean> {
   }
 }
 
-export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
+/** What the model is told of a Room that has expired: open geenee again, in a new Room. */
+function expiredReply(room: string, unsent?: string): ToolResult {
+  const notSent = unsent ? `, so ${unsent} was not sent` : ''
+  const again = unsent ? ', then make this call again with the new Room id' : ''
+  return errorReply(`Room ${room} has expired${notSent}. Call ${OPEN_GEENEE} without room to open geenee in a new Room${again}.`)
+}
+
+export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
     { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
   ]
+
+  /** Whether a tool call for `room` finds it open, which is a use of it. A Room that cannot be asked is taken to be open: the Upstreams still have their say. */
+  async function stillOpen(room: string, name: string): Promise<boolean> {
+    try {
+      return await roomRecord(room).use(now())
+    } catch (error) {
+      console.warn(`[mcp] ${name} | Room ${room} could not be asked whether it has expired:`, error)
+      return true
+    }
+  }
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in both Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
@@ -173,7 +211,18 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
     server.setRequestHandler(CallToolRequestSchema, async ({ params: { name, arguments: { room: named, ...args } = {} } }) => {
       const room = roomNamed(named)
       if (room && 'refusal' in room) return room.refusal
-      if (name === OPEN_GEENEE) return openGeenee(new URL(request.url).origin, room?.id)
+      if (name === OPEN_GEENEE) {
+        const origin = new URL(request.url).origin
+        if (room) return (await stillOpen(room.id, name)) ? openGeenee(origin, room.id) : expiredReply(room.id)
+        const minted = mintRoomId()
+        try {
+          await roomRecord(minted).start(now())
+        } catch (error) {
+          console.warn(`[mcp] ${name} | Room ${minted} could not be started:`, error)
+          return errorReply('geenee could not open a Room. Try again in a moment.')
+        }
+        return openGeenee(origin, minted)
+      }
 
       const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))
       if (!target) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
@@ -182,9 +231,10 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
           `${name} was called without room. Call ${OPEN_GEENEE} first if geenee is not open yet, then pass the Room id from its reply as room.`,
         )
       }
+      if (!(await stillOpen(room.id, name))) return expiredReply(room.id, name)
       let result: ToolResult | undefined
       try {
-        result = await forward(target, name, args, room.id, channelTo(room.id))
+        result = await forward(target, name, args, room.id, roomRecord(room.id))
       } catch (error) {
         const { viewer } = target
         console.warn(`[mcp] ${name} | the ${viewer.name} Upstream could not be reached:`, error)
@@ -216,25 +266,45 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
     if (url.pathname === '/viewers' && request.method === 'GET') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
       if (!room) return new Response('Missing or malformed room', { status: 400 })
-      const links = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await joinLink(target, room)]))
+      const record = roomRecord(room)
+      if (!(await record.use(now()))) return roomExpired()
+      // Each Upstream is asked once, while the Room is new: asked later, the igv one would revive a Room it has expired.
+      const kept = await record.joinLinks()
+      const links = await Promise.all(
+        targets.map(async (target) => {
+          const { prefix } = target.viewer
+          let link = kept[prefix] ?? null
+          if (!link) {
+            link = await joinLink(target, room)
+            if (link) await record.keepJoinLink(prefix, link)
+          }
+          return [prefix, link]
+        }),
+      )
       return Response.json(Object.fromEntries(links))
     }
     if (url.pathname === '/connections' && request.method === 'GET') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
       if (!room) return new Response('Missing or malformed room', { status: 400 })
+      // A Workspace asks this every few seconds while it is looked at, so a Room someone is looking at stays in use.
+      if (!(await roomRecord(room).use(now()))) return roomExpired()
       const connected = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await isConnected(target, room)]))
       return Response.json(Object.fromEntries(connected))
     }
     const roomLink = inRoomLinkPath(url.pathname)
     if (roomLink !== null && request.method === 'GET') {
+      const room = parseRoomId(roomLink)
+      if (!room) return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
+      if (await roomRecord(room).expired(now())) return pageResponse(EXPIRED_ROOM_HTML, 410)
       // The Workspace page itself, so that the address bar keeps the short link; the Workspace reads the Room id from it.
-      if (parseRoomId(roomLink)) return workspacePage(request)
-      return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
+      return workspacePage(request)
     }
     const handOff = inHandOffPath(url.pathname)
     if (handOff !== null && request.method === 'GET') {
       const room = parseRoomId(handOff)
-      return room ? pageResponse(handOffPage(url.origin, room)) : pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
+      if (!room) return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
+      if (await roomRecord(room).expired(now())) return pageResponse(EXPIRED_ROOM_HTML, 410)
+      return pageResponse(handOffPage(url.origin, room))
     }
     if (url.pathname === '/get' && request.method === 'GET') {
       return pageResponse(getGeeneePage(url.origin))
@@ -242,7 +312,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, channelTo, 
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
       if (!room) return new Response('Missing or malformed room', { status: 400 })
-      return channelTo(room).connect(request)
+      return roomRecord(room).connect(request)
     }
     return new Response('Not Found', { status: 404 })
   }

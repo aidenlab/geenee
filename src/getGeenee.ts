@@ -1,7 +1,7 @@
 /**
  * Get geenee, the page at /get: what geenee is, and how to add it as a
  * Connector to each Host, with the Connector address ready to copy. The
- * Hand-off and its email link here, and so will the page of an expired Room.
+ * Hand-off, its email and the page of an expired Room link here.
  */
 import { COPY_SCRIPT, escapeHtml, page } from './page.ts'
 

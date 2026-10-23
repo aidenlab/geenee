@@ -98,8 +98,11 @@ fi
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
 # And the Workspace should frame the juicebox-view page: the Upstream gives its page's
-# address in the Join link, for any Room.
-viewers="$(curl -fsS "$ADDRESS/viewers?room=0000000000")"
+# address in the Join link. Only a Room geenee opened has a Workspace (ADR 0003), so
+# open_geenee opens one first.
+room="$(mcp '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"open_geenee","arguments":{}}}' \
+  | grep -o '"room":"[0-9A-Z]*"' | head -1 | cut -d'"' -f4)"
+viewers="$(curl -fsS "$ADDRESS/viewers?room=$room")"
 if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
   echo "the Workspace at $ADDRESS does not frame $JUICEBOX_PAGE for Juicebox: /viewers answered $viewers" >&2
   exit 1
