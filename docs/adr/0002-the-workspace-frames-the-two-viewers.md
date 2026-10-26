@@ -15,3 +15,4 @@ The Workspace brings forward the Viewer the model last sent a command to; a pers
 - geenee needs a channel of its own to the Workspace, to say which Viewer was just used. geenee is therefore a server and a page, not only a forwarder.
 - The Workspace depends on both Viewer pages allowing themselves to be framed, and on each Host's pane showing a page that frames other sites. Neither is a documented contract; both dev Viewers allowed framing when checked on 2026-10-13.
 - Loading both Viewers at once makes the first open slower.
+- The Workspace adds `embedded` to each frame's Join link, so that a Viewer can leave out what the Workspace supplies, starting with the igv Shareable URL. The Join links geenee keeps and hands out stay unmarked.

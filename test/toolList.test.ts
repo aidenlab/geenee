@@ -28,8 +28,15 @@ describe('the combined tool list', () => {
     const names = (await geenee().listTools()).map((tool) => tool.name)
 
     expect(names.filter((name) => /open_viewer|get_juicebox_url|join_room/.test(name))).toEqual([])
-    expect(names.filter((name) => name.startsWith('igv_'))).toHaveLength(13)
+    expect(names.filter((name) => name.startsWith('igv_'))).toHaveLength(12)
     expect(names.filter((name) => name.startsWith('juicebox_'))).toHaveLength(30)
+  })
+
+  it("withholds igv's get_shareable_url, which nothing stands in for, and keeps Juicebox's create_shareable_url", async () => {
+    const names = (await geenee().listTools()).map((tool) => tool.name)
+
+    expect(names).not.toContain('igv_get_shareable_url')
+    expect(names).toContain('juicebox_create_shareable_url')
   })
 
   it('gives every tool a required room argument, including Juicebox tools whose Upstream versions take none', async () => {

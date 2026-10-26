@@ -77,20 +77,20 @@ describe('a reply from an Upstream', () => {
 
   it('keeps a link whose address happens to hold a tool name', async () => {
     const { callTool, igv } = geenee({ opened: [ROOM] })
-    const text = 'Shareable URL:\nhttps://igv.org/app/?file=https://example.org/zoom_in/load_tracks.bw'
+    const text = 'Tracks:\nhttps://example.org/zoom_in/load_tracks.bw'
     igv.reply = () => ({ content: [{ type: 'text', text }] })
 
-    const result = await callTool('igv_get_shareable_url', { room: ROOM })
+    const result = await callTool('igv_read_session_summary', { room: ROOM })
 
     expect(result.content[0].text).toBe(text)
   })
 })
 
 describe('a call the Connector does not forward', () => {
-  it('refuses a tool it does not serve, hidden ones included', async () => {
+  it('refuses a tool it does not serve, hidden and withheld ones included', async () => {
     const { rpc, igv, juicebox } = geenee({ opened: [ROOM] })
 
-    for (const name of ['igv_open_viewer', 'juicebox_get_juicebox_url', 'juicebox_join_room', 'zoom_in', 'igv_no_such_tool']) {
+    for (const name of ['igv_open_viewer', 'igv_get_shareable_url', 'juicebox_get_juicebox_url', 'juicebox_join_room', 'zoom_in', 'igv_no_such_tool']) {
       const { result, error } = await rpc('tools/call', { name, arguments: { room: ROOM } })
       expect(result, name).toBeUndefined()
       expect(error?.message, name).toContain(`Unknown tool: ${name}`)

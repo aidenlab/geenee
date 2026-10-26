@@ -14,6 +14,11 @@ export interface Viewer {
   /** Upstream tools geenee does not serve: a Viewer is only ever opened inside the Workspace (ADR 0002). */
   hidden: string[]
   /**
+   * Upstream tools geenee does not serve and that nothing stands in for, so
+   * that, unlike a hidden tool, text naming one is left as it is.
+   */
+  withheld: string[]
+  /**
    * How the Upstream is told which Room a call is for. The igv Upstream takes
    * it as the `room` argument. The Juicebox Upstream acts on the Room of the
    * call's MCP session, and a session it has bound to no Room has the Room
@@ -36,6 +41,8 @@ export const IGV: Viewer = {
   prefix: 'igv',
   openTool: 'open_viewer',
   hidden: ['open_viewer'],
+  // A Shareable URL holds only the igv Viewer's Session; geenee will have its own link for every Viewer (#34).
+  withheld: ['get_shareable_url'],
   roomGoesIn: 'argument',
   // The igv Upstream asks the Viewer for its summary, and answers with an error when no Viewer is in the Room.
   connection: { tool: 'read_session_summary', connected: (reply) => !reply.isError },
@@ -45,6 +52,7 @@ export const JUICEBOX: Viewer = {
   prefix: 'juicebox',
   openTool: 'get_juicebox_url',
   hidden: ['get_juicebox_url', 'join_room'],
+  withheld: [],
   roomGoesIn: 'session',
   // The Juicebox Upstream answers from its own count of the Viewers in the Room.
   connection: {
@@ -72,11 +80,14 @@ function escapeRegExp(text: string): string {
  * Rewrites text from a Viewer's Upstream so that it names tools by the names
  * geenee serves. An Upstream's descriptions and replies name its tools by their
  * own names ("call read_session_summary first"); a hidden tool is named as
- * open_geenee, which stands in for it. A name inside a longer word, a path or a
+ * open_geenee, which stands in for it, and a withheld tool, which nothing
+ * stands in for, keeps its own name. A name inside a longer word, a path or a
  * link is not a tool being named, and is left alone.
  */
 function renamer(viewer: Viewer, upstreamTools: Tool[]): (text: string) => string {
-  const served = new Map(upstreamTools.map((tool) => [tool.name, servedName(viewer, tool.name)]))
+  const served = new Map(
+    upstreamTools.filter((tool) => !viewer.withheld.includes(tool.name)).map((tool) => [tool.name, servedName(viewer, tool.name)]),
+  )
   for (const name of viewer.hidden) served.set(name, OPEN_GEENEE)
   // Longest first, so that a name is never matched as the start of a longer one.
   const names = [...served.keys()].sort((a, b) => b.length - a.length)
@@ -123,7 +134,7 @@ export interface ServedTools {
 export function serveTools(viewer: Viewer, upstreamTools: Tool[]): ServedTools {
   const rename = renamer(viewer, upstreamTools)
   const tools = upstreamTools
-    .filter((tool) => !viewer.hidden.includes(tool.name))
+    .filter((tool) => !viewer.hidden.includes(tool.name) && !viewer.withheld.includes(tool.name))
     .map((tool) => ({
       tool: {
         ...tool,

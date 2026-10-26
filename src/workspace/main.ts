@@ -6,6 +6,7 @@
  * its Viewer is connected.
  */
 import { handOffPath, inRoomLinkPath, parseRoomId, roomLinkPath } from '../roomId.ts'
+import { embedded } from './embedded.ts'
 import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
@@ -52,7 +53,7 @@ function frame(viewer: ViewerKey, joinLink: string): void {
   const iframe = document.createElement('iframe')
   iframe.title = `${VIEWERS[viewer]} viewer`
   iframe.allow = 'clipboard-write'
-  iframe.src = joinLink
+  iframe.src = embedded(joinLink)
   panel(viewer).replaceChildren(iframe)
 }
 
