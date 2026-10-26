@@ -11,7 +11,11 @@ export interface Viewer {
   prefix: 'igv' | 'juicebox'
   /** The Upstream's own tool for opening this Viewer: its reply carries the Viewer's Join link for a Room. */
   openTool: string
-  /** Upstream tools geenee does not serve: a Viewer is only ever opened inside the Workspace (ADR 0002). */
+  /**
+   * Upstream tools geenee does not serve because open_geenee stands in for
+   * them, so text naming one names open_geenee: a Viewer is only ever opened
+   * inside the Workspace (ADR 0002).
+   */
   hidden: string[]
   /**
    * Upstream tools geenee does not serve and that nothing stands in for, so
@@ -41,7 +45,7 @@ export const IGV: Viewer = {
   prefix: 'igv',
   openTool: 'open_viewer',
   hidden: ['open_viewer'],
-  // A Shareable URL holds only the igv Viewer's Session; geenee will have its own link for every Viewer (#34).
+  // A Shareable URL holds only the igv Viewer's own state; geenee will have its own link for every Viewer (#34).
   withheld: ['get_shareable_url'],
   roomGoesIn: 'argument',
   // The igv Upstream asks the Viewer for its summary, and answers with an error when no Viewer is in the Room.
