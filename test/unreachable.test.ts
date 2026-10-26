@@ -49,7 +49,7 @@ describe('with the Juicebox Upstream unreachable', () => {
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(14)
+    expect(names).toHaveLength(13)
     expect(names.filter((name) => name.startsWith('juicebox_'))).toEqual([])
   })
 

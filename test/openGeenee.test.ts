@@ -8,11 +8,11 @@ import { GEENEE, geenee, type Tool } from './connector.ts'
 const ROOM_ID = /^[0-9A-HJKMNP-TV-Z]{10}$/ // Crockford base32: no I, L, O, U
 
 describe('open_geenee', () => {
-  it('is listed first, making 44 tools with those of the two Upstreams', async () => {
+  it('is listed first, making 43 tools with those of the two Upstreams', async () => {
     const tools = await geenee().listTools()
 
     expect(tools[0].name).toBe('open_geenee')
-    expect(tools).toHaveLength(44)
+    expect(tools).toHaveLength(43)
   })
 
   it('gives the model one new Room id and the link that opens the Workspace in that Room', async () => {
