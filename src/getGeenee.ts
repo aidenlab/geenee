@@ -1,12 +1,13 @@
 /**
  * Get geenee, the page at /get: what geenee is, and how to add it as a
  * Connector to each Host, with the Connector address ready to copy. The
- * Hand-off, its email and the page of an expired Room link here.
+ * Hand-off, its email and the page of an expired Room link here. Only the
+ * Hand-off names its Room, and so gets a way back from here.
  */
-import { COPY_SCRIPT, escapeHtml, page } from './page.ts'
+import { COPY_SCRIPT, escapeHtml, page, roomSwitch } from './page.ts'
 
-/** The page, for the geenee at `origin`, whose /mcp is the Connector address. */
-export function getGeeneePage(origin: string): string {
+/** The page, for the geenee at `origin`, whose /mcp is the Connector address, and for a Guest who came from the Hand-off of `room`, a parsed Room id, if any. */
+export function getGeeneePage(origin: string, room: string | null): string {
   const connector = escapeHtml(new URL('/mcp', origin).toString())
   return page({
     title: 'Get geenee',
@@ -18,7 +19,7 @@ li { margin-bottom: 0.5rem; }
 .ui { font: 500 0.92em var(--sans); }
 `,
     body: `<main>
-  <p class="brand">geenee</p>
+  ${room ? roomSwitch(room, 'get') : '<p class="brand">geenee</p>'}
   <h1>Get geenee</h1>
   <p class="lede">Ask Claude or ChatGPT to show a genome or a Hi-C contact map, and watch it appear beside the conversation. geenee brings the igv genome browser and the Juicebox contact-map viewer together as one Connector.</p>
 

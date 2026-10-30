@@ -1,8 +1,9 @@
 /**
  * What geenee's own small pages share (the malformed Room link, the expired
  * Room, Get geenee, the Hand-off): the visual language of docs/how-geenee-works.html, in light and
- * dark, and a Copy button.
+ * dark, a Copy button, and the switch between a Room's Hand-off and Get geenee.
  */
+import { handOffPath } from './roomId.ts'
 
 export const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
@@ -29,7 +30,11 @@ main {
   max-width: 34rem; margin-inline: auto;
   padding: 12vh max(16px, env(safe-area-inset-right, 0px)) 4rem max(16px, env(safe-area-inset-left, 0px));
 }
-p.brand { font: 400 0.85rem var(--mono); color: var(--muted); margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--rule); }
+.brand { font: 400 0.85rem var(--mono); color: var(--muted); margin: 0 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--rule); }
+.brand:has(nav) { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.brand nav { font: 500 0.9rem var(--sans); color: var(--fg); }
+/* A tap target of 44px, without making the line any taller. */
+.brand nav a { display: inline-block; padding-block: 0.8rem; margin-block: -0.8rem; text-decoration-color: currentColor; }
 h1 { font: 600 2rem/1.15 var(--sans); letter-spacing: -0.01em; margin: 0 0 0.75rem; text-wrap: balance; }
 .lede { font-size: 1.2rem; line-height: 1.5; color: var(--muted); margin: 0 0 2.25rem; text-wrap: pretty; }
 code { font-family: var(--mono); font-size: 0.9em; }
@@ -51,6 +56,23 @@ button.quiet { color: var(--fg); background: transparent; border-color: var(--ru
 :is(button, a):focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 footer { margin-top: 3rem; padding-top: 0.75rem; border-top: 1px solid var(--rule); font: 0.8rem/1.45 var(--sans); color: var(--muted); }
 `
+
+/**
+ * The top of the Hand-off and of Get geenee for a Guest who came from it: the
+ * name, and the way between the two pages, for the Room `room`, a parsed Room id.
+ */
+export function roomSwitch(room: string, current: 'room' | 'get'): string {
+  const item = (here: boolean, href: string, name: string) => (here ? `<span aria-current="page">${name}</span>` : `<a href="${href}">${name}</a>`)
+  return `<div class="brand">
+    <span>geenee</span>
+    <nav aria-label="Your Room and Get geenee">${item(current === 'room', handOffPath(room), 'Your Room')} <span aria-hidden="true">·</span> ${item(current === 'get', getGeeneePath(room), 'Get geenee')}</nav>
+  </div>`
+}
+
+/** The path of Get geenee for a Guest coming from the Hand-off of `room`, whose way back it then shows. */
+export function getGeeneePath(room: string): string {
+  return `/get?room=${room}`
+}
 
 /**
  * Wires each `<button data-copy="<id>">` to copy the text of the element with

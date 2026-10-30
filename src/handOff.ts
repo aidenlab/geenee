@@ -4,7 +4,7 @@
  * and the ways to send it on to a computer: email, the phone's own share sheet,
  * and copy. The Workspace sends a phone here from a Room link (workspace/phone.ts).
  */
-import { COPY_SCRIPT, escapeHtml, page } from './page.ts'
+import { COPY_SCRIPT, escapeHtml, getGeeneePath, page, roomSwitch } from './page.ts'
 import { roomLinkPath } from './roomId.ts'
 
 const EXPIRES = 'Expires after a day without use.'
@@ -36,10 +36,12 @@ main { padding-top: 8vh; }
 .actions .button { grid-column: 1 / -1; padding-block: 0.8rem; }
 .actions button[hidden] + button { grid-column: 1 / -1; }
 .expires { font: 0.9rem var(--sans); color: var(--muted); margin: 1rem 0 0; }
-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1.5rem; }
+footer { display: flex; flex-direction: column; align-items: flex-start; font: 500 1.0625rem/1.45 var(--sans); }
+/* A tap target of at least 44px. */
+footer a { padding-block: 0.65rem; color: var(--fg); text-decoration-color: currentColor; text-wrap: balance; }
 `,
     body: `<main>
-  <p class="brand">geenee</p>
+  ${roomSwitch(room, 'room')}
   <h1>Send this link to your computer</h1>
   <p class="lede">You've been invited to a live geenee Room. It's built for a laptop or desktop. Email or text yourself the link, then open it there.</p>
 
@@ -55,7 +57,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.
 
   <footer>
     <a href="/?room=${room}">Open here anyway</a>
-    <a href="/get">Get geenee for your own Claude →</a>
+    <a href="${getGeeneePath(room)}">Get geenee for your own Claude or ChatGPT →</a>
   </footer>
 </main>
 ${COPY_SCRIPT}

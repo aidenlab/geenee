@@ -31,6 +31,7 @@ How to look at the pages of the Guest flow and change them, on your own machine.
 | Hand-off            | A Guest who opens a Room link on a phone             | `src/handOff.ts`, which also holds the email | `test/handOff.test.ts`    |
 | Workspace           | Anyone who opens a Room link on a computer           | `index.html`, `src/workspace/`               | `test/roomLink.test.ts`   |
 | Get geenee          | Anyone following a Get geenee link                   | `src/getGeenee.ts`                           | `test/getGeenee.test.ts`  |
+| Get geenee from a Hand-off | A Guest following the Hand-off's link: Get geenee, with the way back to their Room | `src/getGeenee.ts`    | `test/getGeenee.test.ts`  |
 | Expired Room        | Anyone who opens the link of an expired Room         | `src/expiredRoom.ts`                         | `test/expiry.test.ts`     |
 | Malformed Room link | Anyone who opens a Room link with a broken Room id   | `src/malformedRoomLink.ts`                   | `test/roomLink.test.ts`   |
 

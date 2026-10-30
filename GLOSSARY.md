@@ -44,6 +44,10 @@ _Avoid_: Bystander, viewer, participant, collaborator
 The page a Room link opens on a phone, where a Guest sends the Room link on to a computer, since geenee is too small to use on a phone.
 _Avoid_: Landing page, interstitial, redirect
 
+**Get geenee**:
+The page that tells a person what geenee is and how to add it as a Connector to a Host. A Guest who comes to it from a Hand-off can go back to their Room from it.
+_Avoid_: Install page, signup, landing page
+
 **Card**:
 What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.
 _Avoid_: Screen, view, widget
