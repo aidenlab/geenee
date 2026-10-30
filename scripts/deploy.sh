@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Deploy geenee by hand (there is no CI deploy):
-#   scripts/deploy.sh [ref]        to geenee dev, the published Connector
-#   scripts/deploy-test.sh [ref]   to geenee test, a single slot for trying a branch
+#   scripts/deploy.sh [ref]        to geenee production, the published Connector
+#   scripts/deploy-dev.sh [ref]    to geenee dev, a single slot for trying a branch
 #
-#   dev   Worker geenee-view-dev  at https://geenee-view-dev.3dg.io  (wrangler.toml [env.dev])
-#   test  Worker geenee-test      at https://geenee-test.3dg.io      (wrangler.toml [env.test])
+#   prod  Worker geenee      at https://geenee.3dg.io      (wrangler.toml [env.prod])
+#   dev   Worker geenee-dev  at https://geenee-dev.3dg.io  (wrangler.toml [env.dev])
 #
 # Both forward to the igv Upstream igv-bot-mcp-dev.3dg.io and the Juicebox Upstream
 # juicebot-view-mcp-dev.3dg.io, whose Viewer is the juicebox-view page juicebot-view-dev.pages.dev.
@@ -23,17 +23,17 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# deploy-test.sh sets GEENEE_DEPLOYMENT=test; nothing else should.
-DEPLOYMENT="${GEENEE_DEPLOYMENT:-dev}"
+# deploy-dev.sh sets GEENEE_DEPLOYMENT=dev; nothing else should.
+DEPLOYMENT="${GEENEE_DEPLOYMENT:-prod}"
 case "$DEPLOYMENT" in
-  dev)  WORKER=geenee-view-dev ADDRESS=https://geenee-view-dev.3dg.io ;;
-  test) WORKER=geenee-test      ADDRESS=https://geenee-test.3dg.io ;;
+  prod) WORKER=geenee     ADDRESS=https://geenee.3dg.io ;;
+  dev)  WORKER=geenee-dev ADDRESS=https://geenee-dev.3dg.io ;;
   *)    echo "unknown deployment '$DEPLOYMENT'" >&2; exit 2 ;;
 esac
 JUICEBOX_PAGE=https://juicebot-view-dev.pages.dev/
 
 SCRIPT=scripts/deploy.sh
-[[ "$DEPLOYMENT" == test ]] && SCRIPT=scripts/deploy-test.sh
+[[ "$DEPLOYMENT" == dev ]] && SCRIPT=scripts/deploy-dev.sh
 usage() {
   echo "usage: $SCRIPT [ref]"
   echo
@@ -68,7 +68,7 @@ git -C "$REPO_ROOT" worktree add -q --detach "$WORK/geenee" "$REF"
 echo "geenee $(git -C "$WORK/geenee" rev-parse --short HEAD) at $REF to $DEPLOYMENT"
 cd "$WORK/geenee"
 # The ref is built with its own wrangler.toml, so it must name this Worker for this deployment. An
-# older ref may not have a test environment, or may have dev as the retired juicebox-web Worker.
+# older ref may not have a prod environment, or may have dev as an older Worker.
 named="$(awk -v section="[env.$DEPLOYMENT]" '$0 == section { inside = 1; next } /^\[/ { inside = 0 } inside && $1 == "name" { gsub(/"/, "", $3); print $3; exit }' wrangler.toml)"
 if [[ "$named" != "$WORKER" ]]; then
   echo "$REF's wrangler.toml gives [env.$DEPLOYMENT] the Worker '${named:-none}', not $WORKER: merge main into it first" >&2

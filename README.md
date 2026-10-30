@@ -46,7 +46,7 @@ Local development is the local Worker and Workspace against the **deployed dev U
 An MCP client running on this machine can use `http://localhost:5173/mcp` directly, for example Claude Code:
 
 ```sh
-claude mcp add --transport http geenee-dev http://localhost:5173/mcp
+claude mcp add --transport http geenee-local http://localhost:5173/mcp
 ```
 
 A custom connector in Claude desktop or ChatGPT cannot: those Hosts connect from their own servers and need a public `https://` URL. To try a local geenee in those Hosts, give it one with a tunnel and use the address it prints, with `/mcp` appended, as the connector URL:
@@ -93,19 +93,19 @@ The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Ro
 
 ## Deploying
 
-There are two deployments. **dev** is the published Connector, the one people add to their Host. **test** is a single slot for trying a branch without touching it: whichever ref was deployed to it last is what it runs. Each is its own Worker with its own Rooms, so deploying one never affects the other. Nothing deploys from CI.
+There are two deployments. **production** is the published Connector, the one people add to their Host. **dev** is a single slot for trying a branch without touching it: whichever ref was deployed to it last is what it runs. Each is its own Worker with its own Rooms, so deploying one never affects the other. Nothing deploys from CI.
 
-| Deployment | Cloudflare name   | Address                          | Script                   |
-| ---------- | ----------------- | -------------------------------- | ------------------------ |
-| dev        | `geenee-view-dev` | `https://geenee-view-dev.3dg.io` | `scripts/deploy.sh`      |
-| test       | `geenee-test`     | `https://geenee-test.3dg.io`     | `scripts/deploy-test.sh` |
+| Deployment | Cloudflare name | Address                     | Script                  |
+| ---------- | --------------- | --------------------------- | ----------------------- |
+| production | `geenee`        | `https://geenee.3dg.io`     | `scripts/deploy.sh`     |
+| dev        | `geenee-dev`    | `https://geenee-dev.3dg.io` | `scripts/deploy-dev.sh` |
 
-Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`. The dev Worker keeps its name from when there was also a juicebox-web deployment, so that its address and its Rooms stay.
+Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`.
 
 ```sh
 npx wrangler login                    # first time on a machine
-scripts/deploy-test.sh my-branch      # try a branch, tag or commit on geenee test
-scripts/deploy.sh                     # deploy HEAD to geenee dev, the published Connector
+scripts/deploy-dev.sh my-branch       # try a branch, tag or commit on geenee dev
+scripts/deploy.sh                     # deploy HEAD to geenee production, the published Connector
 scripts/deploy.sh <ref>               # or a branch, tag or commit
 ```
 
@@ -117,7 +117,7 @@ geenee only forwards, so the script deploys geenee alone. The Juicebox stack it 
 
 It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds both Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
 
-The connector URL to give Claude or ChatGPT is `https://geenee-view-dev.3dg.io/mcp`, or `https://geenee-test.3dg.io/mcp` to try what is on test. In Claude: Settings, Connectors, Add custom connector, with the OAuth fields left blank. Both can be added side by side, for example as "geenee" and "geenee test".
+The connector URL to give Claude or ChatGPT is `https://geenee.3dg.io/mcp`, or `https://geenee-dev.3dg.io/mcp` to try what is on dev. In Claude: Settings, Connectors, Add custom connector, with the OAuth fields left blank. Both can be added side by side, for example as "geenee" and "geenee dev".
 
 ## Scripts
 
@@ -132,8 +132,8 @@ Run from the repository root.
 | `npm run typecheck`  | Write the types, then type-check the Worker and the tests, and the Workspace apart from them |
 | `npm run test:run`   | Run every test once                                                       |
 | `npm test`           | Run the tests in watch mode                                               |
-| `npm run deploy:dev` | Build the `dev` environment and deploy it, with no checks; `scripts/deploy.sh` runs them first |
-| `npm run deploy:test` | Build the `test` environment and deploy it, with no checks; `scripts/deploy-test.sh` runs them first |
+| `npm run deploy:prod` | Build the `prod` environment and deploy it, with no checks; `scripts/deploy.sh` runs them first |
+| `npm run deploy:dev` | Build the `dev` environment and deploy it, with no checks; `scripts/deploy-dev.sh` runs them first |
 
 Run a single test file by adding its path: `npx vitest run test/routing.test.ts`.
 
@@ -173,8 +173,8 @@ test/
   connector.ts           The Host's side of the Connector, for the tests, with a stand-in clock
   *.test.ts              Tests
 scripts/
-  deploy.sh              Deploy geenee dev, the published Connector
-  deploy-test.sh         Deploy geenee test, the slot for trying a branch
+  deploy.sh              Deploy geenee production, the published Connector
+  deploy-dev.sh          Deploy geenee dev, the slot for trying a branch
 docs/
   adr/                   The decisions: forwarding, and the Workspace
   research/              The research on merging the two servers
@@ -186,6 +186,6 @@ docs/
 - `wrangler.toml`, `IGV_UPSTREAM_URL`: the `/mcp` address of the igv Upstream.
 - `wrangler.toml`, `JUICEBOX_UPSTREAM_URL`: the `/mcp` address of the Juicebox Upstream.
 
-The top-level values are for local development, the `[env.dev]` and `[env.test]` values for the two deployments. All of them name the same deployed dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
+The top-level values are for local development, the `[env.prod]` and `[env.dev]` values for the two deployments. All of them name the same deployed dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
 
 To refresh a fixture after an Upstream's tools change, save the `tools` array of its `tools/list` reply over the file in `test/fixtures/`.
