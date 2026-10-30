@@ -1,0 +1,55 @@
+<!doctype html>
+<!--
+  The page review, for `npm run pages`: every page of the Guest flow, one at a
+  time, at phone and computer size, light and dark, reloading when its source
+  changes. Its script, src/workspace/pagesReview.ts, stands in for the Host so that the
+  Card can be seen outside one. Development only: Vite's build takes index.html
+  alone, so it never ships.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geenee pages</title>
+<style>
+  html, body { height: 100%; }
+  body { margin: 0; display: grid; grid-template-columns: 15rem 1fr; background: var(--bg); color: var(--fg); font: 0.9rem/1.45 var(--sans); }
+  nav { padding: 1.25rem 1rem; border-right: 1px solid var(--rule); }
+  .brand { font: 400 0.85rem var(--mono); color: var(--muted); margin: 0 0 1rem; padding: 0 0.6rem; }
+  nav button { display: block; width: 100%; padding: 0.4rem 0.6rem; text-align: left; font: inherit; color: var(--muted); background: none; border: 0; border-radius: 4px; cursor: pointer; }
+  nav button:hover { color: var(--fg); }
+  nav button[aria-current="true"] { color: var(--fg); background: var(--box); font-weight: 500; }
+  main { display: flex; flex-direction: column; min-width: 0; height: 100vh; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--rule); }
+  #source { font: 400 0.85rem var(--mono); margin-right: auto; }
+  label { color: var(--muted); }
+  select { font: inherit; color: var(--fg); background: var(--box); border: 1px solid var(--rule); border-radius: 4px; padding: 0.1rem 0.25rem; }
+  a { color: var(--muted); text-underline-offset: 0.15em; }
+  #stage { flex: 1; min-height: 0; overflow: auto; padding: 1.25rem; }
+  iframe { display: block; box-sizing: border-box; max-width: 100%; margin-inline: auto; background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; }
+  /* The Card's Show large asked for the whole window, as a Host would give it. */
+  body.fullscreen { display: block; }
+  body.fullscreen :is(nav, header) { display: none; }
+  body.fullscreen #stage { padding: 0; overflow: hidden; }
+  body.fullscreen iframe { width: 100%; height: 100%; border: 0; border-radius: 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<nav>
+  <p class="brand">geenee pages</p>
+  <div id="list"></div>
+</nav>
+<main>
+  <header>
+    <span id="source"></span>
+    <label>Size <select id="size"><option value="computer">Computer</option><option value="phone">Phone</option></select></label>
+    <label>Theme <select id="theme"><option>light</option><option>dark</option></select></label>
+    <label class="card-only">Host <select id="host"><option value="desktop">Claude desktop</option><option value="web">Other</option><option value="refuses">Refuses to open links</option></select></label>
+    <a id="alone" target="_blank" rel="noopener">Open alone</a>
+  </header>
+  <div id="stage"></div>
+</main>
+<script type="module" src="/src/workspace/pagesReview.ts"></script>
+</body>
+</html>

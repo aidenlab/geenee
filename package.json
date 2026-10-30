@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "pages": "vite --open /pages",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "test": "vitest",
