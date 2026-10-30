@@ -51,8 +51,15 @@ describe('the Hand-off', () => {
     const page = await handOff()
 
     expect(page).toContain('href="/?room=7ZQH4M2K9X"')
-    expect(page).toContain('href="/get"')
-    expect(page).toContain('Get geenee for your own Claude →')
+    expect(page).toContain('href="/get?room=7ZQH4M2K9X"')
+    expect(page).toContain('Get geenee for your own Claude or ChatGPT →')
+  })
+
+  it('switches to Get geenee at the top of the page, and is the page it is on', async () => {
+    const page = await handOff()
+
+    expect(page).toContain('<span aria-current="page">Your Room</span>')
+    expect(page).toContain('<a href="/get?room=7ZQH4M2K9X">Get geenee</a>')
   })
 
   it('with a malformed Room id, gets the page saying so', async () => {

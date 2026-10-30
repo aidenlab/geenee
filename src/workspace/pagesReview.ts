@@ -26,6 +26,7 @@ const PAGES: ReviewedPage[] = [
   { id: 'hand-off', name: 'Hand-off', source: 'src/handOff.ts', path: (room) => `/h/${room}`, size: 'phone' },
   { id: 'workspace', name: 'Workspace', source: 'src/workspace/', path: (room) => `/r/${room}` },
   { id: 'get', name: 'Get geenee', source: 'src/getGeenee.ts', path: () => '/get' },
+  { id: 'get-from-hand-off', name: 'Get geenee from a Hand-off', source: 'src/getGeenee.ts', path: (room) => `/get?room=${room}`, size: 'phone' },
   // A Room geenee never opened counts as expired.
   { id: 'expired', name: 'Expired Room', source: 'src/expiredRoom.ts', path: () => '/r/0000000000' },
   { id: 'malformed', name: 'Malformed Room link', source: 'src/malformedRoomLink.ts', path: () => '/r/nope' },

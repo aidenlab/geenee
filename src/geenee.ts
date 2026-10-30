@@ -308,7 +308,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, roomRecord,
       return pageResponse(handOffPage(url.origin, room))
     }
     if (url.pathname === '/get' && request.method === 'GET') {
-      return pageResponse(getGeeneePage(url.origin))
+      return pageResponse(getGeeneePage(url.origin, parseRoomId(url.searchParams.get('room') ?? '')))
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')
