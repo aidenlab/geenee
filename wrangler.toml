@@ -33,24 +33,44 @@ IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
 
 # ── The two deployments ──────────────────────────────────────────────────────
-# dev is the one people add as a Connector; test is a single slot for trying a
+# prod is the one people add as a Connector; dev is a single slot for trying a
 # branch without touching it. Both forward to the same Upstreams. They share
 # nothing else: each is its own Worker with its own Rooms, so a deploy to one
 # never touches the other. Wrangler creates the DNS record for each custom
 # domain; the zone is on the same account. No *.workers.dev hostname and no
 # preview URLs, so each has one public address. Named environments do not
 # inherit `vars` or `durable_objects`, so those are repeated; migrations are
-# top-level and apply to every environment. dev is deployed by
-# scripts/deploy.sh, test by scripts/deploy-test.sh.
+# top-level and apply to every environment. prod is deployed by
+# scripts/deploy.sh, dev by scripts/deploy-dev.sh.
 
-# "geenee dev": Worker geenee-view-dev at https://geenee-view-dev.3dg.io, the
-# published Connector address. Hosts use /mcp, and a person sees the Workspace
-# at /, which uses /ws. The Worker keeps its name from when there was also a
-# juicebox-web deployment, so that the address and its Rooms stay.
-[env.dev]
-name = "geenee-view-dev"
+# "geenee production": Worker geenee at https://geenee.3dg.io, the published
+# Connector address. Hosts use /mcp, and a person sees the Workspace at /, which
+# uses /ws.
+[env.prod]
+name = "geenee"
 routes = [
-  { pattern = "geenee-view-dev.3dg.io", custom_domain = true },
+  { pattern = "geenee.3dg.io", custom_domain = true },
+]
+workers_dev = false
+preview_urls = false
+
+[env.prod.observability.logs]
+enabled = true
+
+[[env.prod.durable_objects.bindings]]
+name = "ROOM"
+class_name = "Room"
+
+[env.prod.vars]
+IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
+JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
+
+# "geenee dev": Worker geenee-dev at https://geenee-dev.3dg.io, laid out as
+# geenee production. Whichever ref was deployed to it last is what it runs.
+[env.dev]
+name = "geenee-dev"
+routes = [
+  { pattern = "geenee-dev.3dg.io", custom_domain = true },
 ]
 workers_dev = false
 preview_urls = false
@@ -63,26 +83,5 @@ name = "ROOM"
 class_name = "Room"
 
 [env.dev.vars]
-IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
-JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
-
-# "geenee test": Worker geenee-test at https://geenee-test.3dg.io, laid out as
-# geenee dev. Whichever ref was deployed to it last is what it runs.
-[env.test]
-name = "geenee-test"
-routes = [
-  { pattern = "geenee-test.3dg.io", custom_domain = true },
-]
-workers_dev = false
-preview_urls = false
-
-[env.test.observability.logs]
-enabled = true
-
-[[env.test.durable_objects.bindings]]
-name = "ROOM"
-class_name = "Room"
-
-[env.test.vars]
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"

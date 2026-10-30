@@ -266,7 +266,7 @@ pre {
 <main class="page">
 
 <h1>How geenee deploys</h1>
-<p class="lede">One run of <code>scripts/deploy.sh</code> or <code>scripts/deploy-test.sh</code> replaces exactly one Cloudflare Worker: its code, the Workspace page it serves, and its settings. The Worker’s Durable Object storage is kept. Nothing that belongs to igv or Juicebox is touched. This document shows what is uploaded, what is replaced, what survives, and what to run when you change something elsewhere.</p>
+<p class="lede">One run of <code>scripts/deploy.sh</code> or <code>scripts/deploy-dev.sh</code> replaces exactly one Cloudflare Worker: its code, the Workspace page it serves, and its settings. The Worker’s Durable Object storage is kept. Nothing that belongs to igv or Juicebox is touched. This document shows what is uploaded, what is replaced, what survives, and what to run when you change something elsewhere.</p>
 
 <ul class="toc">
   <li><a href="#short">The short answer</a></li>
@@ -275,7 +275,7 @@ pre {
   <li><a href="#steps">What the script does, step by step</a></li>
   <li><a href="#upload">What one upload contains</a></li>
   <li><a href="#moment">The moment it goes live</a></li>
-  <li><a href="#two">dev or test</a></li>
+  <li><a href="#two">production or dev</a></li>
   <li><a href="#which">I changed X: what do I deploy?</a></li>
   <li><a href="#live">Which build is live?</a></li>
   <li><a href="#gotchas">Shortcuts and traps</a></li>
@@ -283,13 +283,13 @@ pre {
 
 <h2 id="short">The short answer</h2>
 
-<p>Say you run <code>scripts/deploy.sh</code>, which deploys geenee dev, the published Connector. This is what changes on Cloudflare:</p>
+<p>Say you run <code>scripts/deploy.sh</code>, which deploys geenee production, the published Connector. This is what changes on Cloudflare:</p>
 
 <div class="sum">
   <section>
     <h3>Replaced</h3>
     <ul>
-      <li>The code of the Worker <code>geenee-view-dev</code>: <code>/mcp</code>, <code>/viewers</code>, <code>/connections</code>, <code>/ws</code>, the tool renaming, the server instructions, <code>open_geenee</code>.</li>
+      <li>The code of the Worker <code>geenee</code>: <code>/mcp</code>, <code>/viewers</code>, <code>/connections</code>, <code>/ws</code>, the tool renaming, the server instructions, <code>open_geenee</code>.</li>
       <li>The Workspace page: <code>index.html</code> and its JavaScript and CSS, served by the same Worker.</li>
       <li>The Worker’s settings: the two Upstream addresses, the binding to the Room Durable Object, logging.</li>
       <li>The code of the Room Durable Object, which is part of the Worker.</li>
@@ -301,7 +301,7 @@ pre {
     <ul>
       <li>Every Room’s storage: the last “Viewer used” report.</li>
       <li>Room ids. A Room id the model already holds still finds the same Room.</li>
-      <li>The custom domain <code>geenee-view-dev.3dg.io</code> and its DNS record.</li>
+      <li>The custom domain <code>geenee.3dg.io</code> and its DNS record.</li>
       <li>Open Viewers, and everything on their screens: they talk to their own Upstreams, which were not redeployed.</li>
       <li>Earlier versions of the Worker, in Cloudflare’s version history.</li>
     </ul>
@@ -309,7 +309,7 @@ pre {
   <section class="never">
     <h3>Never touched</h3>
     <ul>
-      <li>The other geenee deployment, <code>geenee-test</code>.</li>
+      <li>The other geenee deployment, <code>geenee-dev</code>.</li>
       <li>The <span class="igv">igv</span> Upstream Worker and the igv Viewer’s Pages project.</li>
       <li>The <span class="jb">Juicebox</span> Upstream Worker and the Juicebox Viewer’s Pages project.</li>
       <li>Your working copy. The script builds from a commit in a throwaway checkout, so uncommitted changes never ship and your <code>dist/</code> is not rewritten.</li>
@@ -346,24 +346,24 @@ pre {
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 548" role="img" aria-label="The Cloudflare account, in three columns. geenee: two Workers, geenee-view-dev (dev, the published Connector) and geenee-test (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-test.sh the second. igvjs-mcp: the Worker igv-bot-mcp-dev with its Room Durable Object, and the Pages project igv-bot-web-dev, shared by both geenee deployments. juicebox-mcp: the view stack, the Worker juicebot-view-mcp-dev and the Pages project juicebot-view-dev, also shared by both. geenee's scripts touch neither of the other two columns.">
+  <svg class="fig" viewBox="0 0 1000 548" role="img" aria-label="The Cloudflare account, in three columns. geenee: two Workers, geenee (production, the published Connector) and geenee-dev (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-dev.sh the second. igvjs-mcp: the Worker igv-bot-mcp-dev with its Room Durable Object, and the Pages project igv-bot-web-dev, shared by both geenee deployments. juicebox-mcp: the view stack, the Worker juicebot-view-mcp-dev and the Pages project juicebot-view-dev, also shared by both. geenee's scripts touch neither of the other two columns.">
     <rect x="8" y="8" width="984" height="532" rx="6" class="bx-q"/>
     <text x="24" y="30" class="t-band">CLOUDFLARE ACCOUNT · ZONE 3DG.IO</text>
 
     <!-- Column heads -->
     <text x="24" y="58" class="t-h" style="font-size:14px">geenee</text>
-    <text x="24" y="76" class="t-m">scripts/deploy.sh, deploy-test.sh [ref]</text>
+    <text x="24" y="76" class="t-m">scripts/deploy.sh, deploy-dev.sh [ref]</text>
     <text x="350" y="58" class="t-h ci" style="font-size:14px">igvjs-mcp</text>
     <text x="350" y="76" class="t-m ci">scripts/deploy-dev.sh [worker|viewer]</text>
     <text x="676" y="58" class="t-h cj" style="font-size:14px">juicebox-mcp</text>
     <text x="676" y="76" class="t-m cj">scripts/deploy-test.sh view &lt;page&gt;</text>
 
-    <!-- geenee: dev -->
-    <text x="24" y="100" class="t-band">DEV · THE PUBLISHED CONNECTOR</text>
+    <!-- geenee: production -->
+    <text x="24" y="100" class="t-band">PRODUCTION · THE PUBLISHED CONNECTOR</text>
     <rect x="24" y="108" width="300" height="160" class="bx-g"/>
     <text x="38" y="127" class="t-n">Worker</text>
-    <text x="38" y="146" class="t-h">geenee-view-dev</text>
-    <text x="38" y="163" class="t-m">geenee-view-dev.3dg.io</text>
+    <text x="38" y="146" class="t-h">geenee</text>
+    <text x="38" y="163" class="t-m">geenee.3dg.io</text>
     <text x="38" y="180" class="t-s">forwards to igv-bot-mcp-dev, juicebot-view-mcp-dev</text>
     <rect x="38" y="192" width="86" height="62" class="bx"/>
     <text x="46" y="211" class="t-h" style="font-size:11px">Worker code</text>
@@ -379,12 +379,12 @@ pre {
     <text x="238" y="244" class="t-s" style="font-weight:600">storage kept</text>
     <text x="24" y="286" class="tag">↑ one run of deploy.sh replaces this</text>
 
-    <!-- geenee: test -->
-    <text x="24" y="314" class="t-band">TEST · A SLOT FOR TRYING A BRANCH</text>
+    <!-- geenee: dev -->
+    <text x="24" y="314" class="t-band">DEV · A SLOT FOR TRYING A BRANCH</text>
     <rect x="24" y="322" width="300" height="160" class="bx-g"/>
     <text x="38" y="341" class="t-n">Worker</text>
-    <text x="38" y="360" class="t-h">geenee-test</text>
-    <text x="38" y="377" class="t-m">geenee-test.3dg.io</text>
+    <text x="38" y="360" class="t-h">geenee-dev</text>
+    <text x="38" y="377" class="t-m">geenee-dev.3dg.io</text>
     <text x="38" y="394" class="t-s">forwards to igv-bot-mcp-dev, juicebot-view-mcp-dev</text>
     <rect x="38" y="406" width="86" height="62" class="bx"/>
     <text x="46" y="425" class="t-h" style="font-size:11px">Worker code</text>
@@ -398,7 +398,7 @@ pre {
     <text x="238" y="425" class="t-h" style="font-size:11px">Durable Obj.</text>
     <text x="238" y="441" class="t-s">Room × n</text>
     <text x="238" y="458" class="t-s" style="font-weight:600">storage kept</text>
-    <text x="24" y="500" class="tag">↑ one run of deploy-test.sh replaces this</text>
+    <text x="24" y="500" class="tag">↑ one run of deploy-dev.sh replaces this</text>
 
     <!-- igv -->
     <text x="350" y="100" class="t-band">SHARED BY BOTH</text>
@@ -437,11 +437,11 @@ pre {
 
 <h2 id="steps">What the script does, step by step</h2>
 
-<pre>scripts/deploy-test.sh my-branch      # any branch, tag or commit to geenee-test
-scripts/deploy.sh                     # deploys HEAD to geenee-view-dev, the published Connector
+<pre>scripts/deploy-dev.sh my-branch       # any branch, tag or commit to geenee-dev
+scripts/deploy.sh                     # deploys HEAD to geenee, the published Connector
 scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
-<p><code>scripts/deploy-test.sh</code> is <code>scripts/deploy.sh</code> pointed at the test deployment; the steps are the same.</p>
+<p><code>scripts/deploy-dev.sh</code> is <code>scripts/deploy.sh</code> pointed at the dev deployment; the steps are the same.</p>
 
 <figure>
   <div class="figwrap">
@@ -505,11 +505,11 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
   <thead><tr><th class="n"></th><th>Step</th><th>What happens</th></tr></thead>
   <tbody>
     <tr><td class="n">1</td><th>Logged in?</th><td><code>npx wrangler whoami</code>. If you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
-    <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. The ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not. The ref is built with its own <code>wrangler.toml</code>, so the script stops here if that file does not give the deployment’s section the expected Worker: an older branch may have no <code>[env.test]</code>, or an <code>[env.dev]</code> that is the retired juicebox-web Worker. Merge <code>main</code> into it first.</td></tr>
+    <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. The ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not. The ref is built with its own <code>wrangler.toml</code>, so the script stops here if that file does not give the deployment’s section the expected Worker: an older branch may have no <code>[env.prod]</code>, or an <code>[env.dev]</code> that names an older Worker. Merge <code>main</code> into it first.</td></tr>
     <tr><td class="n">3</td><th>Install</th><td><code>npm ci</code>: installs exactly what <code>package-lock.json</code> says, from scratch.</td></tr>
     <tr><td class="n">4</td><th>Type-check</th><td><code>npm run typecheck</code>: regenerates the Worker’s types from <code>wrangler.toml</code>, then type-checks the Worker and tests, and the Workspace separately.</td></tr>
     <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
-    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:dev</code> (or <code>deploy:test</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_BUILD</code> set to the build number from <code>scripts/build-number.sh</code>. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
+    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_BUILD</code> set to the build number from <code>scripts/build-number.sh</code>. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
     <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
     <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must contain this commit’s short hash, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 44 means both Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: the Juicebox Viewer address must be the juicebox-view page, or the script fails. Check (c) needs the Juicebox Upstream to be up.</td></tr>
   </tbody>
@@ -518,7 +518,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p>When it succeeds, the last line names the build, the Connector URL, the number of tools, and the Juicebox Viewer page:</p>
 
-<pre>deployed build 24 (1c33760, 2026-10-22 10:41 EDT) to dev at https://geenee-view-dev.3dg.io: …</pre>
+<pre>deployed build 24 (1c33760, 2026-10-22 10:41 EDT) to prod at https://geenee.3dg.io: …</pre>
 
 <h2 id="upload">What one upload contains</h2>
 
@@ -533,7 +533,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><th>Settings (<code>vars</code>)</th><td><code>IGV_UPSTREAM_URL</code> and <code>JUICEBOX_UPSTREAM_URL</code> from the environment’s section of <code>wrangler.toml</code></td><td>Replaced. A change to an Upstream address takes effect only with a deploy.</td></tr>
     <tr><th>Durable Object binding</th><td><code>ROOM</code> → class <code>Room</code></td><td>Unchanged in practice: the same binding each time.</td></tr>
     <tr><th>Migration</th><td><code>[[migrations]] tag = "v1"</code>: “<code>Room</code> is a Durable Object class with SQLite storage”</td><td>Applied once, on the first deploy. Cloudflare remembers that <code>v1</code> ran, so later deploys skip it.</td></tr>
-    <tr><th>Route</th><td><code>geenee-view-dev.3dg.io</code> or <code>geenee-test.3dg.io</code> as a custom domain</td><td>Created, with its DNS record, on the first deploy. Kept after that.</td></tr>
+    <tr><th>Route</th><td><code>geenee.3dg.io</code> or <code>geenee-dev.3dg.io</code> as a custom domain</td><td>Created, with its DNS record, on the first deploy. Kept after that.</td></tr>
     <tr><th>Build number</th><td><code>VITE_BUILD</code>, written into both the Worker code and the Workspace JavaScript at build time</td><td>Replaced, because it is part of the code.</td></tr>
     <tr><th>Logging</th><td><code>observability.logs.enabled = true</code></td><td>Kept on.</td></tr>
   </tbody>
@@ -542,7 +542,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p>What is <em>not</em> in the bundle: any Room’s stored data, any secret (geenee has none), any igv or Juicebox file, and any <code>*.workers.dev</code> or preview address (both are turned off, so each deployment has exactly one public address).</p>
 
-<p class="note">The top level of <code>wrangler.toml</code>, outside any <code>[env.…]</code>, is for <code>npm run dev</code> only and is never deployed. A deploy reads only <code>[env.dev]</code> or <code>[env.test]</code>. Named environments do not inherit <code>vars</code> or Durable Object bindings, which is why the file repeats them.</p>
+<p class="note">The top level of <code>wrangler.toml</code>, outside any <code>[env.…]</code>, is for <code>npm run dev</code> only and is never deployed. A deploy reads only <code>[env.prod]</code> or <code>[env.dev]</code>. Named environments do not inherit <code>vars</code> or Durable Object bindings, which is why the file repeats them.</p>
 
 <h2 id="moment">The moment it goes live</h2>
 
@@ -564,27 +564,25 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p class="note">Durable Object storage is never rolled back. If you deploy an older version of the code, Rooms keep whatever the newer code stored. With today’s single <code>lastUse</code> value this does not matter.</p>
 
-<h2 id="two">dev or test</h2>
+<h2 id="two">production or dev</h2>
 
-<p>geenee has two deployments: <b>dev</b>, the published Connector that people add to their Host, and <b>test</b>, a single slot for trying a branch without touching dev. Whichever ref was deployed to test last is what it runs. They are two completely separate Workers. They share no code version, no Rooms and no storage, but forward to the same Upstreams. Only the script picks between them.</p>
+<p>geenee has two deployments: <b>production</b>, the published Connector that people add to their Host, and <b>dev</b>, a single slot for trying a branch without touching production. Whichever ref was deployed to dev last is what it runs. They are two completely separate Workers. They share no code version, no Rooms and no storage, but forward to the same Upstreams. Only the script picks between them.</p>
 
 <div class="tablewrap wide">
 <table>
-  <thead><tr><th></th><th><code>deploy.sh</code></th><th><code>deploy-test.sh</code></th></tr></thead>
+  <thead><tr><th></th><th><code>deploy.sh</code></th><th><code>deploy-dev.sh</code></th></tr></thead>
   <tbody>
-    <tr><th>Worker</th><td><code>geenee-view-dev</code></td><td><code>geenee-test</code></td></tr>
-    <tr><th>wrangler.toml section</th><td><code>[env.dev]</code></td><td><code>[env.test]</code></td></tr>
-    <tr><th>npm script</th><td><code>deploy:dev</code></td><td><code>deploy:test</code></td></tr>
-    <tr><th>Connector URL</th><td><code>https://geenee-view-dev.3dg.io/mcp</code></td><td><code>https://geenee-test.3dg.io/mcp</code></td></tr>
-    <tr><th>Workspace</th><td><code>https://geenee-view-dev.3dg.io/</code></td><td><code>https://geenee-test.3dg.io/</code></td></tr>
+    <tr><th>Worker</th><td><code>geenee</code></td><td><code>geenee-dev</code></td></tr>
+    <tr><th>wrangler.toml section</th><td><code>[env.prod]</code></td><td><code>[env.dev]</code></td></tr>
+    <tr><th>npm script</th><td><code>deploy:prod</code></td><td><code>deploy:dev</code></td></tr>
+    <tr><th>Connector URL</th><td><code>https://geenee.3dg.io/mcp</code></td><td><code>https://geenee-dev.3dg.io/mcp</code></td></tr>
+    <tr><th>Workspace</th><td><code>https://geenee.3dg.io/</code></td><td><code>https://geenee-dev.3dg.io/</code></td></tr>
     <tr><th class="igv">igv Upstream</th><td colspan="2"><code>https://igv-bot-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
     <tr><th class="jb">Juicebox Upstream</th><td colspan="2"><code>https://juicebot-view-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
     <tr><th class="jb">Juicebox Viewer page</th><td colspan="2"><code>https://juicebot-view-dev.pages.dev/</code> (juicebox-view), the same for both</td></tr>
   </tbody>
 </table>
 </div>
-
-<p>The dev Worker keeps the name <code>geenee-view-dev</code> from when there was also a deployment for Juicebox’s web stack, so that the published address and its Rooms stay.</p>
 
 <p>The Viewer pages are not configured in geenee at all. The Workspace asks geenee (<code>/viewers</code>), geenee asks each Upstream for its Join link, and the Upstream’s own settings decide which page that is.</p>
 
@@ -596,7 +594,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <table>
   <thead><tr><th>What you changed</th><th>Run</th><th>Replaces</th></tr></thead>
   <tbody>
-    <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-test.sh</code> to try it, then <code>geenee/scripts/deploy.sh</code></td><td>One geenee Worker, with its Workspace page</td></tr>
+    <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-dev.sh</code> to try it, then <code>geenee/scripts/deploy.sh</code></td><td>One geenee Worker, with its Workspace page</td></tr>
     <tr><th>geenee: the Workspace page only</th><td>The same. Page and Worker always ship together.</td><td>The same</td></tr>
     <tr><th>geenee: an Upstream address in <code>wrangler.toml</code></th><td>The same</td><td>The same</td></tr>
     <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-bot-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
@@ -609,7 +607,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p class="note">The igv script deploys from your working copy, not from a throwaway checkout, so uncommitted igv changes <em>do</em> ship. The geenee and Juicebox scripts deploy from a commit.</p>
 
-<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. So is the <span class="jb">Juicebox</span> view stack. A change to either Upstream cannot be tried on geenee test alone: dev sees it too.</p>
+<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. So is the <span class="jb">Juicebox</span> view stack. A change to either Upstream cannot be tried on geenee dev alone: production sees it too.</p>
 
 <h2 id="live">Which build is live?</h2>
 
@@ -618,11 +616,11 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <ul>
   <li><b>The Workspace</b> shows it at the right end of its tab bar, with the Connector URL. Remember that an open tab shows the build it was loaded with; reload to see the live one.</li>
   <li><b>The Connector</b> gives it as its version in the reply to <code>initialize</code>:
-<pre>curl -s https://geenee-view-dev.3dg.io/mcp \
+<pre>curl -s https://geenee.3dg.io/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"me","version":"0"}}}'</pre></li>
-  <li><b>Cloudflare</b> lists the Worker’s versions, newest first: <code>npx wrangler deployments list --env dev</code> (or <code>--env test</code>).</li>
+  <li><b>Cloudflare</b> lists the Worker’s versions, newest first: <code>npx wrangler deployments list --env prod</code> (or <code>--env dev</code>).</li>
 </ul>
 
 <h2 id="gotchas">Shortcuts and traps</h2>
@@ -631,11 +629,11 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <table>
   <thead><tr><th>Situation</th><th>What to know</th></tr></thead>
   <tbody>
-    <tr><th>You run <code>npm run deploy:dev</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. The build number then ends in <code>-dirty</code>. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
+    <tr><th>You run <code>npm run deploy:prod</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. The build number then ends in <code>-dirty</code>. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
     <tr><th>Step 8 fails</th><td>The new build is already live. A version mismatch usually means the upload did not go through; a Juicebox page mismatch usually means the Juicebox Upstream is down or is pointing at another page.</td></tr>
     <tr><th>The tool count is below 44</th><td>An Upstream did not answer. geenee still works with the other one. Not a failure of the deploy.</td></tr>
-    <tr><th>You want to undo a deploy</th><td>Run the script again with the earlier commit: <code>scripts/deploy.sh &lt;ref&gt;</code>. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env dev</code>), but redeploying a ref keeps git as the record of what is live.</td></tr>
-    <tr><th>Someone else deploys after you</th><td>Both deployments are shared, and a deploy replaces the Worker for everyone. test has one slot: agree who is using it. Try a branch on test before it reaches dev.</td></tr>
+    <tr><th>You want to undo a deploy</th><td>Run the script again with the earlier commit: <code>scripts/deploy.sh &lt;ref&gt;</code>. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env prod</code>), but redeploying a ref keeps git as the record of what is live.</td></tr>
+    <tr><th>Someone else deploys after you</th><td>Both deployments are shared, and a deploy replaces the Worker for everyone. dev has one slot: agree who is using it. Try a branch on dev before it reaches production.</td></tr>
     <tr><th>You rename or remove the <code>Room</code> class</th><td>That needs a new <code>[[migrations]]</code> entry in <code>wrangler.toml</code>, or <code>wrangler deploy</code> refuses. Changing what is <em>inside</em> <code>Room</code> needs none.</td></tr>
     <tr><th>First deploy on a new machine</th><td><code>npx wrangler login</code> with a login that can reach the account in <code>wrangler.toml</code>. There are no secrets to set.</td></tr>
     <tr><th>The Workspace looks unchanged after a deploy</th><td>Reload the tab. The page’s files are fetched once, when it opens.</td></tr>
@@ -646,7 +644,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. How the parts talk to each other once deployed is in <a href="how-geenee-works.html">How geenee works</a>. The Juicebox side of deploying is covered in more depth by <code>docs/how-juicebot-deploys.html</code> in <code>juicebox-mcp</code>.</p>
 
-<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web.</p>
+<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev.</p>
 
 </main>
 </body>
