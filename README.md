@@ -80,6 +80,10 @@ curl -s http://localhost:5173/mcp \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"juicebox_list_panels","arguments":{"room":"<Room id>"}}}'
 ```
 
+## Reviewing the pages
+
+`npm run pages` opens every page of the Guest flow, the Card included, at phone and computer size, light and dark, reloading as you edit. See [`docs/reviewing-pages.md`](docs/reviewing-pages.md).
+
 ## Tests
 
 ```sh
@@ -126,6 +130,7 @@ Run from the repository root.
 | Command              | What it does                                                              |
 | -------------------- | ------------------------------------------------------------------------- |
 | `npm run dev`        | Start the Worker and the Workspace with Vite, with hot module reload      |
+| `npm run pages`      | The same, opening the page review (`docs/reviewing-pages.md`)             |
 | `npm run build`      | Type-check, then build the Worker and the Workspace into `dist/`          |
 | `npm run preview`    | Serve the built Worker and Workspace locally                              |
 | `npm run types`      | Write `worker-configuration.d.ts`, the Worker's `Env` and runtime types, from `wrangler.toml` |
@@ -147,6 +152,7 @@ tsconfig.json            Type-checking of the Worker and the tests; src/workspac
 vite.config.ts           The build of the Worker and the Workspace
 vitest.config.ts         The tests, kept apart from the Cloudflare plugin
 index.html               The Workspace page: the two tabs, each with its mark, and the two panels
+pages.html               The page review, for development only
 src/
   index.ts               Worker entry point
   geenee.ts              Routes /mcp, /viewers, /connections, /ws, /r/<Room id>, /h/<Room id> and /get; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached and for a Room that has expired
@@ -165,6 +171,7 @@ src/
   room.ts                The Room Durable Object: geenee's record of a Room (its last use, its Join links) and the sockets of its Workspaces
   workspace/main.ts      The Workspace: frames the Viewers, the tabs and their marks, follows the channel; sends a phone on to the Hand-off
   workspace/phone.ts     Whether a page is on a phone
+  workspace/pagesReview.ts  The page review's script, a stand-in Host for the Card
   workspace/workspace.css
 test/
   fixtures/              Saved copies of the two Upstreams' tool lists
@@ -177,6 +184,7 @@ scripts/
   deploy-dev.sh          Deploy geenee dev, the slot for trying a branch
 docs/
   adr/                   The decisions: forwarding, and the Workspace
+  reviewing-pages.md     How to review and change the pages of the Guest flow
   research/              The research on merging the two servers
   agents/                How agents use the issue tracker, the labels and these docs
 ```
