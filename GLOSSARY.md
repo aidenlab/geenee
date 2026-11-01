@@ -1,6 +1,6 @@
 # geenee
 
-One Connector that lets a person drive both the igv.js genome browser and the Juicebox contact-map viewer from a single Claude or ChatGPT conversation. A proof of concept that the two existing tool sets make sense behind one installation.
+One Connector that lets a person drive the igv.js genome browser, the Juicebox contact-map viewer and the Spacewalk 3D viewer from a single Claude or ChatGPT conversation. A proof of concept that the existing tool sets make sense behind one installation.
 
 ## Language
 
@@ -9,28 +9,32 @@ The application a person talks to the model in: Claude desktop, or ChatGPT deskt
 _Avoid_: MCP client, client, chat app
 
 **Connector**:
-geenee as a person adds it to a Host, once, to get both Viewers.
+geenee as a person adds it to a Host, once, to get all the Viewers.
 _Avoid_: Plugin, integration, installation
 
 **Upstream**:
-One of the two existing servers whose tools geenee offers: the igv one or the Juicebox one. Each stays a working Connector in its own right.
+One of the existing servers whose tools geenee offers: the igv one, the Juicebox one or the Spacewalk one. Each stays a working Connector in its own right.
 _Avoid_: Backend, sub-server, source
 
 **Viewer**:
-One of the two existing web pages showing a tool: the igv Viewer or the Juicebox Viewer. Each belongs to its Upstream and is shown inside the Workspace.
+One of the existing web pages showing a tool: the igv Viewer, the Juicebox Viewer or the Spacewalk Viewer. Each belongs to its Upstream and is shown inside the Workspace.
 _Avoid_: Page, widget, app
 
 **Workspace**:
-The one geenee web page a person opens beside the conversation, holding both Viewers and showing one at a time. A person knows it simply as geenee.
+The one geenee web page a person opens beside the conversation, holding all the Viewers and showing one at a time. A person knows it simply as geenee.
 _Avoid_: Viewer, shell, dashboard, page
 
 **Room**:
-What ties one conversation to its Workspace and the two Viewers inside it, identified by a single Room id that the model is given when geenee is opened and passes back on every tool call. A Room expires after a day without use, and an expired Room stays expired.
+What ties one conversation to its Workspace and the Viewers inside it, identified by a single Room id that the model is given when geenee is opened and passes back on every tool call. A Room expires after a day without use, and an expired Room stays expired.
 _Avoid_: Session, channel
 
 **Room link**:
 The short link that brings anyone into a Room: on a computer straight into the Workspace, on a phone to the Hand-off.
 _Avoid_: URL, invite, share link
+
+**Join link**:
+The address of one Viewer in a Room, which the Workspace frames. A person is given the Room link instead.
+_Avoid_: Room link
 
 **Driver**:
 The person whose conversation a Room belongs to: their model makes the tool calls. A role in one Room, not a kind of person.
