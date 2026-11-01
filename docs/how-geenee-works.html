@@ -674,7 +674,7 @@ td.how { white-space: nowrap; }
 
 <h2 id="state">What each part keeps</h2>
 
-<p>Most of the parts keep nothing. The table says what survives between requests, and where. The Viewer is the source of truth for what is on screen; everything else is a mirror or a pointer.</p>
+<p>Most of the parts keep nothing. The table says what survives between requests, and where. For igv and Juicebox, the Viewer is the source of truth for what is on screen; everything else is a mirror or a pointer.</p>
 
 <div class="tablewrap wide">
 <table>
@@ -690,6 +690,25 @@ td.how { white-space: nowrap; }
   </tbody>
 </table>
 </div>
+
+<h3 id="owners">Who owns the live state</h3>
+
+<aside class="note">Spacewalk is not behind geenee yet, so the rest of this document leaves it out. This section comes from each project’s ADRs: <code>igvjs-mcp</code> 0002; <code>juicebox-mcp</code> 0003, 0006 and 0008; <code>spacewalk-mcp</code> 0001, 0004 and 0005.</aside>
+
+<p>What an Upstream’s Room keeps does not say who owns the truth, and igv, Juicebox and Spacewalk differ. One rule holds for all three: every piece of live state has exactly one owner, the Room is where live state can be reached, and a session is how it is saved.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th></th><th>Who owns it</th><th>What its Room keeps</th></tr></thead>
+  <tbody>
+    <tr><th class="igv">igv</th><td>The Viewer owns the Session.</td><td>A copy, for a Viewer that joins late.</td></tr>
+    <tr><th class="jb">Juicebox</th><td>Each Viewer owns its session, and Viewers sync with each other.</td><td>The latest saved copy, for a Viewer that joins when no other is left.</td></tr>
+    <tr><th>Spacewalk</th><td>The Room owns the viewer state. A Viewer’s camera rig owns the camera pose.</td><td>The viewer state itself, and no camera pose. A loaded session’s pose is held only until a Viewer has drawn the load.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>But “session” is not the same thing in all three. In igv and Juicebox it means the live state written out: what a Viewer shows now, so it changes with every move. In Spacewalk it means a saved document that does not change and outlasts the Room.</p>
 
 <h2 id="wrong">When something goes wrong</h2>
 
@@ -729,7 +748,7 @@ td.how { white-space: nowrap; }
 
 <p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. The decision to forward rather than merge is ADR 0001, and the decision to frame the two Viewers is ADR 0002.</p>
 
-<p class="end">Written 14 October 2026 from the code at commit 7ec2022, and from <code>igvjs-mcp</code> and <code>juicebox-mcp</code> as deployed for development.</p>
+<p class="end">Written 14 October 2026 from the code at commit 7ec2022, and from <code>igvjs-mcp</code> and <code>juicebox-mcp</code> as deployed for development. The section on who owns the live state was added on 1 November 2026, from the ADRs it names.</p>
 
 </main>
 </body>
