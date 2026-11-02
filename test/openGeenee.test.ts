@@ -15,6 +15,22 @@ describe('open_geenee', () => {
     expect(tools).toHaveLength(54)
   })
 
+  it('says it opens all three Viewers, and is called for Spacewalk and 3D chromatin too', async () => {
+    const tool = (await geenee().listTools())[0]
+
+    expect(tool.description).toContain('the Spacewalk 3D chromatin viewer')
+    expect(tool.description).toContain('One call opens all three viewers')
+    expect(tool.description).toContain('Spacewalk or 3D chromatin')
+    expect(tool.description).toContain('"hello spacewalk"')
+    expect(JSON.stringify(tool)).not.toMatch(/\bboth\b/)
+  })
+
+  it('tells the model to pass the Room id to every Viewer\'s tools', async () => {
+    const result = await geenee().callTool('open_geenee')
+
+    expect(result.content[0].text).toContain('for igv, Juicebox and Spacewalk tools alike')
+  })
+
   it('gives the model one new Room id and the link that opens the Workspace in that Room', async () => {
     const { callTool } = geenee()
 

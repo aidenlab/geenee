@@ -17,7 +17,7 @@ function emailLink(roomLink: string, getGeenee: string): string {
     '',
     EXPIRES,
     '',
-    'geenee shows the igv genome browser and the Juicebox contact-map viewer beside a Claude or ChatGPT conversation.',
+    'geenee shows the igv genome browser, the Juicebox contact-map viewer and the Spacewalk 3D chromatin viewer beside a Claude or ChatGPT conversation.',
     `Get geenee: ${getGeenee}`,
   ].join('\r\n')
   return `mailto:?subject=${encodeURIComponent('Your geenee Room')}&body=${encodeURIComponent(body)}`
