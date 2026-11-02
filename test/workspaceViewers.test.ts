@@ -70,12 +70,13 @@ describe('GET /viewers', () => {
   })
 
   it('refuses a room that is not a Room id', async () => {
-    const { handle, igv, juicebox } = joinLinks()
+    const { handle, igv, juicebox, spacewalk } = joinLinks()
 
     const response = await handle(new Request(`${GEENEE}/viewers?room=my-room`))
 
     expect(response.status).toBe(400)
     expect(igv.calls).toEqual([])
     expect(juicebox.calls).toEqual([])
+    expect(spacewalk.calls).toEqual([])
   })
 })

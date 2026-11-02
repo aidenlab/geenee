@@ -84,7 +84,7 @@ body {
   min-height: 0;
 }
 
-/* Both Viewers keep their full size while one is behind the other: a Viewer
+/* Every Viewer keeps its full size while it is behind another: a Viewer
    laid out with no size (display: none) would draw itself into nothing. */
 .viewer {
   position: absolute;

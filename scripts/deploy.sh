@@ -6,11 +6,13 @@
 #   prod  Worker geenee      at https://geenee.3dg.io      (wrangler.toml [env.prod])
 #   dev   Worker geenee-dev  at https://geenee-dev.3dg.io  (wrangler.toml [env.dev])
 #
-# Both forward to the igv Upstream igv-bot-mcp-dev.3dg.io and the Juicebox Upstream
-# juicebot-view-mcp-dev.3dg.io, whose Viewer is the juicebox-view page juicebot-view-dev.pages.dev.
-# geenee only forwards (ADR 0001), so this deploys geenee alone: the Juicebox stack is deployed
-# from juicebox-mcp, with its scripts/deploy-test.sh, and has to be up for the checks at the end
-# to pass.
+# Both forward to the igv Upstream igv-bot-mcp-dev.3dg.io, the Juicebox Upstream
+# juicebot-view-mcp-dev.3dg.io, whose Viewer is the juicebox-view page juicebot-view-dev.pages.dev,
+# and the Spacewalk Upstream spacewalk-mcp-dev.3dg.io, whose Viewer is the page
+# spacewalk-viewer-dev.pages.dev/viewer.html. geenee only forwards (ADR 0001), so this deploys
+# geenee alone: the Juicebox stack is deployed from juicebox-mcp, with its scripts/deploy-test.sh,
+# and the Spacewalk stack from spacewalk-mcp, and both have to be up for the checks at the end to
+# pass.
 #
 # geenee is deployed at [ref] (default HEAD) from a throwaway worktree, so uncommitted changes
 # never ship. One Worker holds both halves: the Connector at /mcp and the Workspace page, built
@@ -31,6 +33,7 @@ case "$DEPLOYMENT" in
   *)    echo "unknown deployment '$DEPLOYMENT'" >&2; exit 2 ;;
 esac
 JUICEBOX_PAGE=https://juicebot-view-dev.pages.dev/
+SPACEWALK_PAGE=https://spacewalk-viewer-dev.pages.dev/viewer.html
 
 SCRIPT=scripts/deploy.sh
 [[ "$DEPLOYMENT" == dev ]] && SCRIPT=scripts/deploy-dev.sh
@@ -97,9 +100,9 @@ fi
 # The deployed Connector should list open_geenee and the tools of every Upstream.
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
-# And the Workspace should frame the juicebox-view page: the Upstream gives its page's
-# address in the Join link. A Room geenee never opened is as good as expired (ADR 0003),
-# so open_geenee opens one first.
+# And the Workspace should frame the juicebox-view page and the Spacewalk Viewer page: each
+# Upstream gives its page's address in the Join link. A Room geenee never opened is as good as
+# expired (ADR 0003), so open_geenee opens one first.
 room="$(mcp '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"open_geenee","arguments":{}}}' \
   | grep -o '"room":"[0-9A-Z]*"' | head -1 | cut -d'"' -f4)"
 viewers="$(curl -fsS "$ADDRESS/viewers?room=$room")"
@@ -107,5 +110,9 @@ if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
   echo "the Workspace at $ADDRESS does not frame $JUICEBOX_PAGE for Juicebox: /viewers answered $viewers" >&2
   exit 1
 fi
+if [[ "$viewers" != *"\"spacewalk\":\"$SPACEWALK_PAGE"* ]]; then
+  echo "the Workspace at $ADDRESS does not frame $SPACEWALK_PAGE for Spacewalk: /viewers answered $viewers" >&2
+  exit 1
+fi
 
-echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"
+echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE and its Spacewalk Viewer is $SPACEWALK_PAGE"
