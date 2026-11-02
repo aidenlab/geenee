@@ -131,6 +131,8 @@ async function forward(
   const served = serveTools(target.viewer, await target.upstream.listTools())
   const called = served.tools.find(({ tool }) => tool.name === name)
   if (!called) return undefined
+  // A Room open_geenee could not open in this Upstream, because it could not be reached then, is opened by the first call to it.
+  if (target.viewer.roomOpened) await openUnlessOpened(target, room, record, name)
   // Alongside the call, so that the Viewer is in front while it redraws. A Workspace that is not told still has its tabs.
   const told = record.viewerUsed(target.viewer.prefix).catch((error) => {
     console.warn(`[mcp] ${name} | the Workspaces of Room ${room} could not be told:`, error)
@@ -148,6 +150,22 @@ async function joinLink(target: Target, room: string): Promise<string | null> {
   } catch (error) {
     console.warn(`[viewers] the ${target.viewer.name} Upstream could not be reached:`, error)
     return null
+  }
+}
+
+/** Asks a Viewer's Upstream for its Join link for a Room, which opens the Room there, and keeps the link; null when it gives none. */
+async function openIn(target: Target, room: string, record: RoomRecord): Promise<string | null> {
+  const link = await joinLink(target, room)
+  if (link) await record.keepJoinLink(target.viewer.prefix, link)
+  return link
+}
+
+/** Opens a Room in a Viewer's Upstream unless geenee already has its Join link there, which says it was opened. A Room that cannot be opened is left for the Upstream to refuse the call. */
+async function openUnlessOpened(target: Target, room: string, record: RoomRecord, name: string): Promise<void> {
+  try {
+    if (!(await record.joinLinks())[target.viewer.prefix]) await openIn(target, room, record)
+  } catch (error) {
+    console.warn(`[mcp] ${name} | Room ${room} could not be opened in the ${target.viewer.name} Upstream:`, error)
   }
 }
 
@@ -186,6 +204,40 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
     }
   }
 
+  /** The Viewers whose Upstreams geenee opens a Room in itself (`Viewer.roomOpened`). */
+  const opening = targets.filter(({ viewer }) => viewer.roomOpened)
+
+  /** Opens a new Room in each Viewer that needs it. An Upstream that cannot be reached is left for /viewers and the first call forwarded to it. */
+  async function openNew(room: string): Promise<void> {
+    const record = roomRecord(room)
+    await Promise.all(
+      opening.map((target) =>
+        openIn(target, room, record).catch((error) => {
+          console.warn(`[mcp] ${OPEN_GEENEE} | Room ${room} could not be opened in the ${target.viewer.name} Upstream:`, error)
+        }),
+      ),
+    )
+  }
+
+  /**
+   * Opens a Room geenee still has open again in each Viewer that needs it and
+   * whose Upstream no longer has it, which starts it over there, empty. A Room
+   * the Upstream has open is left alone: opening it would clear its news.
+   */
+  async function reopen(room: string): Promise<void> {
+    const record = roomRecord(room)
+    await Promise.all(
+      opening.map(async (target) => {
+        try {
+          const probed = await callInRoom(target, target.viewer.roomOpened!.probe, {}, room)
+          if (probed.isError) await openIn(target, room, record)
+        } catch (error) {
+          console.warn(`[mcp] ${OPEN_GEENEE} | Room ${room} could not be reopened in the ${target.viewer.name} Upstream:`, error)
+        }
+      }),
+    )
+  }
+
   /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
     const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
@@ -216,7 +268,12 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
       if (room && 'refusal' in room) return room.refusal
       if (name === OPEN_GEENEE) {
         const origin = new URL(request.url).origin
-        if (room) return (await stillOpen(room.id, name)) ? openGeenee(origin, room.id) : expiredReply(room.id)
+        // ADR 0003 comes first: an expired Room is never opened again in an Upstream.
+        if (room) {
+          if (!(await stillOpen(room.id, name))) return expiredReply(room.id)
+          await reopen(room.id)
+          return openGeenee(origin, room.id)
+        }
         const minted = mintRoomId()
         try {
           await roomRecord(minted).start(now())
@@ -224,6 +281,8 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
           console.warn(`[mcp] ${name} | Room ${minted} could not be started:`, error)
           return errorReply('geenee could not open a Room. Try again in a moment.')
         }
+        // Before the reply, so that a load the model goes straight on to finds the Room open.
+        await openNew(minted)
         return openGeenee(origin, minted)
       }
 
@@ -276,12 +335,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
       const links = await Promise.all(
         targets.map(async (target) => {
           const { prefix } = target.viewer
-          let link = kept[prefix] ?? null
-          if (!link) {
-            link = await joinLink(target, room)
-            if (link) await record.keepJoinLink(prefix, link)
-          }
-          return [prefix, link]
+          return [prefix, kept[prefix] ?? (await openIn(target, room, record))]
         }),
       )
       return Response.json(Object.fromEntries(links))
