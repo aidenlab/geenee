@@ -36,6 +36,15 @@ export interface Viewer {
    * tool that changes nothing in the Viewer, and what its reply says.
    */
   connection: { tool: string; connected(reply: ToolResult): boolean }
+  /**
+   * Set for a Viewer whose Upstream refuses every tool but `openTool` in a Room
+   * it has not opened, so that geenee opens the Room there itself (#45).
+   * `probe` is an Upstream tool that changes nothing in the Viewer and answers
+   * with an error when the Upstream does not have the Room open, as when its
+   * own clock has expired it. Unlike `openTool`, it leaves the Room's news
+   * where it is.
+   */
+  roomOpened?: { probe: string }
 }
 
 /** geenee's own tool: it opens the Workspace, and so every Viewer. */
@@ -91,6 +100,8 @@ export const SPACEWALK: Viewer = {
     tool: 'read_viewer_count',
     connected: ({ isError, structuredContent }) => !isError && typeof structuredContent?.viewers === 'number' && structuredContent.viewers > 0,
   },
+  // Spacewalk's Room has a real opened state: its Upstream refuses every tool but open_viewer in a Room it never opened.
+  roomOpened: { probe: 'read_viewer_count' },
 }
 
 /** A tool as geenee serves it, and the name its Upstream knows it by. */

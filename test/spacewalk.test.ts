@@ -38,13 +38,25 @@ describe('the Spacewalk tools', () => {
   })
 })
 
+/** A geenee with a Room open_geenee has opened, Spacewalk's included, and that Room's id; the calls that opened it are forgotten. */
+async function openedByOpenGeenee() {
+  const connector = geenee()
+  connector.spacewalk.reply = (call: UpstreamCall) => ({
+    content: [{ type: 'text', text: call.name === 'open_viewer' ? 'Spacewalk Room link' : 'Done.' }],
+    ...(call.name === 'open_viewer' ? { structuredContent: { roomLink: `https://spacewalk-viewer.test/?room=${call.arguments.room}` } } : {}),
+  })
+  const room = (await connector.callTool('open_geenee')).structuredContent!.room as string
+  connector.spacewalk.calls.length = 0
+  return { ...connector, room }
+}
+
 describe('a call to a Spacewalk tool', () => {
   it('reaches the Spacewalk Upstream under its own name, with the Room id as its room argument', async () => {
-    const { callTool, igv, juicebox, spacewalk } = geenee({ opened: [ROOM] })
+    const { callTool, igv, juicebox, spacewalk, room } = await openedByOpenGeenee()
 
-    const result = await callTool('spacewalk_set_render_style', { style: 'tube', room: ROOM })
+    const result = await callTool('spacewalk_set_render_style', { style: 'tube', room })
 
-    expect(spacewalk.calls).toEqual([{ name: 'set_render_style', arguments: { style: 'tube', room: ROOM }, session: null }])
+    expect(spacewalk.calls).toEqual([{ name: 'set_render_style', arguments: { style: 'tube', room }, session: null }])
     expect(igv.calls).toEqual([])
     expect(juicebox.calls).toEqual([])
     expect(result).toEqual({ content: [{ type: 'text', text: 'Done.' }] })
@@ -52,11 +64,11 @@ describe('a call to a Spacewalk tool', () => {
 
   // The dev Upstream was seen to accept list_example_ensembles with a room it does not declare.
   it('passes room even to list_example_ensembles, whose Upstream version takes none', async () => {
-    const { callTool, spacewalk } = geenee({ opened: [ROOM] })
+    const { callTool, spacewalk, room } = await openedByOpenGeenee()
 
-    await callTool('spacewalk_list_example_ensembles', { room: ROOM })
+    await callTool('spacewalk_list_example_ensembles', { room })
 
-    expect(spacewalk.calls).toEqual([{ name: 'list_example_ensembles', arguments: { room: ROOM }, session: null }])
+    expect(spacewalk.calls).toEqual([{ name: 'list_example_ensembles', arguments: { room }, session: null }])
   })
 
   it('tells the Workspaces of the Room that Spacewalk was used', async () => {

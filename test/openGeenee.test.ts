@@ -142,7 +142,7 @@ describe('open_geenee', () => {
     expect(result).toEqual({ content: [{ type: 'text', text: 'Error: geenee could not open a Room. Try again in a moment.' }], isError: true })
   })
 
-  it('asks nothing of the Upstreams', async () => {
+  it('needs nothing of the igv and Juicebox Upstreams', async () => {
     const { callTool, igv, juicebox } = geenee()
     igv.unreachable = true
     juicebox.unreachable = true

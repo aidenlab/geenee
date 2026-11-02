@@ -10,9 +10,10 @@ const DAY = 24 * HOUR
 
 type JoinLinks = Record<'igv' | 'juicebox' | 'spacewalk', string | null>
 
-/** A geenee with a Room just opened by open_geenee, and that Room's id. */
-async function withRoom() {
+/** A geenee with a Room just opened by open_geenee, and that Room's id. `answer` sets up the stand-in Upstreams first. */
+async function withRoom(answer: (connector: ReturnType<typeof geenee>) => void = () => {}) {
   const connector = geenee()
+  answer(connector)
   const opened = await connector.callTool('open_geenee')
   return { ...connector, room: opened.structuredContent!.room as string }
 }
@@ -135,13 +136,13 @@ describe('the Workspace of a Room', () => {
   const ask = (handle: (request: Request) => Promise<Response>, what: 'viewers' | 'connections', room: string) =>
     handle(new Request(`${GEENEE}/${what}?room=${room}`))
 
-  /** A Room whose Upstreams give a Join link for it. */
-  async function withJoinLinks() {
-    const connector = await withRoom()
-    connector.igv.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://igv-viewer.test/?room=${call.arguments.room}` } })
-    connector.juicebox.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://juicebox-viewer.test/?room=${call.session}` } })
-    connector.spacewalk.reply = (call) => ({ content: [], structuredContent: { roomLink: `https://spacewalk-viewer.test/?room=${call.arguments.room}` } })
-    return connector
+  /** A Room whose Upstreams give a Join link for it, from before open_geenee opened it. */
+  function withJoinLinks() {
+    return withRoom((connector) => {
+      connector.igv.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://igv-viewer.test/?room=${call.arguments.room}` } })
+      connector.juicebox.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://juicebox-viewer.test/?room=${call.session}` } })
+      connector.spacewalk.reply = (call) => ({ content: [], structuredContent: { roomLink: `https://spacewalk-viewer.test/?room=${call.arguments.room}` } })
+    })
   }
 
   for (const what of ['viewers', 'connections'] as const) {
