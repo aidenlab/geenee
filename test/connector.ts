@@ -3,7 +3,7 @@
  * Upstreams and Rooms are stand-ins.
  */
 import { createGeenee } from '../src/geenee.ts'
-import { IGV_UPSTREAM, JUICEBOX_UPSTREAM, standInUpstreams } from './upstreams.ts'
+import { IGV_UPSTREAM, JUICEBOX_UPSTREAM, SPACEWALK_UPSTREAM, standInUpstreams } from './upstreams.ts'
 import { standInRooms } from './workspaces.ts'
 
 export const GEENEE = 'https://geenee.test'
@@ -42,6 +42,7 @@ export function geenee({ opened = [] }: { opened?: string[] } = {}) {
   const handle = createGeenee({
     igvUpstream: IGV_UPSTREAM,
     juiceboxUpstream: JUICEBOX_UPSTREAM,
+    spacewalkUpstream: SPACEWALK_UPSTREAM,
     fetch: upstreams.fetch,
     roomRecord: (room) => rooms.roomRecord(room),
     now: clock.now,

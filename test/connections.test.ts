@@ -1,7 +1,8 @@
 /**
  * GET /connections: what the Workspace asks geenee for the mark on each tab,
  * whether each Viewer is connected in its Room. Each Upstream says so in its
- * own way, and the replies here are copied from the dev Upstreams.
+ * own way, and the replies here are copied from the dev Upstreams. Spacewalk's
+ * are in spacewalk.test.ts; here it never has a Viewer in the Room.
  */
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee } from './connector.ts'
@@ -30,6 +31,7 @@ function viewers(connected: { igv: boolean; juicebox: boolean }) {
   const connector = geenee({ opened: [ROOM] })
   connector.igv.reply = () => (connected.igv ? IGV_CONNECTED : IGV_NOT_CONNECTED)
   connector.juicebox.reply = () => juiceboxStatus(connected.juicebox ? 'Yes' : 'No')
+  connector.spacewalk.reply = () => ({ content: [{ type: 'text', text: 'Viewers connected: 0.' }], structuredContent: { viewers: 0 } })
   return connector
 }
 
@@ -44,7 +46,7 @@ describe('GET /connections', () => {
     const response = await connections(handle)
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ igv: true, juicebox: true })
+    expect(await response.json()).toEqual({ igv: true, juicebox: true, spacewalk: false })
     expect(igv.calls).toEqual([{ name: 'read_session_summary', arguments: { room: ROOM }, session: null }])
     expect(juicebox.calls).toEqual([{ name: 'get_server_status', arguments: {}, session: ROOM }])
   })
@@ -53,8 +55,8 @@ describe('GET /connections', () => {
     const onlyIgv = await connections(viewers({ igv: true, juicebox: false }).handle)
     const onlyJuicebox = await connections(viewers({ igv: false, juicebox: true }).handle)
 
-    expect(await onlyIgv.json()).toEqual({ igv: true, juicebox: false })
-    expect(await onlyJuicebox.json()).toEqual({ igv: false, juicebox: true })
+    expect(await onlyIgv.json()).toEqual({ igv: true, juicebox: false, spacewalk: false })
+    expect(await onlyJuicebox.json()).toEqual({ igv: false, juicebox: true, spacewalk: false })
   })
 
   it('says a Viewer whose Upstream cannot be reached is not connected, and still answers for the other', async () => {
@@ -63,7 +65,7 @@ describe('GET /connections', () => {
 
     const response = await connections(handle)
 
-    expect(await response.json()).toEqual({ igv: false, juicebox: true })
+    expect(await response.json()).toEqual({ igv: false, juicebox: true, spacewalk: false })
   })
 
   it('tells no Workspace that a Viewer was used', async () => {

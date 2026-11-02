@@ -19,12 +19,16 @@ function joinLinks() {
     content: [{ type: 'text', text: 'Juicebox join link' }],
     structuredContent: { room: call.session, joinUrl: `https://juicebox-viewer.test/?room=${call.session}` },
   })
+  connector.spacewalk.reply = (call: UpstreamCall) => ({
+    content: [{ type: 'text', text: 'Spacewalk Room link' }],
+    structuredContent: { room: call.arguments.room, roomLink: `https://spacewalk-viewer.test/?room=${call.arguments.room}` },
+  })
   return connector
 }
 
 describe('GET /viewers', () => {
   it("gives each Viewer's Join link for the Room, as its Upstream's own open tool gives it", async () => {
-    const { handle, igv, juicebox } = joinLinks()
+    const { handle, igv, juicebox, spacewalk } = joinLinks()
 
     const response = await handle(new Request(`${GEENEE}/viewers?room=${ROOM}`))
 
@@ -32,9 +36,11 @@ describe('GET /viewers', () => {
     expect(await response.json()).toEqual({
       igv: `https://igv-viewer.test/?room=${ROOM}`,
       juicebox: `https://juicebox-viewer.test/?room=${ROOM}`,
+      spacewalk: `https://spacewalk-viewer.test/?room=${ROOM}`,
     })
     expect(igv.calls).toEqual([{ name: 'open_viewer', arguments: { room: ROOM }, session: null }])
     expect(juicebox.calls).toEqual([{ name: 'get_juicebox_url', arguments: {}, session: ROOM }])
+    expect(spacewalk.calls).toEqual([{ name: 'open_viewer', arguments: { room: ROOM }, session: null }])
   })
 
   it('gives null for a Viewer whose Upstream cannot be reached, and still the other', async () => {
@@ -43,7 +49,11 @@ describe('GET /viewers', () => {
 
     const response = await handle(new Request(`${GEENEE}/viewers?room=${ROOM}`))
 
-    expect(await response.json()).toEqual({ igv: `https://igv-viewer.test/?room=${ROOM}`, juicebox: null })
+    expect(await response.json()).toEqual({
+      igv: `https://igv-viewer.test/?room=${ROOM}`,
+      juicebox: null,
+      spacewalk: `https://spacewalk-viewer.test/?room=${ROOM}`,
+    })
   })
 
   it('gives null for a Viewer whose Upstream answers with an error', async () => {
@@ -52,7 +62,11 @@ describe('GET /viewers', () => {
 
     const response = await handle(new Request(`${GEENEE}/viewers?room=${ROOM}`))
 
-    expect(await response.json()).toEqual({ igv: null, juicebox: `https://juicebox-viewer.test/?room=${ROOM}` })
+    expect(await response.json()).toEqual({
+      igv: null,
+      juicebox: `https://juicebox-viewer.test/?room=${ROOM}`,
+      spacewalk: `https://spacewalk-viewer.test/?room=${ROOM}`,
+    })
   })
 
   it('refuses a room that is not a Room id', async () => {

@@ -16,6 +16,7 @@ export default {
     geenee ??= createGeenee({
       igvUpstream: env.IGV_UPSTREAM_URL,
       juiceboxUpstream: env.JUICEBOX_UPSTREAM_URL,
+      spacewalkUpstream: env.SPACEWALK_UPSTREAM_URL,
       // Each Upstream is a Worker on a custom domain, which a Worker of the same zone may fetch.
       fetch: (input, init) => fetch(input, init),
       roomRecord: (room) => {

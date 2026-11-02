@@ -1,5 +1,5 @@
 /**
- * geenee: the Connector at /mcp, forwarding to the two Upstreams (ADR 0001).
+ * geenee: the Connector at /mcp, forwarding to the Upstreams (ADR 0001).
  *
  * Routes:
  *   POST /mcp     - MCP protocol (stateless Streamable HTTP, JSON responses)
@@ -33,7 +33,7 @@ import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { pageResponse } from './page.ts'
 import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
-import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, type Viewer } from './servedTools.ts'
+import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SPACEWALK, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
 
@@ -64,6 +64,8 @@ export interface GeeneeConfig {
   igvUpstream: string
   /** The Juicebox Upstream's /mcp address. */
   juiceboxUpstream: string
+  /** The Spacewalk Upstream's /mcp address. */
+  spacewalkUpstream: string
   /** How the Upstreams are reached; the tests pass stand-ins. */
   fetch: typeof globalThis.fetch
   /** geenee's record of a Room, by Room id; the tests pass stand-ins. */
@@ -142,8 +144,7 @@ async function forward(
 /** A Viewer's Join link for a Room, as its Upstream's own open tool gives it; null when the Upstream does not give one. */
 async function joinLink(target: Target, room: string): Promise<string | null> {
   try {
-    const { isError, structuredContent } = await callInRoom(target, target.viewer.openTool, {}, room)
-    return !isError && typeof structuredContent?.joinUrl === 'string' ? structuredContent.joinUrl : null
+    return target.viewer.joinLink(await callInRoom(target, target.viewer.openTool, {}, room))
   } catch (error) {
     console.warn(`[viewers] the ${target.viewer.name} Upstream could not be reached:`, error)
     return null
@@ -168,10 +169,11 @@ function expiredReply(room: string, unsent?: string): ToolResult {
   return errorReply(`Room ${room} has expired${notSent}. Call ${OPEN_GEENEE} without room to open geenee in a new Room${again}.`)
 }
 
-export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
+export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
     { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
+    { viewer: SPACEWALK, upstream: upstreamAt(spacewalkUpstream, fetch) },
   ]
 
   /** Whether a tool call for `room` finds it open, which is a use of it. A Room that cannot be asked is taken to be open: the Upstreams still have their say. */
@@ -184,7 +186,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, roomRecord,
     }
   }
 
-  /** Workers are stateless, so every request gets a fresh server and transport, as in both Upstreams. */
+  /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
     const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
     // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
@@ -196,7 +198,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, fetch, roomRecord,
       return { contents: [{ uri, mimeType: CARD_MIME_TYPE, text: CARD_HTML, _meta: CARD_META }] }
     })
     server.setRequestHandler(ListToolsRequestSchema, async () => {
-      // An Upstream that cannot be reached leaves its tools out; the other's are still served.
+      // An Upstream that cannot be reached leaves its tools out; the others' are still served.
       const lists = await Promise.all(
         targets.map(async ({ viewer, upstream }) => {
           try {

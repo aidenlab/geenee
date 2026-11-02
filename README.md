@@ -8,20 +8,20 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 
 ## How it works
 
-- geenee contains neither tool set. It **forwards** to two **Upstreams**, the deployed dev servers of [`igvjs-mcp`](https://github.com/aidenlab/igvjs-mcp) and `juicebox-mcp`, and neither of them is changed (ADR 0001). Each stays a working Connector in its own right.
+- geenee contains none of the tool sets. It **forwards** to three **Upstreams**, the deployed dev servers of [`igvjs-mcp`](https://github.com/aidenlab/igvjs-mcp), `juicebox-mcp` and Spacewalk's MCP server, and none of them is changed (ADR 0001). Each stays a working Connector in its own right.
 - The Juicebox Upstream is `juicebox-mcp`'s **view** stack, whose Viewer is the juicebox-view page. The web stack and its juicebox-web page are retired, and geenee no longer deploys against them.
 - The **server** is a Cloudflare Worker with an MCP endpoint (`/mcp`, stateless Streamable HTTP) for the Host. It also serves the Workspace page. The Connector keeps no state between requests; the one thing geenee keeps is in a Durable Object per Room, which holds the sockets of the Room's Workspaces and the Viewer last used.
-- The **tool list** is the two Upstreams' lists put together, asked for afresh on each request, so a change to an Upstream's tools appears without a geenee release. Every tool is served under a name prefixed with its Viewer: `igv_zoom_in`, `juicebox_zoom_in`. A name that already says which Viewer it belongs to is left alone (`juicebox_help`).
+- The **tool list** is the Upstreams' lists put together, asked for afresh on each request, so a change to an Upstream's tools appears without a geenee release. Every tool is served under a name prefixed with its Viewer: `igv_zoom_in`, `juicebox_zoom_in`, `spacewalk_reset_camera`. A name that already says which Viewer it belongs to is left alone (`juicebox_help`).
 - An Upstream's descriptions and replies name its tools by their own names ("call read_session_summary first"). geenee **rewrites those names** to the ones it serves, in tool descriptions, argument descriptions and reply text.
-- Three Upstream tools are **hidden**: `open_viewer` (igv), and `get_juicebox_url` and `join_room` (Juicebox). A Viewer is only ever opened inside the Workspace. Text that names a hidden tool is rewritten to name `open_geenee`. With geenee's own tool that makes 44: `open_geenee`, 13 for igv and 30 for Juicebox.
+- Four Upstream tools are **hidden**: `open_viewer` (igv and Spacewalk), and `get_juicebox_url` and `join_room` (Juicebox). A Viewer is only ever opened inside the Workspace. Text that names a hidden tool is rewritten to name `open_geenee`. Three more are **withheld**, with nothing standing in for them, so text naming one is left as it is: `get_shareable_url` (igv and Spacewalk) and `read_viewer_count` (Spacewalk). With geenee's own tool that makes 55: `open_geenee`, 13 for igv, 30 for Juicebox and 11 for Spacewalk.
 - `open_geenee` mints one **Room** id and returns the link that opens the Workspace in that Room. Every other tool takes the Room id back as a required `room` argument, including Juicebox tools whose Upstream versions take none; a call without it is refused with advice to call `open_geenee`. Called with `room`, `open_geenee` gives the link to that Room again.
-- One Room id names a Room in each Upstream. The igv Upstream is given it as the tool's `room` argument. The Juicebox Upstream acts on the Room of the call's MCP session, and a session it has bound to no Room has the Room whose id is the session id, so geenee sends the Room id as the `mcp-session-id` header. This was read from the Juicebox Upstream's code and has since been seen to reach the right Viewer in a Host.
+- One Room id names a Room in each Upstream. The igv and Spacewalk Upstreams are given it as the tool's `room` argument, Spacewalk's even for `list_example_ensembles`, which declares none and accepts it. The Juicebox Upstream acts on the Room of the call's MCP session, and a session it has bound to no Room has the Room whose id is the session id, so geenee sends the Room id as the `mcp-session-id` header. This was read from the Juicebox Upstream's code and has since been seen to reach the right Viewer in a Host.
 - The **server instructions** tell the model what each Viewer is for, and how to treat a request that fits both ("zoom in", "go to MYC"): use the Viewer the conversation last used, and ask only when neither has been used. The server cannot see the conversation, so choosing a Viewer is the model's work.
-- When one Upstream **cannot be reached**, the other's tools are still listed and forwarded. A call to a tool of the missing one gets an error reply that says so. A call an Upstream refuses, such as one with arguments it does not accept, is passed back in the Upstream's words.
+- When one Upstream **cannot be reached**, the others' tools are still listed and forwarded. A call to a tool of the missing one gets an error reply that says so. A call an Upstream refuses, such as one with arguments it does not accept, is passed back in the Upstream's words.
 - The **Workspace** is the one geenee page a person opens beside the conversation (ADR 0002). It frames the igv Viewer and the Juicebox Viewer, loads both when it opens, and shows one at a time. Each Viewer is still served from its own address and talks to its own Upstream as before.
-- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room once, keeps the Join link in its reply, and passes it on. So the two Upstream addresses are geenee's only configuration.
+- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room once, keeps the Join link in its reply, and passes it on: `joinUrl` for igv and Juicebox, `roomLink` for Spacewalk. So the Upstream addresses are geenee's only configuration. The Workspace frames only igv and Juicebox for now; Spacewalk's tab comes later, and until then its link and mark are passed over.
 - The Workspace **brings forward the Viewer a tool was last called for**. Each tool call the Connector forwards is reported to the Room's Durable Object, alongside the call, and the Room tells every Workspace joined to it over a WebSocket (`/ws?room=`). Any forwarded tool counts, a search included; `open_geenee` and a call that is refused do not. A person can click the other tab, and it stays picked until the next tool call. The Room keeps the last report, and nothing else, for a Workspace that opens later.
-- Each tab carries a **mark**, filled when its Viewer is connected and hollow when it is not. The Workspace asks the Worker every few seconds (`GET /connections?room=`), which asks each Upstream with a tool that changes nothing in the Viewer: `read_session_summary` for igv, which answers with an error when no Viewer is in the Room, and `get_server_status` for Juicebox, which says `Browser Connected: Yes` or `No`. Neither Upstream has more of a contract for this than those replies. A Viewer whose Upstream cannot be reached shows as not connected.
+- Each tab carries a **mark**, filled when its Viewer is connected and hollow when it is not. The Workspace asks the Worker every few seconds (`GET /connections?room=`), which asks each Upstream with a tool that changes nothing in the Viewer: `read_session_summary` for igv, which answers with an error when no Viewer is in the Room, `get_server_status` for Juicebox, which says `Browser Connected: Yes` or `No`, and `read_viewer_count` for Spacewalk, whose structured content counts its `viewers`. Neither the igv nor the Juicebox Upstream has more of a contract for this than those replies. A Viewer whose Upstream cannot be reached shows as not connected.
 
 - `open_geenee` shows a **Card** in the conversation, an MCP App view (`ui://geenee/open`) copied from the Juicebox Upstream's: a short message, an **Open geenee** button, the link, and a QR code of it, all shown at once. The button is for when the model has not opened the Workspace beside the conversation. Hosts that do not render MCP Apps ignore it and show the text link.
 - The Card's text link and QR code carry the **Room link**, `/r/<Room id>`: shorter than the Workspace's `/?room=` link, so the QR code is less dense. On a computer the Worker serves the Workspace page at it, so the address bar keeps the short link; a malformed Room id gets a page saying so. The `/?room=` link still works, and the button and the model still use it.
@@ -91,7 +91,7 @@ npm run typecheck
 npm run test:run   # the Connector, through its fetch handler, with stand-in Upstreams
 ```
 
-The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the two Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Hand-off and the Get geenee page, a Room's expiry (with a stand-in clock), which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
+The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Hand-off and the Get geenee page, a Room's expiry (with a stand-in clock), which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
 
 The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Room's own logic (`src/workspaceChannel.ts`) over fake sockets. The Durable Object that wraps it (`src/room.ts`) and the Workspace page have no automated tests. They are checked by hand in a real Host, with the rest of each stage.
 
@@ -104,7 +104,7 @@ There are two deployments. **production** is the published Connector, the one pe
 | production | `geenee`        | `https://geenee.3dg.io`     | `scripts/deploy.sh`     |
 | dev        | `geenee-dev`    | `https://geenee-dev.3dg.io` | `scripts/deploy-dev.sh` |
 
-Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`.
+Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`.
 
 ```sh
 npx wrangler login                    # first time on a machine
@@ -119,7 +119,7 @@ Each deploy is stamped with a build number: the commit count, short hash and bui
 
 geenee only forwards, so the script deploys geenee alone. The Juicebox stack it forwards to is deployed from `juicebox-mcp`, with its own `scripts/deploy-test.sh`, and has to be up for the final check to pass.
 
-It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds both Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
+It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds the Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
 
 The connector URL to give Claude or ChatGPT is `https://geenee.3dg.io/mcp`, or `https://geenee-dev.3dg.io/mcp` to try what is on dev. In Claude: Settings, Connectors, Add custom connector, with the OAuth fields left blank. Both can be added side by side, for example as "geenee" and "geenee dev".
 
@@ -147,7 +147,7 @@ Run a single test file by adding its path: `npx vitest run test/routing.test.ts`
 One package: a Worker and the page it serves, built together by Vite through Cloudflare's Vite plugin.
 
 ```
-wrangler.toml            Worker configuration: the two Upstream addresses, the Room Durable Object, the two deployments
+wrangler.toml            Worker configuration: the Upstream addresses, the Room Durable Object, the two deployments
 tsconfig.json            Type-checking of the Worker and the tests; src/workspace has its own, with the DOM
 vite.config.ts           The build of the Worker and the Workspace
 vitest.config.ts         The tests, kept apart from the Cloudflare plugin
@@ -156,7 +156,7 @@ pages.html               The page review, for development only
 src/
   index.ts               Worker entry point
   geenee.ts              Routes /mcp, /viewers, /connections, /ws, /r/<Room id>, /h/<Room id> and /get; lists the tools, forwards a call and reports it, answers for an Upstream that cannot be reached and for a Room that has expired
-  servedTools.ts         The two Viewers, and the tools geenee serves for each: names, hidden tools, the room argument, rewriting, how each says it is connected
+  servedTools.ts         The three Viewers, and the tools geenee serves for each: names, hidden tools, the room argument, rewriting, how each says it is connected
   upstream.ts            One Upstream as geenee reaches it: JSON-RPC over POST to its /mcp
   openGeenee.ts          The open_geenee tool
   instructions.ts        The server instructions
@@ -174,7 +174,7 @@ src/
   workspace/pagesReview.ts  The page review's script, a stand-in Host for the Card
   workspace/workspace.css
 test/
-  fixtures/              Saved copies of the two Upstreams' tool lists
+  fixtures/              Saved copies of the Upstreams' tool lists
   upstreams.ts           The stand-in Upstreams
   workspaces.ts          The stand-in Rooms and their fake Workspaces
   connector.ts           The Host's side of the Connector, for the tests, with a stand-in clock
@@ -193,6 +193,7 @@ docs/
 
 - `wrangler.toml`, `IGV_UPSTREAM_URL`: the `/mcp` address of the igv Upstream.
 - `wrangler.toml`, `JUICEBOX_UPSTREAM_URL`: the `/mcp` address of the Juicebox Upstream.
+- `wrangler.toml`, `SPACEWALK_UPSTREAM_URL`: the `/mcp` address of the Spacewalk Upstream.
 
 The top-level values are for local development, the `[env.prod]` and `[env.dev]` values for the two deployments. All of them name the same deployed dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
 

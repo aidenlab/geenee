@@ -1,13 +1,15 @@
 /**
- * Stand-in Upstreams: a `fetch` that answers for the igv and the Juicebox
- * Upstream's /mcp, listing the tools saved in test/fixtures and recording the
+ * Stand-in Upstreams: a `fetch` that answers for the igv, the Juicebox and the
+ * Spacewalk Upstream's /mcp, listing the tools saved in test/fixtures and recording the
  * tool calls it is sent.
  */
 import igvTools from './fixtures/igv-tools.json' with { type: 'json' }
 import juiceboxTools from './fixtures/juicebox-tools.json' with { type: 'json' }
+import spacewalkTools from './fixtures/spacewalk-tools.json' with { type: 'json' }
 
 export const IGV_UPSTREAM = 'https://igv-upstream.test/mcp'
 export const JUICEBOX_UPSTREAM = 'https://juicebox-upstream.test/mcp'
+export const SPACEWALK_UPSTREAM = 'https://spacewalk-upstream.test/mcp'
 
 export interface UpstreamReply {
   content: Array<Record<string, unknown>>
@@ -42,9 +44,11 @@ export function standInUpstreams() {
   })
   const igv = standIn()
   const juicebox = standIn()
+  const spacewalk = standIn()
   const served: Record<string, { upstream: StandInUpstream; tools: unknown[] }> = {
     [IGV_UPSTREAM]: { upstream: igv, tools: igvTools },
     [JUICEBOX_UPSTREAM]: { upstream: juicebox, tools: juiceboxTools },
+    [SPACEWALK_UPSTREAM]: { upstream: spacewalk, tools: spacewalkTools },
   }
 
   const fetch: typeof globalThis.fetch = async (input, init) => {
@@ -63,5 +67,5 @@ export function standInUpstreams() {
     throw new Error(`stand-in Upstreams were sent ${method}`)
   }
 
-  return { igv, juicebox, fetch }
+  return { igv, juicebox, spacewalk, fetch }
 }
