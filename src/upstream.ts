@@ -24,7 +24,7 @@ export interface Upstream {
   callTool(name: string, args: Record<string, unknown>, session?: string): Promise<ToolResult>
 }
 
-/** Longer than the igv and Juicebox Upstreams wait for their Viewers' acks (10 s and 15 s), so a slow Viewer is the Upstream's to report. */
+/** Longer than any Upstream waits for its Viewer (igv 15 s, Juicebox 10 s, Spacewalk 20 s), so a slow Viewer is the Upstream's to report. */
 const TIMEOUT_MS = 30_000
 
 export function upstreamAt(address: string, fetch: typeof globalThis.fetch): Upstream {

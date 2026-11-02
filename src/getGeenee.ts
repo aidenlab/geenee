@@ -11,7 +11,7 @@ export function getGeeneePage(origin: string, room: string | null): string {
   const connector = escapeHtml(new URL('/mcp', origin).toString())
   return page({
     title: 'Get geenee',
-    description: 'One Connector that lets Claude or ChatGPT drive the igv genome browser and the Juicebox contact-map viewer beside the conversation.',
+    description: 'One Connector that lets Claude or ChatGPT drive the igv genome browser, the Juicebox contact-map viewer and the Spacewalk 3D chromatin viewer beside the conversation.',
     style: `
 h2 { font: 600 1.0625rem var(--sans); margin: 2.75rem 0 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fg); }
 ol { margin: 0; padding-left: 1.4rem; }
@@ -21,7 +21,7 @@ li { margin-bottom: 0.5rem; }
     body: `<main>
   ${room ? roomSwitch(room, 'get') : '<p class="brand">geenee</p>'}
   <h1>Get geenee</h1>
-  <p class="lede">Ask Claude or ChatGPT to show a genome or a Hi-C contact map, and watch it appear beside the conversation. geenee brings the igv genome browser and the Juicebox contact-map viewer together as one Connector.</p>
+  <p class="lede">Ask Claude or ChatGPT to show a genome, a Hi-C contact map or the 3D structure of chromatin, and watch it appear beside the conversation. geenee brings the igv genome browser, the Juicebox contact-map viewer and the Spacewalk 3D chromatin viewer together as one Connector.</p>
 
   <p class="label" id="address-label">Connector address</p>
   <div class="address">

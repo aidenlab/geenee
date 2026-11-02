@@ -11,13 +11,22 @@ describe('the server instructions', () => {
     expect(serverInfo.name).toBe('geenee')
     expect(instructions).toMatch(/igv_[^.]*genome browser/)
     expect(instructions).toMatch(/juicebox_[^.]*contact map/)
+    expect(instructions).toMatch(/spacewalk_[^.]*3D viewer/)
   })
 
-  it('give the rule for a request that fits both Viewers: the one last used, and ask only when neither was', async () => {
+  it('give the rule for a request that fits more than one Viewer: the one last used that can do it, and ask only when none was', async () => {
     const { instructions } = await geenee().initialize()
 
-    expect(instructions).toContain('use the viewer this conversation last used')
-    expect(instructions).toContain('ask which one is meant only when neither has been used')
+    expect(instructions).toContain('use the viewer this conversation last used that can do it')
+    expect(instructions).toContain('ask which one is meant only when none of those has been used')
+  })
+
+  it('speak of three Viewers, never of two or both', async () => {
+    const { instructions } = await geenee().initialize()
+
+    expect(instructions).toContain('three viewers')
+    expect(instructions).not.toMatch(/\b(two|both) viewers\b/i)
+    expect(instructions).toMatch(/IGV, Juicebox and Spacewalk tabs/)
   })
 
   it('fit what Hosts read: the opening rule in the first 512 characters, and all of it in 2,048', async () => {

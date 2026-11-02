@@ -1,14 +1,14 @@
 # geenee
 
-One Connector for Claude and ChatGPT that lets the model drive both the [igv.js](https://github.com/igvteam/igv.js) genome browser and the [Juicebox](https://github.com/aidenlab/juicebox.js) contact-map viewer from a single conversation, shown together beside it.
+One Connector for Claude and ChatGPT that lets the model drive the [igv.js](https://github.com/igvteam/igv.js) genome browser, the [Juicebox](https://github.com/aidenlab/juicebox.js) contact-map viewer and the [Spacewalk](https://github.com/aidenlab/spacewalk) 3D chromatin viewer from a single conversation, shown together beside it.
 
-**This is a proof of concept, and all four of its stages are done.** It asks whether the two existing tool sets make sense behind one installation. It has been checked by hand in Claude desktop and in ChatGPT, in Codex and in Chat, and works in both. The stages and what each one settles are in the [spec](https://github.com/aidenlab/geenee/issues/1).
+**This is a proof of concept, and all four of its stages are done.** It asks whether the existing tool sets make sense behind one installation. It has been checked by hand in Claude desktop and in ChatGPT, in Codex and in Chat, and works in both. The stages and what each one settles are in the [spec](https://github.com/aidenlab/geenee/issues/1).
 
 The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is defined in [`GLOSSARY.md`](GLOSSARY.md). The two decisions that shape geenee are in [`docs/adr/`](docs/adr/), and the research behind them is in [`docs/research/`](docs/research/merging-igv-and-juicebox-mcp-servers.md).
 
 ## How it works
 
-- geenee contains none of the tool sets. It **forwards** to three **Upstreams**, the deployed dev servers of [`igvjs-mcp`](https://github.com/aidenlab/igvjs-mcp), `juicebox-mcp` and Spacewalk's MCP server, and none of them is changed (ADR 0001). Each stays a working Connector in its own right.
+- geenee contains none of the tool sets. It **forwards** to three **Upstreams**, the deployed dev servers of [`igvjs-mcp`](https://github.com/aidenlab/igvjs-mcp), `juicebox-mcp` and Spacewalk's MCP server (ADR 0001). igv's and Juicebox's are not changed; Spacewalk's was changed in two small ways for geenee, so that `open_viewer` accepts a Room id geenee mints and `read_viewer_count` says whether a Viewer is connected. Each stays a working Connector in its own right.
 - The Juicebox Upstream is `juicebox-mcp`'s **view** stack, whose Viewer is the juicebox-view page. The web stack and its juicebox-web page are retired, and geenee no longer deploys against them.
 - The **server** is a Cloudflare Worker with an MCP endpoint (`/mcp`, stateless Streamable HTTP) for the Host. It also serves the Workspace page. The Connector keeps no state between requests; the one thing geenee keeps is in a Durable Object per Room, which holds the sockets of the Room's Workspaces and the Viewer last used.
 - The **tool list** is the Upstreams' lists put together, asked for afresh on each request, so a change to an Upstream's tools appears without a geenee release. Every tool is served under a name prefixed with its Viewer: `igv_zoom_in`, `juicebox_zoom_in`, `spacewalk_reset_camera`. A name that already says which Viewer it belongs to is left alone (`juicebox_help`).
@@ -16,10 +16,10 @@ The vocabulary used here (Host, Connector, Upstream, Viewer, Workspace, Room) is
 - Four Upstream tools are **hidden**: `open_viewer` (igv and Spacewalk), and `get_juicebox_url` and `join_room` (Juicebox). A Viewer is only ever opened inside the Workspace. Text that names a hidden tool is rewritten to name `open_geenee`. Three more are **withheld**, with nothing standing in for them, so text naming one is left as it is: `get_shareable_url` (igv and Spacewalk) and `read_viewer_count` (Spacewalk). With geenee's own tool that makes 55: `open_geenee`, 13 for igv, 30 for Juicebox and 11 for Spacewalk.
 - `open_geenee` mints one **Room** id and returns the link that opens the Workspace in that Room. Every other tool takes the Room id back as a required `room` argument, including Juicebox tools whose Upstream versions take none; a call without it is refused with advice to call `open_geenee`. Called with `room`, `open_geenee` gives the link to that Room again.
 - One Room id names a Room in each Upstream. The igv and Spacewalk Upstreams are given it as the tool's `room` argument, Spacewalk's even for `list_example_ensembles`, which declares none and accepts it. The Juicebox Upstream acts on the Room of the call's MCP session, and a session it has bound to no Room has the Room whose id is the session id, so geenee sends the Room id as the `mcp-session-id` header. This was read from the Juicebox Upstream's code and has since been seen to reach the right Viewer in a Host.
-- The **server instructions** tell the model what each Viewer is for, and how to treat a request that fits both ("zoom in", "go to MYC"): use the Viewer the conversation last used, and ask only when neither has been used. The server cannot see the conversation, so choosing a Viewer is the model's work.
+- The **server instructions** tell the model what each Viewer is for, and how to treat a request that fits more than one ("zoom in", "go to MYC"): use the Viewer the conversation last used that can do it, and ask only when none of those has been used. Spacewalk's tools have no locus, zoom or tracks, so most such requests fit igv and Juicebox only. The server cannot see the conversation, so choosing a Viewer is the model's work.
 - When one Upstream **cannot be reached**, the others' tools are still listed and forwarded. A call to a tool of the missing one gets an error reply that says so. A call an Upstream refuses, such as one with arguments it does not accept, is passed back in the Upstream's words.
-- The **Workspace** is the one geenee page a person opens beside the conversation (ADR 0002). It frames the igv Viewer and the Juicebox Viewer, loads both when it opens, and shows one at a time. Each Viewer is still served from its own address and talks to its own Upstream as before.
-- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room once, keeps the Join link in its reply, and passes it on: `joinUrl` for igv and Juicebox, `roomLink` for Spacewalk. So the Upstream addresses are geenee's only configuration. The Workspace frames only igv and Juicebox for now; Spacewalk's tab comes later, and until then its link and mark are passed over.
+- The **Workspace** is the one geenee page a person opens beside the conversation (ADR 0002). It frames the igv, Juicebox and Spacewalk Viewers, loads all three when it opens, and shows one at a time. Each Viewer is still served from its own address and talks to its own Upstream as before.
+- The Workspace learns each Viewer's address by asking the Worker (`GET /viewers?room=`), which calls each Upstream's own open tool for that Room once, keeps the Join link in its reply, and passes it on: `joinUrl` for igv and Juicebox, `roomLink` for Spacewalk. So the Upstream addresses are geenee's only configuration.
 - Spacewalk's Room has a real opened state: its Upstream refuses every tool but `open_viewer` in a Room it never opened. So `open_geenee` opens a new Room there itself, before it replies, so that a load the model goes straight on to finds the Room open, and keeps the Join link; `/viewers` then does not ask again. If Spacewalk cannot be reached then, `open_geenee` still succeeds, and `/viewers` or the first Spacewalk call opens the Room. `open_geenee` given a Room that has not expired asks `read_viewer_count`, and calls `open_viewer` only if that answers with an error, as when Spacewalk's own clock has expired its Room: `open_viewer` would clear the news of a Room that is live. An expired geenee Room never reaches Spacewalk.
 - The Workspace **brings forward the Viewer a tool was last called for**. Each tool call the Connector forwards is reported to the Room's Durable Object, alongside the call, and the Room tells every Workspace joined to it over a WebSocket (`/ws?room=`). Any forwarded tool counts, a search included; `open_geenee` and a call that is refused do not. A person can click the other tab, and it stays picked until the next tool call. The Room keeps the last report, and nothing else, for a Workspace that opens later.
 - Each tab carries a **mark**, filled when its Viewer is connected and hollow when it is not. The Workspace asks the Worker every few seconds (`GET /connections?room=`), which asks each Upstream with a tool that changes nothing in the Viewer: `read_session_summary` for igv, which answers with an error when no Viewer is in the Room, `get_server_status` for Juicebox, which says `Browser Connected: Yes` or `No`, and `read_viewer_count` for Spacewalk, whose structured content counts its `viewers`. Neither the igv nor the Juicebox Upstream has more of a contract for this than those replies. A Viewer whose Upstream cannot be reached shows as not connected.
@@ -67,9 +67,9 @@ curl -s http://localhost:5173/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"open_geenee","arguments":{}}}'
 ```
 
-Open the Workspace link in a browser: both Viewers load, each in its own Room of that id, and the mark on each tab fills once its Viewer has connected.
+Open the Workspace link in a browser: all three Viewers load, each in its own Room of that id, and the mark on each tab fills once its Viewer has connected.
 
-With the Workspace open, a tool of either Viewer changes that Viewer and brings it forward:
+With the Workspace open, a tool of any Viewer changes that Viewer and brings it forward:
 
 ```sh
 curl -s http://localhost:5173/mcp \
@@ -152,7 +152,7 @@ wrangler.toml            Worker configuration: the Upstream addresses, the Room 
 tsconfig.json            Type-checking of the Worker and the tests; src/workspace has its own, with the DOM
 vite.config.ts           The build of the Worker and the Workspace
 vitest.config.ts         The tests, kept apart from the Cloudflare plugin
-index.html               The Workspace page: the two tabs, each with its mark, and the two panels
+index.html               The Workspace page: the three tabs, each with its mark, and the three panels
 pages.html               The page review, for development only
 src/
   index.ts               Worker entry point

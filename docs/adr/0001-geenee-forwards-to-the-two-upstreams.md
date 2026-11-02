@@ -14,3 +14,9 @@ geenee is one Connector for both igv.js and Juicebox, but it contains neither to
 - Every tool takes one Room id from the model, including Juicebox tools whose Upstream versions take none. geenee uses it to tell each Upstream which Room a call is for. This gives the Juicebox tools the protection `igvjs-mcp` added in its ADR 0003, for a Host that moves a conversation to another MCP session.
 - geenee is only as available as its Upstreams. When one cannot be reached, the other's tools are still served.
 - Each Upstream stays a working Connector in its own right, and a change to its tools appears in geenee without a geenee release.
+
+## Revised 2026-11-02: a third Upstream
+
+Spacewalk's MCP server (`spacewalk-mcp-dev`) is a third Upstream, and its tools are served under `spacewalk_` (#44). The decision stands: geenee forwards to it as it does to the other two, hides its `open_viewer`, and withholds `get_shareable_url` and `read_viewer_count`.
+
+Unlike igv and Juicebox, Spacewalk's Upstream was changed for geenee, in two small ways. Its Room has a real opened state, so `open_viewer` now accepts a new well-formed Room id, which lets geenee mint the id and have Spacewalk open its Room under it (spacewalk-mcp#27). And reading its viewer state clears the news of hand changes, so it gained `read_viewer_count`, which says whether a Viewer is connected and leaves the news intact (spacewalk-mcp#28). Neither change is specific to geenee: Spacewalk stays a working Connector in its own right.

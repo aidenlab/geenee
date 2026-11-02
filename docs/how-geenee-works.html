@@ -7,7 +7,7 @@
 <title>How geenee works</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <style>
-/* Layout: one 38rem reading column, notes in the right margin, figures across both. Ink for geenee, blue for igv, red for Juicebox. */
+/* Layout: one 38rem reading column, notes in the right margin, figures across both. Ink for geenee, blue for igv, red for Juicebox, green for Spacewalk. */
 :root {
   --bg: #f5f6f4;
   --box: #ffffff;
@@ -16,18 +16,19 @@
   --rule: #cdd2ce;
   --igv: #2a5f9e;               /* igv's blue */
   --jb: #b8231a;                /* the red of a contact map */
+  --sw: #2e7d4f;                /* Spacewalk's green */
   --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
   --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566;
+    --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566; --sw: #6cc58f;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566;
+  --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566; --sw: #6cc58f;
   color-scheme: dark;
 }
 
@@ -84,6 +85,7 @@ li { margin-bottom: 0.4rem; }
 code { font-family: var(--mono); font-size: 0.84em; }
 .igv { color: var(--igv); }
 .jb { color: var(--jb); }
+.sw { color: var(--sw); }
 a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
 a:hover { text-decoration-color: currentColor; }
 a:focus-visible { outline: 2px solid var(--igv); outline-offset: 2px; }
@@ -151,10 +153,12 @@ figcaption b { color: var(--fg); font-weight: 600; }
 .fig .k { paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
 .fig .ci { fill: var(--igv); }
 .fig .cj { fill: var(--jb); }
+.fig .cs { fill: var(--sw); }
 .fig .bx { fill: var(--box); stroke: currentColor; stroke-width: 1; }
 .fig .bx-g { fill: var(--box); stroke: currentColor; stroke-width: 1.75; }
 .fig .bx-i { fill: var(--box); stroke: var(--igv); stroke-width: 1.25; }
 .fig .bx-j { fill: var(--box); stroke: var(--jb); stroke-width: 1.25; }
+.fig .bx-s { fill: var(--box); stroke: var(--sw); stroke-width: 1.25; }
 .fig .bx-q { fill: none; stroke: var(--rule); stroke-width: 1; }
 .fig .win { fill: none; stroke: var(--muted); stroke-width: 1; }
 .fig .sep { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
@@ -165,9 +169,11 @@ figcaption b { color: var(--fg); font-weight: 600; }
 .fig .pg { stroke-dasharray: 5 4; }
 .fig .wi { stroke: var(--igv); }
 .fig .wj { stroke: var(--jb); }
+.fig .wsw { stroke: var(--sw); }
 .fig .ah { fill: currentColor; }
 .fig .ahi { fill: var(--igv); }
 .fig .ahj { fill: var(--jb); }
+.fig .ahs { fill: var(--sw); }
 .fig .dot { fill: currentColor; }
 .fig .hollow { fill: var(--box); stroke: currentColor; stroke-width: 1; }
 
@@ -224,23 +230,25 @@ td.how { white-space: nowrap; }
     <marker id="a" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" class="ah" style="fill: var(--fg)"/></marker>
     <marker id="ai" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--igv)"/></marker>
     <marker id="aj" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--jb)"/></marker>
+    <marker id="aw" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--sw)"/></marker>
     <marker id="as" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--fg)"/></marker>
     <marker id="asi" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--igv)"/></marker>
     <marker id="asj" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--jb)"/></marker>
+    <marker id="asw" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0.5 L8 4 L0 7.5z" style="fill: var(--sw)"/></marker>
   </defs>
 </svg>
 
 <main class="page">
 
 <h1>How geenee works</h1>
-<p class="lede">Seven parts, on four servers and one computer, cooperate so that a model can drive igv and Juicebox from one conversation. This document shows what each part is, which wires join them, and what crosses each wire.</p>
+<p class="lede">Nine parts, on five servers and one computer, cooperate so that a model can drive igv, Juicebox and Spacewalk from one conversation. This document shows what each part is, which wires join them, and what crosses each wire.</p>
 
 <ul class="toc">
   <li><a href="#parts">The parts and the wires</a></li>
-  <li><a href="#room">One Room id, three Rooms</a></li>
+  <li><a href="#room">One Room id, four Rooms</a></li>
   <li><a href="#open">Scenario: “open geenee”</a></li>
   <li><a href="#call">Scenario: “go to MYC”</a></li>
-  <li><a href="#juicebox">How a Juicebox call differs</a></li>
+  <li><a href="#differs">How a Juicebox or Spacewalk call differs</a></li>
   <li><a href="#state">What each part keeps</a></li>
   <li><a href="#wrong">When something goes wrong</a></li>
   <li><a href="#addresses">Addresses</a></li>
@@ -250,7 +258,7 @@ td.how { white-space: nowrap; }
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 640" role="img" aria-label="Map of geenee. On the internet: the Host's servers, the geenee Worker with its Room, the igv Upstream, the Juicebox Upstream, and the two sites that serve the Viewer pages. On the person's computer: the Host app, with the conversation and an in-app browser pane holding the Workspace, which frames the igv Viewer and the Juicebox Viewer. Wires A to K join them.">
+  <svg class="fig" viewBox="0 0 1000 640" role="img" aria-label="Map of geenee. On the internet: the Host's servers, the geenee Worker with its Room, the igv Upstream, the Juicebox Upstream, and the two sites that serve the Viewer pages. On the person's computer: the Host app, with the conversation and an in-app browser pane holding the Workspace, which has a tab for each of the three Viewers and frames the igv Viewer and the Juicebox Viewer. Wires A to K join them. Spacewalk's Upstream, Viewer and page site are not drawn.">
 
     <text class="t-band" x="20" y="24">ON THE INTERNET</text>
     <line class="sep" x1="0" y1="352" x2="1000" y2="352"/>
@@ -315,10 +323,13 @@ td.how { white-space: nowrap; }
     <rect class="bx" x="338" y="492" width="94" height="22"/>
     <text x="348" y="507" style="font-size:11px">Juicebox</text>
     <circle class="hollow" cx="417" cy="503" r="3.5"/>
-    <text class="t-s" x="272" y="538">two tabs, each with a mark:</text>
+    <rect class="bx" x="436" y="492" width="94" height="22"/>
+    <text x="446" y="507" style="font-size:11px">Spacewalk</text>
+    <circle class="hollow" cx="515" cy="503" r="3.5"/>
+    <text class="t-s" x="272" y="538">three tabs, each with a mark:</text>
     <text class="t-s" x="272" y="553">filled when its Viewer is connected.</text>
     <text class="t-s" x="272" y="575">One Viewer is shown at a time;</text>
-    <text class="t-s" x="272" y="590">the other stays loaded behind it.</text>
+    <text class="t-s" x="272" y="590">the others stay loaded behind it.</text>
 
     <rect class="bx-i" x="560" y="472" width="180" height="128"/>
     <text class="t-h ci" x="650" y="530" text-anchor="middle">igv Viewer</text>
@@ -379,14 +390,14 @@ td.how { white-space: nowrap; }
     <span><svg viewBox="0 0 34 8"><line x1="0" y1="4" x2="34" y2="4" stroke="currentColor" stroke-width="2.75"/></svg>a WebSocket that stays open</span>
     <span><svg viewBox="0 0 34 8"><line x1="0" y1="4" x2="34" y2="4" stroke="currentColor" stroke-width="1" stroke-dasharray="5 4"/></svg>page files, fetched once when a page opens</span>
   </div>
-  <figcaption><b>Figure 1.</b> Every part and every wire. Blue belongs to igv and red to Juicebox; black is geenee’s own. Arrowheads show which way the content flows. Of the parts on the internet, three are Cloudflare Workers (geenee and the two Upstreams) and two are static sites. Each Viewer also fetches its own genomes, tracks and maps from public data hosts, which are not drawn.</figcaption>
+  <figcaption><b>Figure 1.</b> Every part and every wire. Blue belongs to igv and red to Juicebox; black is geenee’s own. Arrowheads show which way the content flows. Spacewalk’s Upstream, Viewer and page site, wires L to N, sit beside igv’s and follow the same shape; they are left out so the figure stays readable. Of the parts on the internet, four are Cloudflare Workers (geenee and the three Upstreams) and three are static sites. Each Viewer also fetches its own genomes, tracks and maps from public data hosts, which are not drawn.</figcaption>
 </figure>
 
 <aside class="note">The Host’s request to geenee comes from Anthropic’s or OpenAI’s servers, not from the person’s computer. That is why geenee needs a public <code>https://</code> address even during local development.</aside>
 
-<p>Two things carry the whole design. First, geenee contains neither tool set: it forwards each tool call to the Upstream that owns it, and neither Upstream knows geenee exists. Second, an Upstream cannot answer by itself. It has to reach its Viewer, a web page in the person’s browser pane, and it does so over a WebSocket that the Viewer opened when it loaded.</p>
+<p>Two things carry the whole design. First, geenee contains none of the tool sets: it forwards each tool call to the Upstream that owns it, and no Upstream knows geenee exists. Second, an Upstream cannot answer by itself. It has to reach its Viewer, a web page in the person’s browser pane, and it does so over a WebSocket that the Viewer opened when it loaded.</p>
 
-<p>So a single request from the model crosses three wires on the way out (<b>A</b>, then <b>B</b> or <b>C</b>, then <b>D</b> or <b>E</b>) and the same three on the way back. Everything else in the figure exists to set those wires up and to keep the person’s view in step with them.</p>
+<p>So a single request from the model crosses three wires on the way out (<b>A</b>, then <b>B</b>, <b>C</b> or <b>L</b>, then <b>D</b>, <b>E</b> or <b>M</b>) and the same three on the way back. Everything else in the figure exists to set those wires up and to keep the person’s view in step with them.</p>
 
 <div class="tablewrap wide">
 <table>
@@ -399,49 +410,59 @@ td.how { white-space: nowrap; }
     <tr><td class="n jb">E</td><td>Juicebox Upstream and Juicebox Viewer</td><td class="how">WebSocket <code>/ws?room=</code></td><td>Down: a command. Up: a reply.</td><td>Opened by the Viewer when it loads. Stays open.</td></tr>
     <tr><td class="n igv">F</td><td>igv page site and igv Viewer</td><td class="how">GET</td><td>The igv Viewer’s HTML, scripts and styles.</td><td>Once, when its frame opens.</td></tr>
     <tr><td class="n jb">G</td><td>Juicebox page site and Juicebox Viewer</td><td class="how">GET</td><td>The Juicebox Viewer’s files.</td><td>Once, when its frame opens.</td></tr>
-    <tr><td class="n">H</td><td>geenee’s Room and the Workspace</td><td class="how">WebSocket <code>/ws?room=</code></td><td>One kind of message, one way: <code>viewerUsed</code>, naming igv or Juicebox. The Workspace brings that Viewer forward.</td><td>Opened by the Workspace. One message per forwarded call.</td></tr>
+    <tr><td class="n">H</td><td>geenee’s Room and the Workspace</td><td class="how">WebSocket <code>/ws?room=</code></td><td>One kind of message, one way: <code>viewerUsed</code>, naming igv, Juicebox or Spacewalk. The Workspace brings that Viewer forward.</td><td>Opened by the Workspace. One message per forwarded call.</td></tr>
     <tr><td class="n">I</td><td>geenee and the Workspace</td><td class="how">GET <code>/</code></td><td>The Workspace page.</td><td>Once, when the Host opens the link.</td></tr>
     <tr><td class="n">J</td><td>Workspace and geenee</td><td class="how">GET</td><td><code>/viewers</code>: the Join link of each Viewer for this Room. <code>/connections</code>: whether each Viewer is connected, for the marks. Both answer 410 for a Room that has expired.</td><td><code>/viewers</code> once; <code>/connections</code> every 4 s.</td></tr>
     <tr><td class="n">K</td><td>Host app and Host servers</td><td class="how">the Host’s own</td><td>The conversation. geenee never sees it.</td><td>Always.</td></tr>
+    <tr><td class="n sw">L</td><td>geenee and the Spacewalk Upstream</td><td class="how">POST <code>/mcp</code></td><td>The forwarded call, with the Room id as the <code>room</code> argument, as for igv. Also <code>tools/list</code>, <code>open_viewer</code> from <code>open_geenee</code>, once per Room, and <code>read_viewer_count</code> for <code>/connections</code>.</td><td>As for B.</td></tr>
+    <tr><td class="n sw">M</td><td>Spacewalk Upstream and Spacewalk Viewer</td><td class="how">WebSocket <code>/ws?room=</code></td><td>Down: the viewer state, whole and numbered, after every change, and questions about the camera. Up: the report that a state was realized, a change made by hand, and the camera’s answers.</td><td>Opened by the Viewer when it loads. Stays open.</td></tr>
+    <tr><td class="n sw">N</td><td>Spacewalk page site and Spacewalk Viewer</td><td class="how">GET</td><td>The Spacewalk Viewer’s files.</td><td>Once, when its frame opens.</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>Two wires are missing on purpose. The Workspace never speaks to the Viewers it frames: each frame is a window onto another site, and the Viewer inside behaves exactly as if it had been opened on its own. And geenee never speaks to a Viewer: it reaches one only by asking its Upstream.</p>
 
-<h2 id="room">One Room id, three Rooms</h2>
+<h2 id="room">One Room id, four Rooms</h2>
 
-<p>A Room ties one conversation to its Workspace and to the two Viewers inside it. <code>open_geenee</code> mints a Room id, ten Crockford base32 characters, and the model passes it back on every later call. The same id then names a Room in three places, and each place learns it differently.</p>
+<p>A Room ties one conversation to its Workspace and to the three Viewers inside it. <code>open_geenee</code> mints a Room id, ten Crockford base32 characters, and the model passes it back on every later call. The same id then names a Room in four places, and each place learns it differently.</p>
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 206" role="img" aria-label="The Room id 7KQ2M9XA4T names three Rooms: geenee's, reached through the Workspace's socket; the igv Upstream's, given the id as the room argument; and the Juicebox Upstream's, given the id as the mcp-session-id header.">
+  <svg class="fig" viewBox="0 0 1000 236" role="img" aria-label="The Room id 7KQ2M9XA4T names four Rooms: geenee's, reached through the Workspace's socket; the igv Upstream's, given the id as the room argument; the Juicebox Upstream's, given the id as the mcp-session-id header; and the Spacewalk Upstream's, given the id as the room argument.">
     <rect class="bx-g" x="420" y="14" width="160" height="52"/>
     <text class="t-s" x="500" y="34" text-anchor="middle">Room id</text>
     <text class="t-m" x="500" y="54" text-anchor="middle" style="font-size:14px;font-weight:500">7KQ2M9XA4T</text>
 
-    <path class="w" d="M440 67 V90 H175 V120" marker-end="url(#a)"/>
-    <line class="w wi" x1="500" y1="67" x2="500" y2="119" marker-end="url(#ai)"/>
-    <path class="w wj" d="M560 67 V90 H825 V120" marker-end="url(#aj)"/>
+    <path class="w" d="M440 67 V80 H125 V150" marker-end="url(#a)"/>
+    <path class="w wi" d="M470 67 V100 H375 V150" marker-end="url(#ai)"/>
+    <path class="w wj" d="M530 67 V100 H625 V150" marker-end="url(#aj)"/>
+    <path class="w wsw" d="M560 67 V80 H875 V150" marker-end="url(#aw)"/>
 
-    <text class="t-s k" x="290" y="84" text-anchor="middle">in the Workspace link</text>
-    <text class="t-s k" x="508" y="108">the <tspan class="t-m">room</tspan> argument</text>
-    <text class="t-s k" x="710" y="84" text-anchor="middle">the <tspan class="t-m">mcp-session-id</tspan> header</text>
+    <text class="t-s k" x="133" y="130">in the Workspace link</text>
+    <text class="t-s k" x="383" y="130">the <tspan class="t-m">room</tspan> argument</text>
+    <text class="t-s k" x="633" y="130">the <tspan class="t-m">mcp-session-id</tspan> header</text>
+    <text class="t-s k" x="883" y="130">the <tspan class="t-m">room</tspan> argument</text>
 
-    <rect class="bx" x="60" y="122" width="230" height="72"/>
-    <text class="t-h" x="175" y="146" text-anchor="middle">geenee’s Room</text>
-    <text class="t-s" x="175" y="164" text-anchor="middle">the Workspace sockets,</text>
-    <text class="t-s" x="175" y="179" text-anchor="middle">and the last Viewer used</text>
+    <rect class="bx" x="20" y="152" width="210" height="72"/>
+    <text class="t-h" x="125" y="176" text-anchor="middle">geenee’s Room</text>
+    <text class="t-s" x="125" y="194" text-anchor="middle">the Workspace sockets,</text>
+    <text class="t-s" x="125" y="209" text-anchor="middle">and the last Viewer used</text>
 
-    <rect class="bx-i" x="385" y="122" width="230" height="72"/>
-    <text class="t-h ci" x="500" y="146" text-anchor="middle">igv Room</text>
-    <text class="t-s" x="500" y="164" text-anchor="middle">the igv Viewer’s socket,</text>
-    <text class="t-s" x="500" y="179" text-anchor="middle">its Session and Session summary</text>
+    <rect class="bx-i" x="270" y="152" width="210" height="72"/>
+    <text class="t-h ci" x="375" y="176" text-anchor="middle">igv Room</text>
+    <text class="t-s" x="375" y="194" text-anchor="middle">the igv Viewer’s socket,</text>
+    <text class="t-s" x="375" y="209" text-anchor="middle">its Session and Session summary</text>
 
-    <rect class="bx-j" x="710" y="122" width="230" height="72"/>
-    <text class="t-h cj" x="825" y="146" text-anchor="middle">Juicebox Room</text>
-    <text class="t-s" x="825" y="164" text-anchor="middle">the Juicebox Viewer’s socket,</text>
-    <text class="t-s" x="825" y="179" text-anchor="middle">and its state</text>
+    <rect class="bx-j" x="520" y="152" width="210" height="72"/>
+    <text class="t-h cj" x="625" y="176" text-anchor="middle">Juicebox Room</text>
+    <text class="t-s" x="625" y="194" text-anchor="middle">the Juicebox Viewer’s socket,</text>
+    <text class="t-s" x="625" y="209" text-anchor="middle">and its state</text>
+
+    <rect class="bx-s" x="770" y="152" width="210" height="72"/>
+    <text class="t-h cs" x="875" y="176" text-anchor="middle">Spacewalk Room</text>
+    <text class="t-s" x="875" y="194" text-anchor="middle">the Spacewalk Viewer’s socket,</text>
+    <text class="t-s" x="875" y="209" text-anchor="middle">and the viewer state</text>
   </svg>
   </div>
   <figcaption><b>Figure 2.</b> How the one id reaches each Room. Each Room is a Cloudflare Durable Object, and each Viewer finds its Room from the <code>?room=</code> in its own Join link.</figcaption>
@@ -449,17 +470,17 @@ td.how { white-space: nowrap; }
 
 <aside class="note">The Juicebox Upstream predates the <code>room</code> argument. It acts on the Room of the call’s MCP session, and an unbound session’s Room is the one whose id is the session id. geenee exploits that by sending the Room id as the session id.</aside>
 
-<p>The igv Upstream takes the Room id as an argument, as it was designed to. The Juicebox Upstream takes no such argument, so geenee hands the id over in the session header instead, and the Juicebox tools gain the protection of a Room the model carries.</p>
+<p>The igv and Spacewalk Upstreams take the Room id as an argument, as they were designed to. geenee gives it to every Spacewalk tool, even <code>list_example_ensembles</code>, which declares no <code>room</code> but accepts one. The Juicebox Upstream takes no such argument, so geenee hands the id over in the session header instead, and the Juicebox tools gain the protection of a Room the model carries.</p>
 
 <p>The Room id comes from the model on every call rather than from the MCP session because a Host does not keep one session per conversation. Claude desktop moves a conversation to a second session after the model first uses the browser pane. The model is the one thing that stays with the conversation.</p>
 
 <h2 id="open">Scenario: “open geenee”</h2>
 
-<p>The person types “open geenee”. The model calls <code>open_geenee</code>, and seven steps later both Viewers are connected and both marks are filled. Only the first step involves the model.</p>
+<p>The person types “open geenee”. The model calls <code>open_geenee</code>, and seven steps later all three Viewers are connected and all three marks are filled. Only the first step involves the model.</p>
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 664" role="img" aria-label="Sequence for opening geenee, with time running downward, across seven lifelines: Host, Workspace, geenee, igv Upstream, igv Viewer, Juicebox Upstream, Juicebox Viewer.">
+  <svg class="fig" viewBox="0 0 1000 664" role="img" aria-label="Sequence for opening geenee, with time running downward, across seven lifelines: Host, Workspace, geenee, igv Upstream, igv Viewer, Juicebox Upstream, Juicebox Viewer. Spacewalk's lifelines are not drawn.">
     <text class="t-h" x="70" y="32" text-anchor="middle">Host</text>
     <text class="t-h" x="210" y="32" text-anchor="middle">Workspace</text>
     <text class="t-h" x="350" y="32" text-anchor="middle">geenee</text>
@@ -507,7 +528,7 @@ td.how { white-space: nowrap; }
     <line class="w wj" x1="790" y1="352" x2="351" y2="352" marker-end="url(#asj)"/>
     <text class="k cj" x="570" y="346" text-anchor="middle" style="font-size:11.5px">Join link</text>
     <line class="w" x1="350" y1="376" x2="211" y2="376" marker-end="url(#as)"/>
-    <text class="k" x="280" y="370" text-anchor="middle" style="font-size:11.5px">both links</text>
+    <text class="k" x="280" y="370" text-anchor="middle" style="font-size:11.5px">the links</text>
 
     <!-- 5 -->
     <text class="t-n" x="12" y="420">5</text>
@@ -536,32 +557,36 @@ td.how { white-space: nowrap; }
     <line class="w wj" x1="790" y1="618" x2="351" y2="618" marker-end="url(#asj)"/>
     <text class="k cj" x="570" y="612" text-anchor="middle" style="font-size:11.5px">Browser Connected: Yes</text>
     <line class="w" x1="350" y1="642" x2="211" y2="642" marker-end="url(#as)"/>
-    <text class="k" x="280" y="636" text-anchor="middle" style="font-size:11.5px">both connected</text>
+    <text class="k" x="280" y="636" text-anchor="middle" style="font-size:11.5px">all connected</text>
     <text class="t-s" x="140" y="582" text-anchor="middle">repeats</text>
     <text class="t-s" x="140" y="596" text-anchor="middle">every 4 s</text>
   </svg>
   </div>
-  <figcaption><b>Figure 3.</b> Opening geenee, with time running downward. Steps 1 to 6 happen once per conversation. Step 7 repeats for as long as the Workspace is visible.</figcaption>
+  <figcaption><b>Figure 3.</b> Opening geenee, with time running downward. Steps 1 to 6 happen once per conversation. Step 7 repeats for as long as the Workspace is visible. Spacewalk’s Upstream and Viewer are left out so the figure stays readable: in step 1 geenee also opens Spacewalk’s Room, along L, before it replies, and in steps 5 to 7 Spacewalk’s half follows igv’s, along N, M and L.</figcaption>
 </figure>
 
 <div class="tablewrap wide">
 <table>
   <thead><tr><th class="n"></th><th>Wire</th><th>What happens</th></tr></thead>
   <tbody>
-    <tr><td class="n">1</td><td>A</td><td>The model calls <code>open_geenee</code>. geenee mints a Room id and replies with it and the Workspace link, <code>https://geenee.3dg.io/?room=7KQ2M9XA4T</code>. Neither Upstream is contacted. The reply tells the model to open the link in the Host’s browser pane and to pass the Room id on every later call.</td></tr>
+    <tr><td class="n">1</td><td>A, L</td><td>The model calls <code>open_geenee</code>. geenee mints a Room id and calls the Spacewalk Upstream’s <code>open_viewer</code> for it, and keeps the Join link from the reply (its <code>roomLink</code>). Then it replies with the Room id and the Workspace link, <code>https://geenee.3dg.io/?room=7KQ2M9XA4T</code>. The igv and Juicebox Upstreams are not contacted. The reply tells the model to open the link in the Host’s browser pane and to pass the Room id on every later call.</td></tr>
     <tr><td class="n">2</td><td>I</td><td>The Host opens the link in its browser pane. The pane fetches the Workspace page from geenee.</td></tr>
     <tr><td class="n">3</td><td>H</td><td>The Workspace opens a WebSocket to geenee’s Room. If a tool has already been used in this Room, the Room says which Viewer at once.</td></tr>
-    <tr><td class="n">4</td><td>J, B, C</td><td>The Workspace asks geenee for <code>/viewers</code>. The first time, geenee calls each Upstream’s own open tool for the Room, keeps the Join link from each reply, and passes it back; later it passes back the Join link it kept. Called again later, igv’s open tool would revive a Room that had expired. These tools are hidden from the model; only geenee calls them.</td></tr>
-    <tr><td class="n">5</td><td>F, G</td><td>The Workspace puts each Join link in a frame. Each frame fetches its Viewer page from that Viewer’s static site.</td></tr>
-    <tr><td class="n">6</td><td>D, E</td><td>Each Viewer reads the Room id from its own address and opens a WebSocket to its Upstream’s Room. From now on its Upstream can push commands to it.</td></tr>
-    <tr><td class="n">7</td><td>J, B, C</td><td>Every 4 s the Workspace asks <code>/connections</code>. geenee asks each Upstream with a tool that changes nothing, reads the reply, and the Workspace fills or empties each mark.</td></tr>
+    <tr><td class="n">4</td><td>J, B, C</td><td>The Workspace asks geenee for <code>/viewers</code>. The first time, geenee calls the igv and Juicebox Upstreams’ own open tools for the Room, keeps the Join link from each reply (their <code>joinUrl</code>), and passes them back with Spacewalk’s from step 1; later it passes back the Join links it kept. Called again later, igv’s open tool would revive a Room that had expired. These tools are hidden from the model; only geenee calls them.</td></tr>
+    <tr><td class="n">5</td><td>F, G, N</td><td>The Workspace puts each Join link in a frame. Each frame fetches its Viewer page from that Viewer’s static site.</td></tr>
+    <tr><td class="n">6</td><td>D, E, M</td><td>Each Viewer reads the Room id from its own address and opens a WebSocket to its Upstream’s Room. From now on its Upstream can push commands to it.</td></tr>
+    <tr><td class="n">7</td><td>J, B, C, L</td><td>Every 4 s the Workspace asks <code>/connections</code>. geenee asks each Upstream with a tool that changes nothing, reads the reply, and the Workspace fills or empties each mark.</td></tr>
   </tbody>
 </table>
 </div>
 
-<aside class="note">The two status tools were never designed as a contract. geenee reads an error from <code>read_session_summary</code> as “not connected”, and looks for <code>Browser Connected: Yes</code> in the text of <code>get_server_status</code>.</aside>
+<aside class="note">igv’s and Juicebox’s status tools were never designed as a contract. geenee reads an error from <code>read_session_summary</code> as “not connected”, and looks for <code>Browser Connected: Yes</code> in the text of <code>get_server_status</code>. Spacewalk’s <code>read_viewer_count</code> is a designed probe: its structured content counts the Room’s <code>viewers</code>.</aside>
 
-<p>Steps 3 and 4 start together, and so do the two halves of steps 4, 5 and 6. The figure draws them one after the other only so that each can be read.</p>
+<p>Spacewalk’s Room is opened in step 1, not step 4, because its Upstream refuses every tool but <code>open_viewer</code> in a Room it never opened. Opening it at once means a Spacewalk call works before the Workspace loads. If Spacewalk cannot be reached then, <code>open_geenee</code> still succeeds, and <code>/viewers</code> or the first Spacewalk call opens the Room instead.</p>
+
+<p>Given the id of a Room that is still live, <code>open_geenee</code> asks Spacewalk’s <code>read_viewer_count</code> first, and calls <code>open_viewer</code> only if that errors, which means Spacewalk’s own clock has expired its Room. Calling <code>open_viewer</code> on a live Room would clear its news.</p>
+
+<p>Steps 3 and 4 start together, and so do the parts of steps 4, 5 and 6. The figure draws them one after the other only so that each can be read.</p>
 
 <h2 id="call">Scenario: “go to MYC”</h2>
 
@@ -569,7 +594,7 @@ td.how { white-space: nowrap; }
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 386" role="img" aria-label="Sequence for one igv tool call: Host to geenee, geenee to the igv Upstream, the Upstream to the igv Viewer, and the ack back the same way, while geenee tells the Workspace to bring igv forward.">
+  <svg class="fig" viewBox="0 0 1000 386" role="img" aria-label="Sequence for one igv tool call: Host to geenee, geenee to the igv Upstream, the Upstream to the igv Viewer, and the ack back the same way, while geenee tells the Workspace to bring igv forward. The Juicebox lifelines are faded; Spacewalk's are not drawn.">
     <text class="t-h" x="70" y="32" text-anchor="middle">Host</text>
     <text class="t-h" x="210" y="32" text-anchor="middle">Workspace</text>
     <text class="t-h" x="350" y="32" text-anchor="middle">geenee</text>
@@ -631,7 +656,7 @@ td.how { white-space: nowrap; }
     <text class="k ci" x="210" y="352" text-anchor="middle" style="font-size:11.5px">result, with tool names rewritten</text>
   </svg>
   </div>
-  <figcaption><b>Figure 4.</b> One tool call. The call’s own path is in blue; the black wires are geenee’s bookkeeping around it. The Juicebox side takes no part.</figcaption>
+  <figcaption><b>Figure 4.</b> One tool call. The call’s own path is in blue; the black wires are geenee’s bookkeeping around it. The Juicebox side takes no part, and neither does Spacewalk’s, which is left out.</figcaption>
 </figure>
 
 <div class="tablewrap wide">
@@ -650,31 +675,35 @@ td.how { white-space: nowrap; }
 </table>
 </div>
 
-<aside class="note">geenee gives an Upstream 30 s, longer than either Upstream waits for its Viewer (15 s for igv, 10 s for Juicebox). A slow Viewer is therefore reported by its Upstream, in its own words, and not by geenee.</aside>
+<aside class="note">geenee gives an Upstream 30 s, longer than any Upstream waits for its Viewer (15 s for igv, 10 s for Juicebox, 20 s for Spacewalk). A slow Viewer is therefore reported by its Upstream, in its own words, and not by geenee.</aside>
 
 <p>The Workspace is told in step 3, alongside the call and not after it, so that the right Viewer is already in front while it redraws.</p>
 
-<h2 id="juicebox">How a Juicebox call differs</h2>
+<h2 id="differs">How a Juicebox or Spacewalk call differs</h2>
 
-<p>A call such as <code>juicebox_zoom_in</code> follows Figure 4 with the red wires in place of the blue: C instead of B, and E instead of D. Three details differ.</p>
+<p>A call such as <code>juicebox_zoom_in</code> follows Figure 4 with the red wires in place of the blue: C instead of B, and E instead of D. A Spacewalk call takes L and M. A few details differ.</p>
 
 <div class="tablewrap">
 <table>
-  <thead><tr><th></th><th class="igv">igv</th><th class="jb">Juicebox</th></tr></thead>
+  <thead><tr><th></th><th class="igv">igv</th><th class="jb">Juicebox</th><th class="sw">Spacewalk</th></tr></thead>
   <tbody>
-    <tr><th>How geenee names the Room</th><td>the <code>room</code> argument</td><td>the <code>mcp-session-id</code> header</td></tr>
-    <tr><th>Upstream waits for its Viewer</th><td>15 s</td><td>10 s</td></tr>
-    <tr><th>Its open tool, hidden</th><td><code>open_viewer</code></td><td><code>get_juicebox_url</code>, and <code>join_room</code></td></tr>
-    <tr><th>Tools served</th><td>13</td><td>30</td></tr>
+    <tr><th>How geenee names the Room</th><td>the <code>room</code> argument</td><td>the <code>mcp-session-id</code> header</td><td>the <code>room</code> argument</td></tr>
+    <tr><th>Upstream waits for its Viewer</th><td>15 s</td><td>10 s</td><td>up to 20 s for a Viewer to report a change realized; 3 s for a camera question</td></tr>
+    <tr><th>Its open tool, hidden</th><td><code>open_viewer</code></td><td><code>get_juicebox_url</code>, and <code>join_room</code></td><td><code>open_viewer</code></td></tr>
+    <tr><th>Tools served</th><td>13</td><td>30</td><td>11</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>Some tools never reach a Viewer at all. The search tools look things up in catalogues, and the Upstream answers from its own data. For these the path stops at the Upstream: A, then B or C, and back. The Workspace still brings that Viewer forward, because any forwarded call counts as using it.</p>
+<p>With <code>open_geenee</code>, geenee serves 55 tools in all. Two Spacewalk tools are withheld, and nothing stands in for them: <code>get_shareable_url</code> and <code>read_viewer_count</code>, which geenee uses itself.</p>
+
+<p>Spacewalk’s Room must also be opened before it takes any call, and <code>open_geenee</code> does that (step 1 above). Its Upstream was changed in two small ways for geenee: <code>open_viewer</code> accepts a new, well-formed Room id (<code>spacewalk-mcp</code> #27), and <code>read_viewer_count</code> answers the marks (#28). The igv and Juicebox Upstreams were not changed.</p>
+
+<p>Some tools never reach a Viewer at all. The search tools look things up in catalogues, and the Upstream answers from its own data. For these the path stops at the Upstream: A, then B, C or L, and back. The Workspace still brings that Viewer forward, because any forwarded call counts as using it.</p>
 
 <h2 id="state">What each part keeps</h2>
 
-<p>Most of the parts keep nothing. The table says what survives between requests, and where. For igv and Juicebox, the Viewer is the source of truth for what is on screen; everything else is a mirror or a pointer.</p>
+<p>Most of the parts keep nothing. The table says what survives between requests, and where. For igv and Juicebox, the Viewer is the source of truth for what is on screen; everything else is a mirror or a pointer. For Spacewalk, the Room is, as the next section explains.</p>
 
 <div class="tablewrap wide">
 <table>
@@ -685,6 +714,7 @@ td.how { white-space: nowrap; }
     <tr><th>geenee’s Room</th><td>When the Room was last used, each Viewer’s Join link, the sockets of its Workspaces, and the last <code>viewerUsed</code> report</td><td>Never deleted. The Room expires a day after its last use and stays expired (ADR 0003).</td></tr>
     <tr><th class="igv">igv Upstream’s Room</th><td>The Viewer’s socket, its latest Session summary, and its last Session</td><td>Deleted 24 hours after the last message, unless a Viewer is still connected</td></tr>
     <tr><th class="jb">Juicebox Upstream’s Room</th><td>The Viewer’s socket, and its state</td><td>Expires after 24 hours idle</td></tr>
+    <tr><th class="sw">Spacewalk Upstream’s Room</th><td>The Viewer’s socket, and the viewer state</td><td>Expires after 24 hours unused</td></tr>
     <tr><th>Workspace</th><td>Which tab is in front, and the number of the last report it acted on</td><td>Until the page closes</td></tr>
     <tr><th>Viewers</th><td>The genome, locus, tracks, map and everything else on screen</td><td>Until the page closes; restored from the Room when reopened</td></tr>
   </tbody>
@@ -693,7 +723,7 @@ td.how { white-space: nowrap; }
 
 <h3 id="owners">Who owns the live state</h3>
 
-<aside class="note">Spacewalk is not behind geenee yet, so the rest of this document leaves it out. This section comes from each project’s ADRs: <code>igvjs-mcp</code> 0002; <code>juicebox-mcp</code> 0003, 0006 and 0008; <code>spacewalk-mcp</code> 0001, 0004 and 0005.</aside>
+<aside class="note">This section comes from each project’s ADRs: <code>igvjs-mcp</code> 0002; <code>juicebox-mcp</code> 0003, 0006 and 0008; <code>spacewalk-mcp</code> 0001, 0004 and 0005.</aside>
 
 <p>What an Upstream’s Room keeps does not say who owns the truth, and igv, Juicebox and Spacewalk differ. One rule holds for all three: every piece of live state has exactly one owner, the Room is where live state can be reached, and a session is how it is saved.</p>
 
@@ -703,7 +733,7 @@ td.how { white-space: nowrap; }
   <tbody>
     <tr><th class="igv">igv</th><td>The Viewer owns the Session.</td><td>A copy, for a Viewer that joins late.</td></tr>
     <tr><th class="jb">Juicebox</th><td>Each Viewer owns its session, and Viewers sync with each other.</td><td>The latest saved copy, for a Viewer that joins when no other is left.</td></tr>
-    <tr><th>Spacewalk</th><td>The Room owns the viewer state. A Viewer’s camera rig owns the camera pose.</td><td>The viewer state itself, and no camera pose. A loaded session’s pose is held only until a Viewer has drawn the load.</td></tr>
+    <tr><th class="sw">Spacewalk</th><td>The Room owns the viewer state. A Viewer’s camera rig owns the camera pose.</td><td>The viewer state itself, and no camera pose. A loaded session’s pose is held only until a Viewer has drawn the load.</td></tr>
   </tbody>
 </table>
 </div>
@@ -717,10 +747,10 @@ td.how { white-space: nowrap; }
   <thead><tr><th>What happens</th><th>Where</th><th>What the model or the person sees</th></tr></thead>
   <tbody>
     <tr><td>A call carries no Room id</td><td>A</td><td>geenee refuses it, and says to call <code>open_geenee</code> and pass the Room id.</td></tr>
-    <tr><td>One Upstream cannot be reached</td><td>B or C</td><td>Its tools drop out of the list; the other Viewer’s tools still work. A call to one of its tools gets an error that says so.</td></tr>
-    <tr><td>An Upstream refuses a call</td><td>B or C</td><td>The Upstream’s own message, passed back as an error for the model to correct.</td></tr>
-    <tr><td>No Viewer has joined the Upstream’s Room</td><td>D or E</td><td>The Upstream answers that a Viewer must be opened first. The tab’s mark is hollow.</td></tr>
-    <tr><td>The Viewer does not ack in time</td><td>D or E</td><td>The Upstream reports the command as sent but unconfirmed.</td></tr>
+    <tr><td>One Upstream cannot be reached</td><td>B, C or L</td><td>Its tools drop out of the list; the other Viewers’ tools still work. A call to one of its tools gets an error that says so.</td></tr>
+    <tr><td>An Upstream refuses a call</td><td>B, C or L</td><td>The Upstream’s own message, passed back as an error for the model to correct.</td></tr>
+    <tr><td>No Viewer has joined the Upstream’s Room</td><td>D, E or M</td><td>The Upstream answers that a Viewer must be opened first. The tab’s mark is hollow.</td></tr>
+    <tr><td>The Viewer does not ack in time</td><td>D, E or M</td><td>The Upstream reports the command as sent but unconfirmed.</td></tr>
     <tr><td>The Workspace’s socket drops</td><td>H</td><td>The Workspace rejoins after 1 s, 2 s, up to 5 s. Meanwhile the tabs still work by hand.</td></tr>
     <tr><td>geenee cannot reach a Viewer’s Upstream for <code>/viewers</code></td><td>J</td><td>That panel says the Viewer could not be reached, and to reload.</td></tr>
     <tr><td>The Room has had no use for a day</td><td>A, J</td><td>A tool call is not sent: the model is told the Room has expired and to call <code>open_geenee</code> again. Its Room link, on a computer or a phone, shows one page saying the Room has expired, with the way to get geenee.</td></tr>
@@ -730,7 +760,7 @@ td.how { white-space: nowrap; }
 
 <h2 id="addresses">Addresses</h2>
 
-<p>These are the development deployments. All of them run on one Cloudflare account, in the <code>3dg.io</code> zone. geenee’s only configuration is the two Upstream addresses; each Upstream supplies its own Viewer’s address in the Join link.</p>
+<p>These are the development deployments. All of them run on one Cloudflare account, in the <code>3dg.io</code> zone. geenee’s only configuration is the three Upstream addresses; each Upstream supplies its own Viewer’s address in the Join link.</p>
 
 <div class="tablewrap wide">
 <table>
@@ -742,13 +772,15 @@ td.how { white-space: nowrap; }
     <tr><th class="igv">igv Viewer page</th><td><code>https://igv-bot-web-dev.pages.dev</code></td><td>static files</td></tr>
     <tr><th class="jb">Juicebox Upstream</th><td><code>https://juicebot-view-mcp-dev.3dg.io</code></td><td><code>/mcp</code> for geenee, <code>/ws</code> for its Viewer</td></tr>
     <tr><th class="jb">Juicebox Viewer page</th><td><code>https://juicebot-view-dev.pages.dev</code></td><td>static files</td></tr>
+    <tr><th class="sw">Spacewalk Upstream</th><td><code>https://spacewalk-mcp-dev.3dg.io</code></td><td><code>/mcp</code> for geenee, <code>/ws</code> for its Viewer</td></tr>
+    <tr><th class="sw">Spacewalk Viewer page</th><td><code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code></td><td>static files</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. The decision to forward rather than merge is ADR 0001, and the decision to frame the two Viewers is ADR 0002.</p>
+<p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. The decision to forward rather than merge is ADR 0001, and the decision to frame the Viewers is ADR 0002.</p>
 
-<p class="end">Written 14 October 2026 from the code at commit 7ec2022, and from <code>igvjs-mcp</code> and <code>juicebox-mcp</code> as deployed for development. The section on who owns the live state was added on 1 November 2026, from the ADRs it names.</p>
+<p class="end">Written 14 October 2026 from the code at commit 7ec2022, and from <code>igvjs-mcp</code> and <code>juicebox-mcp</code> as deployed for development. The section on who owns the live state was added on 1 November 2026, from the ADRs it names. Revised on 2 November 2026 for Spacewalk, the third Viewer, from <code>spacewalk-mcp</code> as deployed for development.</p>
 
 </main>
 </body>
