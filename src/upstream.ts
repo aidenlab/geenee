@@ -1,6 +1,6 @@
 /**
- * One Upstream, as geenee reaches it: JSON-RPC over POST to its /mcp. Both
- * Upstreams are stateless and answer in JSON, so a call needs no handshake.
+ * One Upstream, as geenee reaches it: JSON-RPC over POST to its /mcp. Every
+ * Upstream is stateless and answers in JSON, so a call needs no handshake.
  */
 
 /** A tool as an Upstream lists it. Fields geenee does not read are passed on as they are. */
@@ -24,7 +24,7 @@ export interface Upstream {
   callTool(name: string, args: Record<string, unknown>, session?: string): Promise<ToolResult>
 }
 
-/** Longer than either Upstream waits for its Viewer's ack (10 s and 15 s), so a slow Viewer is the Upstream's to report. */
+/** Longer than the igv and Juicebox Upstreams wait for their Viewers' acks (10 s and 15 s), so a slow Viewer is the Upstream's to report. */
 const TIMEOUT_MS = 30_000
 
 export function upstreamAt(address: string, fetch: typeof globalThis.fetch): Upstream {

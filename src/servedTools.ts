@@ -6,11 +6,13 @@ import type { Tool, ToolResult } from './upstream.ts'
 
 export interface Viewer {
   /** The Viewer as geenee names it to the model. */
-  name: 'igv' | 'Juicebox'
+  name: 'igv' | 'Juicebox' | 'Spacewalk'
   /** Starts the name of every tool that drives this Viewer. */
-  prefix: 'igv' | 'juicebox'
+  prefix: 'igv' | 'juicebox' | 'spacewalk'
   /** The Upstream's own tool for opening this Viewer: its reply carries the Viewer's Join link for a Room. */
   openTool: string
+  /** The Join link in a reply of `openTool`, null when it carries none. Each Upstream puts it under a name of its own. */
+  joinLink(reply: ToolResult): string | null
   /**
    * Upstream tools geenee does not serve because open_geenee stands in for
    * them, so text naming one names open_geenee: a Viewer is only ever opened
@@ -23,27 +25,32 @@ export interface Viewer {
    */
   withheld: string[]
   /**
-   * How the Upstream is told which Room a call is for. The igv Upstream takes
-   * it as the `room` argument. The Juicebox Upstream acts on the Room of the
+   * How the Upstream is told which Room a call is for. The igv and Spacewalk
+   * Upstreams take it as the `room` argument. The Juicebox Upstream acts on the Room of the
    * call's MCP session, and a session it has bound to no Room has the Room
    * whose id is the session id, so geenee sends the Room id as the session.
    */
   roomGoesIn: 'argument' | 'session'
   /**
    * How geenee learns whether this Viewer is connected in a Room: an Upstream
-   * tool that changes nothing in the Viewer, and what its reply says. Neither
-   * Upstream has more of a contract for this than the wording of that reply.
+   * tool that changes nothing in the Viewer, and what its reply says.
    */
   connection: { tool: string; connected(reply: ToolResult): boolean }
 }
 
-/** geenee's own tool: it opens the Workspace, and so both Viewers. */
+/** geenee's own tool: it opens the Workspace, and so every Viewer. */
 export const OPEN_GEENEE = 'open_geenee'
+
+/** The `joinUrl` of a reply's structured content, as the igv and Juicebox Upstreams give their Join links. */
+function joinUrl({ isError, structuredContent }: ToolResult): string | null {
+  return !isError && typeof structuredContent?.joinUrl === 'string' ? structuredContent.joinUrl : null
+}
 
 export const IGV: Viewer = {
   name: 'igv',
   prefix: 'igv',
   openTool: 'open_viewer',
+  joinLink: joinUrl,
   hidden: ['open_viewer'],
   // A Shareable URL holds only the igv Viewer's own state; geenee will have its own link for every Viewer (#34).
   withheld: ['get_shareable_url'],
@@ -55,6 +62,7 @@ export const JUICEBOX: Viewer = {
   name: 'Juicebox',
   prefix: 'juicebox',
   openTool: 'get_juicebox_url',
+  joinLink: joinUrl,
   hidden: ['get_juicebox_url', 'join_room'],
   withheld: [],
   roomGoesIn: 'session',
@@ -62,6 +70,24 @@ export const JUICEBOX: Viewer = {
   connection: {
     tool: 'get_server_status',
     connected: (reply) => reply.content.some((block) => block.text?.includes('Browser Connected: Yes')),
+  },
+}
+export const SPACEWALK: Viewer = {
+  name: 'Spacewalk',
+  prefix: 'spacewalk',
+  openTool: 'open_viewer',
+  // The Spacewalk Upstream calls its Join link the Room link.
+  joinLink: ({ isError, structuredContent }) =>
+    !isError && typeof structuredContent?.roomLink === 'string' ? structuredContent.roomLink : null,
+  hidden: ['open_viewer'],
+  // As for igv, a Shareable URL holds only this Viewer's own state (#34). read_viewer_count is geenee's own way of
+  // learning whether Spacewalk is connected, and tells the model nothing that read_viewer_state does not.
+  withheld: ['get_shareable_url', 'read_viewer_count'],
+  roomGoesIn: 'argument',
+  // The Spacewalk Upstream counts the Viewers in the Room, and says so in its structured content.
+  connection: {
+    tool: 'read_viewer_count',
+    connected: ({ isError, structuredContent }) => !isError && typeof structuredContent?.viewers === 'number' && structuredContent.viewers > 0,
   },
 }
 

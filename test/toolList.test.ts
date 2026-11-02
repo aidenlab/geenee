@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { geenee } from './connector.ts'
 import igvTools from './fixtures/igv-tools.json' with { type: 'json' }
 import juiceboxTools from './fixtures/juicebox-tools.json' with { type: 'json' }
+import spacewalkTools from './fixtures/spacewalk-tools.json' with { type: 'json' }
 
 describe('the combined tool list', () => {
   it('serves each Upstream tool under a name prefixed with its Viewer', async () => {
@@ -70,7 +71,7 @@ describe('the combined tool list', () => {
     const tools = await geenee().listTools()
 
     // Every Upstream name is the tail of the name geenee serves, so a served name with its prefix taken off must not be left standing alone.
-    const upstreamNames = [...igvTools, ...juiceboxTools].map((tool) => tool.name).filter((name) => name !== 'juicebox_help')
+    const upstreamNames = [...igvTools, ...juiceboxTools, ...spacewalkTools].map((tool) => tool.name).filter((name) => name !== 'juicebox_help')
     const leftStanding = new RegExp(`(?<![A-Za-z0-9_])(${upstreamNames.join('|')})(?![A-Za-z0-9_])`)
     const stillNamed = tools.filter((tool) => leftStanding.test(JSON.stringify([tool.description, tool.inputSchema])))
     expect(stillNamed.map((tool) => `${tool.name}: ${leftStanding.exec(JSON.stringify([tool.description, tool.inputSchema]))![0]}`)).toEqual([])

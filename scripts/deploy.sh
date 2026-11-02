@@ -94,7 +94,7 @@ if [[ "$build" != *"($(git rev-parse --short HEAD),"* ]]; then
   exit 1
 fi
 
-# The deployed Connector should list open_geenee and the tools of both Upstreams.
+# The deployed Connector should list open_geenee and the tools of every Upstream.
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
 # And the Workspace should frame the juicebox-view page: the Upstream gives its page's
@@ -108,4 +108,4 @@ if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
   exit 1
 fi
 
-echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (44 with both Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"
+echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE"

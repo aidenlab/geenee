@@ -1,0 +1,330 @@
+[
+  {
+    "name": "open_viewer",
+    "title": "Open Spacewalk",
+    "description": "Get the Room link that opens Spacewalk, a 3D viewer of chromatin structure, connected to a Room. Use this when the user asks to open Spacewalk or a 3D chromatin viewer, or says things like \"open Spacewalk\" or \"show me the structure\". A card is shown to the user with an Open Spacewalk button. If, and only if, you have the built-in browser of the Claude desktop app (the browser panel beside the conversation), open the Room link in it right away. Never use Claude in Chrome or any other browser tool for this. Do not repeat the link or the Room id in your reply. The result of this tool names the Room id: pass it as room on every later Spacewalk tool call in this conversation. A Room unused for a day expires; calling this again with its room starts it over, empty.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id to open: the one from an earlier reply of open_viewer in this conversation, to get the same Room back, or one you were given to open Spacewalk in. Leave it out otherwise: Spacewalk then opens in a new Room, empty. A Room id never opened before opens that Room, empty.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    },
+    "_meta": {
+      "ui": {
+        "resourceUri": "ui://spacewalk/join"
+      },
+      "ui/resourceUri": "ui://spacewalk/join"
+    }
+  },
+  {
+    "name": "list_example_ensembles",
+    "title": "List the example ensembles",
+    "description": "List example ensembles to load into Spacewalk: the hosted .sw files of the full Spacewalk app's Load From List, by group, each with its name and URL. An ensemble is the collection of traces in one .sw file (the user may call this \"the model\"). Use this when the user asks what there is to look at, or names an example without its URL; then pass the URL to load_ensemble.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {}
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "read_viewer_state",
+    "title": "Read the viewer state",
+    "description": "Read what Spacewalk shows now, without changing it: the viewer state, how many Viewers are connected, and what changed since your last reply that you did not cause. An error only when the Room is unknown or expired.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "read_viewer_count",
+    "title": "Count the connected Viewers",
+    "description": "A connection check: how many Viewers have joined the Room, and nothing else. It changes nothing, and leaves what changed for the next read_viewer_state to tell. To learn what Spacewalk shows, call read_viewer_state. An error only when the Room is unknown or expired.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "get_shareable_url",
+    "title": "Get a shareable URL",
+    "description": "Get a URL that opens a frozen snapshot of what Spacewalk shows now: the ensemble, its place, the structure appearance, the viewer settings and, if a Viewer is open to report it, the camera. It has no Room: whoever opens it sees that snapshot and later changes do not reach it. To bring someone into the Room itself, give them the Room link instead.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_session",
+    "title": "Load a session",
+    "description": "Load a Spacewalk session into the Room: what it shows, from a shareable URL of the full Spacewalk app or of this viewer, or from a bare session string. Only the Spacewalk part is read; the reply says what was ignored, such as IGV tracks and the Hi-C map. A URL that merely points at a session file to fetch is refused. To load a .sw file, use load_ensemble.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "session": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A shareable URL, or a session string (blob:…)."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "reset_camera",
+    "title": "Reset the camera",
+    "description": "Put the camera back where Spacewalk frames the whole 3D structure.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      }
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "load_ensemble",
+    "title": "Load an ensemble",
+    "description": "Load an ensemble into Spacewalk from the URL of its .sw file. An ensemble is the collection of traces in one .sw file (the user may call this \"the model\"). It opens at its default ensemble group and trace. Use list_example_ensembles for URLs of ensembles to try.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the .sw file."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "select_ensemble_group",
+    "title": "Select an ensemble group",
+    "description": "Make one ensemble group of the loaded ensemble current, by its key. An ensemble group is a named subset of the traces in the .sw file; one is current at a time. Spacewalk shows the group at its default trace.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The key of the ensemble group."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_render_style",
+    "title": "Set the render style",
+    "description": "Choose how the 3D structure is drawn: ball_and_stick (a ball at each genomic extent, sticks joining them) or ribbon (a smooth tube through them). Only for an ensemble of traces: a point-cloud ensemble is always drawn as a point cloud. Once a Viewer has reported the ensemble a point cloud (kind in the viewer state), this is refused; before then, the Viewer reports the failure to draw it.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": [
+            "ball_and_stick",
+            "ribbon"
+          ],
+          "description": "The render style."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "style"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "step_ball_radius",
+    "title": "Make the balls bigger or smaller",
+    "description": "Make the balls of the ball-and-stick render style one radius step bigger (up) or smaller (down). The ball radius is a rung 0–10 on Spacewalk's radius ladder, ballRadiusIndex in the viewer state; a step past either end stays there.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ],
+          "description": "up for one radius step bigger, down for one smaller."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "step_stick_radius",
+    "title": "Make the sticks thicker or thinner",
+    "description": "Make the sticks of the ball-and-stick render style one radius step thicker (up) or thinner (down). The stick radius is a rung 0–10 on Spacewalk's radius ladder, stickRadiusIndex in the viewer state; a step past either end stays there.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "up",
+            "down"
+          ],
+          "description": "up for one radius step bigger, down for one smaller."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "set_background_color",
+    "title": "Set the background color",
+    "description": "Set the color behind the 3D structure, by Apple crayon name or hex (#rrggbb). The crayons: licorice, lead, tungsten, iron, steel, tin, nickel, aluminum, magnesium, silver, mercury, snow, cayenne, mocha, aspargus, fern, clover, moss, teal, ocean, midnight, eggplant, plum, maroon, maraschino, tangerine, lemon, lime, spring, seam_foam, turquoise, aqua, blueberry, grape, magenta, strawberry, salmon, cantaloupe, banana, honeydew, flora, spindrift, ice, sky, orchid, lavender, bubblegum, carnation.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "description": "An Apple crayon name, or a hex color."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "color"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
+    "name": "adjust_background",
+    "title": "Make the background lighter or darker",
+    "description": "Make the color behind the 3D structure one step lighter or darker, keeping its hue. A step past white or black stays there.",
+    "inputSchema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "lighter",
+            "darker"
+          ],
+          "description": "lighter or darker."
+        },
+        "room": {
+          "description": "The Room id Spacewalk was opened with, as given in the reply of open_viewer. Pass it on every call.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "direction"
+      ]
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  }
+]

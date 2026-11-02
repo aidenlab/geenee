@@ -11,7 +11,12 @@ import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
 
-const VIEWERS: Record<ViewerKey, string> = { igv: 'igv', juicebox: 'Juicebox' }
+/**
+ * The Viewers this page has a panel for, by key. geenee forwards to Spacewalk
+ * too, but its tab comes later: until then its key is left out here, and a
+ * report or answer naming it is passed over.
+ */
+const VIEWERS: Partial<Record<ViewerKey, string>> = { igv: 'igv', juicebox: 'Juicebox' }
 
 /** How often the Workspace asks whether each Viewer is connected. */
 const CONNECTIONS_EVERY_MS = 4000

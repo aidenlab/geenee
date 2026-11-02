@@ -8,7 +8,7 @@ import { GEENEE, geenee, WORKSPACE_PAGE } from './connector.ts'
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 
-type JoinLinks = Record<'igv' | 'juicebox', string | null>
+type JoinLinks = Record<'igv' | 'juicebox' | 'spacewalk', string | null>
 
 /** A geenee with a Room just opened by open_geenee, and that Room's id. */
 async function withRoom() {
@@ -140,6 +140,7 @@ describe('the Workspace of a Room', () => {
     const connector = await withRoom()
     connector.igv.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://igv-viewer.test/?room=${call.arguments.room}` } })
     connector.juicebox.reply = (call) => ({ content: [], structuredContent: { joinUrl: `https://juicebox-viewer.test/?room=${call.session}` } })
+    connector.spacewalk.reply = (call) => ({ content: [], structuredContent: { roomLink: `https://spacewalk-viewer.test/?room=${call.arguments.room}` } })
     return connector
   }
 
@@ -168,15 +169,20 @@ describe('the Workspace of a Room', () => {
   }
 
   it("asks each Upstream for its Viewer's Join link once, so that opening it again never revives an expired igv Room", async () => {
-    const { handle, clock, igv, juicebox, room } = await withJoinLinks()
+    const { handle, clock, igv, juicebox, spacewalk, room } = await withJoinLinks()
     await ask(handle, 'viewers', room)
     clock.advance(DAY - HOUR)
 
     const again = await ask(handle, 'viewers', room)
 
-    expect(await again.json()).toEqual({ igv: `https://igv-viewer.test/?room=${room}`, juicebox: `https://juicebox-viewer.test/?room=${room}` })
+    expect(await again.json()).toEqual({
+      igv: `https://igv-viewer.test/?room=${room}`,
+      juicebox: `https://juicebox-viewer.test/?room=${room}`,
+      spacewalk: `https://spacewalk-viewer.test/?room=${room}`,
+    })
     expect(igv.calls.map((call) => call.name)).toEqual(['open_viewer'])
     expect(juicebox.calls.map((call) => call.name)).toEqual(['get_juicebox_url'])
+    expect(spacewalk.calls.map((call) => call.name)).toEqual(['open_viewer'])
   })
 
   it('asks again for a Join link its Upstream did not give', async () => {

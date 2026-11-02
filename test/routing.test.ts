@@ -88,15 +88,21 @@ describe('a reply from an Upstream', () => {
 
 describe('a call the Connector does not forward', () => {
   it('refuses a tool it does not serve, hidden and withheld ones included', async () => {
-    const { rpc, igv, juicebox } = geenee({ opened: [ROOM] })
+    const { rpc, igv, juicebox, spacewalk } = geenee({ opened: [ROOM] })
+    const unserved = [
+      ...['igv_open_viewer', 'igv_get_shareable_url', 'juicebox_get_juicebox_url', 'juicebox_join_room'],
+      ...['spacewalk_open_viewer', 'spacewalk_get_shareable_url', 'spacewalk_read_viewer_count'],
+      ...['zoom_in', 'igv_no_such_tool'],
+    ]
 
-    for (const name of ['igv_open_viewer', 'igv_get_shareable_url', 'juicebox_get_juicebox_url', 'juicebox_join_room', 'zoom_in', 'igv_no_such_tool']) {
+    for (const name of unserved) {
       const { result, error } = await rpc('tools/call', { name, arguments: { room: ROOM } })
       expect(result, name).toBeUndefined()
       expect(error?.message, name).toContain(`Unknown tool: ${name}`)
     }
     expect(igv.calls).toEqual([])
     expect(juicebox.calls).toEqual([])
+    expect(spacewalk.calls).toEqual([])
   })
 
   it('refuses a call that names no Room, for either Viewer, and says how to get one', async () => {

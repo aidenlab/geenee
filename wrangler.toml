@@ -5,7 +5,7 @@ main = "src/index.ts"
 compatibility_date = "2026-08-01"
 compatibility_flags = ["nodejs_compat"]
 # The Cloudflare account that owns the 3dg.io zone (Theaidenlab@gmail.com's
-# Account), which also holds both Upstreams. Named so that a login with access
+# Account), which also holds the Upstreams. Named so that a login with access
 # to several accounts does not have to choose.
 account_id = "1eadb18bb8557fd1bd06b1d0310a902e"
 
@@ -25,12 +25,13 @@ tag = "v1"
 new_sqlite_classes = ["Room"]
 
 [vars]
-# The two Upstreams geenee forwards to (ADR 0001): the /mcp address of each.
+# The Upstreams geenee forwards to (ADR 0001): the /mcp address of each.
 # Local development uses the deployed dev Upstreams too, as geenee holds no
 # Viewer of its own to run beside it. The Juicebox Upstream is juicebox-mcp's
 # view stack, whose Viewer is the juicebox-view page; juicebox-web is retired.
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
+SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp-dev.3dg.io/mcp"
 
 # ── The two deployments ──────────────────────────────────────────────────────
 # prod is the one people add as a Connector; dev is a single slot for trying a
@@ -64,6 +65,7 @@ class_name = "Room"
 [env.prod.vars]
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
+SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp-dev.3dg.io/mcp"
 
 # "geenee dev": Worker geenee-dev at https://geenee-dev.3dg.io, laid out as
 # geenee production. Whichever ref was deployed to it last is what it runs.
@@ -85,3 +87,4 @@ class_name = "Room"
 [env.dev.vars]
 IGV_UPSTREAM_URL = "https://igv-bot-mcp-dev.3dg.io/mcp"
 JUICEBOX_UPSTREAM_URL = "https://juicebot-view-mcp-dev.3dg.io/mcp"
+SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp-dev.3dg.io/mcp"
