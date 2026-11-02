@@ -41,16 +41,19 @@ export interface Viewer {
 /** geenee's own tool: it opens the Workspace, and so every Viewer. */
 export const OPEN_GEENEE = 'open_geenee'
 
-/** The `joinUrl` of a reply's structured content, as the igv and Juicebox Upstreams give their Join links. */
-function joinUrl({ isError, structuredContent }: ToolResult): string | null {
-  return !isError && typeof structuredContent?.joinUrl === 'string' ? structuredContent.joinUrl : null
+/** Reads the Join link from the field of a reply's structured content that an Upstream puts it under. */
+function joinLinkUnder(field: string): (reply: ToolResult) => string | null {
+  return ({ isError, structuredContent }) => {
+    const link = structuredContent?.[field]
+    return !isError && typeof link === 'string' ? link : null
+  }
 }
 
 export const IGV: Viewer = {
   name: 'igv',
   prefix: 'igv',
   openTool: 'open_viewer',
-  joinLink: joinUrl,
+  joinLink: joinLinkUnder('joinUrl'),
   hidden: ['open_viewer'],
   // A Shareable URL holds only the igv Viewer's own state; geenee will have its own link for every Viewer (#34).
   withheld: ['get_shareable_url'],
@@ -62,7 +65,7 @@ export const JUICEBOX: Viewer = {
   name: 'Juicebox',
   prefix: 'juicebox',
   openTool: 'get_juicebox_url',
-  joinLink: joinUrl,
+  joinLink: joinLinkUnder('joinUrl'),
   hidden: ['get_juicebox_url', 'join_room'],
   withheld: [],
   roomGoesIn: 'session',
@@ -76,9 +79,8 @@ export const SPACEWALK: Viewer = {
   name: 'Spacewalk',
   prefix: 'spacewalk',
   openTool: 'open_viewer',
-  // The Spacewalk Upstream calls its Join link the Room link.
-  joinLink: ({ isError, structuredContent }) =>
-    !isError && typeof structuredContent?.roomLink === 'string' ? structuredContent.roomLink : null,
+  // The Spacewalk Upstream names its Join link `roomLink`.
+  joinLink: joinLinkUnder('roomLink'),
   hidden: ['open_viewer'],
   // As for igv, a Shareable URL holds only this Viewer's own state (#34). read_viewer_count is geenee's own way of
   // learning whether Spacewalk is connected, and tells the model nothing that read_viewer_state does not.
