@@ -1,9 +1,9 @@
 /**
  * The Workspace: the one geenee page a person opens beside the conversation
- * (ADR 0002). It frames the igv Viewer and the Juicebox Viewer, loads both when
- * it opens, and shows one at a time: the one a tool was last called for, until
- * a person picks the other with a tab. Each tab carries a mark showing whether
- * its Viewer is connected.
+ * (ADR 0002). It frames the igv, Juicebox and Spacewalk Viewers, loads all three
+ * when it opens, and shows one at a time: the one a tool was last called for,
+ * until a person picks another with a tab. Each tab carries a mark showing
+ * whether its Viewer is connected.
  */
 import { handOffPath, inRoomLinkPath, parseRoomId, roomLinkPath } from '../roomId.ts'
 import { embedded } from './embedded.ts'
@@ -11,12 +11,8 @@ import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
 
-/**
- * The Viewers this page has a panel for, by key. geenee forwards to Spacewalk
- * too, but its tab comes later: until then its key is left out here, and a
- * report or answer naming it is passed over.
- */
-const VIEWERS: Partial<Record<ViewerKey, string>> = { igv: 'igv', juicebox: 'Juicebox' }
+/** The Viewers this page has a panel for, by key, with the name each is shown by. */
+const VIEWERS: Record<ViewerKey, string> = { igv: 'igv', juicebox: 'Juicebox', spacewalk: 'Spacewalk' }
 
 /** How often the Workspace asks whether each Viewer is connected. */
 const CONNECTIONS_EVERY_MS = 4000
@@ -39,7 +35,7 @@ function panel(viewer: ViewerKey): HTMLElement {
   return document.querySelector<HTMLElement>(`.viewer[data-viewer="${viewer}"]`)!
 }
 
-/** Brings one Viewer forward. The other stays loaded behind it, so that it keeps receiving commands. */
+/** Brings one Viewer forward. The others stay loaded behind it, so that they keep receiving commands. */
 function show(shown: ViewerKey): void {
   for (const tab of document.querySelectorAll<HTMLElement>('.tab')) {
     tab.setAttribute('aria-selected', String(tab.dataset.viewer === shown))
@@ -71,7 +67,7 @@ function mark(viewer: ViewerKey, connected: boolean): void {
 /**
  * Keeps the mark on each tab to what geenee says of its Viewer (GET
  * /connections), asking again a while after each answer. When geenee cannot be
- * asked, neither Viewer is known to be connected.
+ * asked, no Viewer is known to be connected.
  */
 async function watchConnections(room: string): Promise<void> {
   let connections: Partial<Record<ViewerKey, boolean>> = {}
