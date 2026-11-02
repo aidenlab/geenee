@@ -633,7 +633,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p class="note">The igv and Spacewalk dev scripts deploy from your working copy, not from a throwaway checkout, so uncommitted igv or Spacewalk changes <em>do</em> ship. The geenee and Juicebox scripts deploy from a commit.</p>
 
-<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. So is the <span class="jb">Juicebox</span> view stack, and so is the <span class="sw">Spacewalk</span> dev stack. A change to any Upstream cannot be tried on geenee dev alone: production sees it too.</p>
+<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. The same holds for the <span class="jb">Juicebox</span> view stack and the <span class="sw">Spacewalk</span> dev stack. A change to any Upstream cannot be tried on geenee dev alone: production sees it too.</p>
 
 <h2 id="live">Which build is live?</h2>
 
