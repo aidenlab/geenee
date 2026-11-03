@@ -27,7 +27,7 @@ How to look at the pages of the Guest flow and change them, on your own machine.
 
 | Page                | Who sees it, and when                                | File                                         | Tests                     |
 | ------------------- | ---------------------------------------------------- | -------------------------------------------- | ------------------------- |
-| Card                | The Driver, in the conversation, on opening geenee   | `src/card.ts`                                | `test/openGeenee.test.ts` |
+| Card                | The Organizer, in the conversation, on opening geenee | `src/card.ts`                                | `test/openGeenee.test.ts` |
 | Hand-off            | A Guest who opens a Room link on a phone             | `src/handOff.ts`, which also holds the email | `test/handOff.test.ts`    |
 | Workspace           | Anyone who opens a Room link on a computer           | `index.html`, `src/workspace/`               | `test/roomLink.test.ts`   |
 | Get geenee          | Anyone following a Get geenee link                   | `src/getGeenee.ts`                           | `test/getGeenee.test.ts`  |

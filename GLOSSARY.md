@@ -36,13 +36,17 @@ _Avoid_: URL, invite, share link
 The address of one Viewer in a Room, which the Workspace frames. A person is given the Room link instead.
 _Avoid_: Room link
 
-**Driver**:
-The person whose conversation a Room belongs to: their model makes the tool calls. A role in one Room, not a kind of person.
-_Avoid_: Presenter, owner, host, user
+**Participant**:
+Anyone with a Room open, the Organizer included. No Participant controls the Room: anyone's change counts the same.
+_Avoid_: Driver, user, collaborator
+
+**Organizer**:
+The Participant whose conversation a Room belongs to: their model makes the tool calls and hears what changed. It is the only role in a Room and cannot be handed over; in what the Viewers show, the Organizer is one Participant among equals. A role in one Room, not a kind of person.
+_Avoid_: Driver, host (the Host is the app), presenter, owner
 
 **Guest**:
-A person who joins a Room through its Room link, with no conversation and nothing installed, as an equal of the Driver in what the Viewers show.
-_Avoid_: Bystander, viewer, participant, collaborator
+A Participant other than the Organizer, who joins through the Room link with no conversation and nothing installed.
+_Avoid_: Bystander, viewer
 
 **Hand-off**:
 The page a Room link opens on a phone, where a Guest sends the Room link on to a computer, since geenee is too small to use on a phone.
