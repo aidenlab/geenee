@@ -20,7 +20,7 @@ interface ReviewedPage {
 
 type Size = 'computer' | 'phone'
 
-/** The flow, in the order a Driver and a Guest meet it. */
+/** The flow, in the order an Organizer and a Guest meet it. */
 const PAGES: ReviewedPage[] = [
   { id: 'card', name: 'Card', source: 'src/card.ts' },
   { id: 'hand-off', name: 'Hand-off', source: 'src/handOff.ts', path: (room) => `/h/${room}`, size: 'phone' },
