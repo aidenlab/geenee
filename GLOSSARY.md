@@ -42,7 +42,7 @@ _Avoid_: Driver, user, collaborator
 
 **Organizer**:
 The Participant whose conversation a Room belongs to: their model makes the tool calls and hears what changed. It is the only role in a Room and cannot be handed over; in what the Viewers show, the Organizer is one Participant among equals. A role in one Room, not a kind of person.
-_Avoid_: Driver, host (the Host is the app), presenter, owner
+_Avoid_: Driver, host (the app), presenter, owner
 
 **Guest**:
 A Participant other than the Organizer, who joins through the Room link with no conversation and nothing installed.
