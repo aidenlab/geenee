@@ -105,7 +105,7 @@ There are two deployments. **production** is the published Connector, the one pe
 | production | `geenee`        | `https://geenee.3dg.io`     | `scripts/deploy.sh`     |
 | dev        | `geenee-dev`    | `https://geenee-dev.3dg.io` | `scripts/deploy-dev.sh` |
 
-Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`.
+Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-mcp-dev.3dg.io`, whose Viewer is `https://igv-viewer-dev.pages.dev/`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebox-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebox-view-dev.pages.dev/`.
 
 ```sh
 npx wrangler login                    # first time on a machine
@@ -114,11 +114,11 @@ scripts/deploy.sh                     # deploy HEAD to geenee production, the pu
 scripts/deploy.sh <ref>               # or a branch, tag or commit
 ```
 
-The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. It builds the ref with the ref's own `wrangler.toml`, so it refuses a ref whose configuration does not name the expected Worker; merge `main` into an older branch first. Then it installs, type-checks, runs the tests, builds and deploys. It then checks that the deployed Connector gives this build's version, counts the tools it lists and checks that its Workspace frames the juicebox-view page.
+The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. It builds the ref with the ref's own `wrangler.toml`, so it refuses a ref whose configuration does not name the expected Worker; merge `main` into an older branch first. Then it installs, type-checks, runs the tests, builds and deploys. It then checks that the deployed Connector gives this build's version, counts the tools it lists and checks that its Workspace frames the igv, Juicebox and Spacewalk Viewer pages.
 
 Each deploy is stamped with its version: the tag or branch it was built from and its short commit, e.g. `prod-2026-11-12 (a1b2c3d)` on prod and `main (d4e5f6a)` on dev, both read from git at build time (`-dirty` follows the commit when `npm run deploy:*` builds a working copy with uncommitted changes; `scripts/version.sh`). The Connector gives it as its version, the Workspace shows it with the Connector URL at the right end of its tab bar, and the script checks that the live Connector gives this build's version and prints it when it finishes. `npm run dev` shows none.
 
-geenee only forwards, so the script deploys geenee alone. The Juicebox stack it forwards to is deployed from `juicebox-mcp`, with its own `scripts/deploy-test.sh`, and has to be up for the final check to pass.
+geenee only forwards, so the script deploys geenee alone. Each Upstream it forwards to is deployed from its own repository (`igvjs-mcp`, `juicebox-mcp`, `spacewalk-mcp`), and all three have to be up for the final check to pass.
 
 It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds the Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
 

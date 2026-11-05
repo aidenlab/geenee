@@ -6,13 +6,14 @@
 #   prod  Worker geenee      at https://geenee.3dg.io      (wrangler.toml [env.prod])
 #   dev   Worker geenee-dev  at https://geenee-dev.3dg.io  (wrangler.toml [env.dev])
 #
-# Both forward to the igv Upstream igv-bot-mcp-dev.3dg.io, the Juicebox Upstream
-# juicebot-view-mcp-dev.3dg.io, whose Viewer is the juicebox-view page juicebot-view-dev.pages.dev,
-# and the Spacewalk Upstream spacewalk-mcp-dev.3dg.io, whose Viewer is the page
+# Each forwards to the Upstreams its environment of wrangler.toml names, and the checks at the end
+# confirm the Viewer page each Upstream names for it (the *_PAGE below). Until the cutover to the
+# prod Upstreams (ADR 0004), both forward to the dev Upstreams: igv-mcp-dev.3dg.io, whose Viewer is
+# igv-viewer-dev.pages.dev; juicebox-view-mcp-dev.3dg.io, whose Viewer is the juicebox-view page
+# juicebox-view-dev.pages.dev; and spacewalk-mcp-dev.3dg.io, whose Viewer is
 # spacewalk-viewer-dev.pages.dev/viewer.html. geenee only forwards (ADR 0001), so this deploys
-# geenee alone: the Juicebox stack is deployed from juicebox-mcp, with its scripts/deploy-test.sh,
-# and the Spacewalk stack from spacewalk-mcp, and both have to be up for the checks at the end to
-# pass.
+# geenee alone: each Upstream is deployed from its own repository (igvjs-mcp, juicebox-mcp,
+# spacewalk-mcp), and all three have to be up for the checks at the end to pass.
 #
 # geenee is deployed at [ref] (default HEAD) from a throwaway worktree, so uncommitted changes
 # never ship. One Worker holds both halves: the Connector at /mcp and the Workspace page, built
@@ -27,13 +28,23 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # deploy-dev.sh sets GEENEE_DEPLOYMENT=dev; nothing else should.
 DEPLOYMENT="${GEENEE_DEPLOYMENT:-prod}"
+# The *_PAGE are the Viewer pages the Workspace of each should frame, as named by the Upstreams in
+# that environment of wrangler.toml. prod's are the dev pages until the cutover (ADR 0004).
 case "$DEPLOYMENT" in
-  prod) WORKER=geenee     ADDRESS=https://geenee.3dg.io ;;
-  dev)  WORKER=geenee-dev ADDRESS=https://geenee-dev.3dg.io ;;
-  *)    echo "unknown deployment '$DEPLOYMENT'" >&2; exit 2 ;;
+  prod)
+    WORKER=geenee     ADDRESS=https://geenee.3dg.io
+    IGV_PAGE=https://igv-viewer-dev.pages.dev/
+    JUICEBOX_PAGE=https://juicebox-view-dev.pages.dev/
+    SPACEWALK_PAGE=https://spacewalk-viewer-dev.pages.dev/viewer.html
+    ;;
+  dev)
+    WORKER=geenee-dev ADDRESS=https://geenee-dev.3dg.io
+    IGV_PAGE=https://igv-viewer-dev.pages.dev/
+    JUICEBOX_PAGE=https://juicebox-view-dev.pages.dev/
+    SPACEWALK_PAGE=https://spacewalk-viewer-dev.pages.dev/viewer.html
+    ;;
+  *) echo "unknown deployment '$DEPLOYMENT'" >&2; exit 2 ;;
 esac
-JUICEBOX_PAGE=https://juicebot-view-dev.pages.dev/
-SPACEWALK_PAGE=https://spacewalk-viewer-dev.pages.dev/viewer.html
 
 SCRIPT=scripts/deploy.sh
 [[ "$DEPLOYMENT" == dev ]] && SCRIPT=scripts/deploy-dev.sh
@@ -106,19 +117,20 @@ fi
 # The deployed Connector should list open_geenee and the tools of every Upstream.
 listed="$(mcp '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | grep -o '"name":"[A-Za-z0-9_.-]*"' | wc -l | tr -d ' ')"
 
-# And the Workspace should frame the juicebox-view page and the Spacewalk Viewer page: each
-# Upstream gives its page's address in the Join link. A Room geenee never opened is as good as
-# expired (ADR 0003), so open_geenee opens one first.
+# And the Workspace should frame each Viewer page: each Upstream gives its page's address in the
+# Join link. A Room geenee never opened is as good as expired (ADR 0003), so open_geenee opens one
+# first.
 room="$(mcp '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"open_geenee","arguments":{}}}' \
   | grep -o '"room":"[0-9A-Z]*"' | head -1 | cut -d'"' -f4)"
 viewers="$(curl -fsS "$ADDRESS/viewers?room=$room")"
-if [[ "$viewers" != *"\"juicebox\":\"$JUICEBOX_PAGE"* ]]; then
-  echo "the Workspace at $ADDRESS does not frame $JUICEBOX_PAGE for Juicebox: /viewers answered $viewers" >&2
-  exit 1
-fi
-if [[ "$viewers" != *"\"spacewalk\":\"$SPACEWALK_PAGE"* ]]; then
-  echo "the Workspace at $ADDRESS does not frame $SPACEWALK_PAGE for Spacewalk: /viewers answered $viewers" >&2
-  exit 1
-fi
+frames() { # <key in /viewers> <Viewer name> <page>
+  if [[ "$viewers" != *"\"$1\":\"$3"* ]]; then
+    echo "the Workspace at $ADDRESS does not frame $3 for $2: /viewers answered $viewers" >&2
+    exit 1
+  fi
+}
+frames igv igv "$IGV_PAGE"
+frames juicebox Juicebox "$JUICEBOX_PAGE"
+frames spacewalk Spacewalk "$SPACEWALK_PAGE"
 
-echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE and its Spacewalk Viewer is $SPACEWALK_PAGE"
+echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Viewers are $IGV_PAGE, $JUICEBOX_PAGE and $SPACEWALK_PAGE"
