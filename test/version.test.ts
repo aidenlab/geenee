@@ -39,7 +39,7 @@ describe('the version of a build', () => {
     expect(version()).toBe(`main (${git('rev-parse', '--short', 'HEAD')})`)
   })
 
-  it('names the ref it was checked out from, as the deploy script gives it, when the checkout is detached', () => {
+  it('names the ref the deploy script gives it, over a tag at the same commit, when the checkout is detached', () => {
     git('tag', 'prod-2026-11-12')
     git('checkout', '-q', '--detach', 'main')
 

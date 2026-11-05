@@ -96,10 +96,10 @@ mcp() {
 }
 
 # The deployed Connector should be this build: it gives its tag or branch and commit as its version.
-live="$(mcp '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"deploy-test","version":"0"}}}' \
+live_version="$(mcp '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"deploy-test","version":"0"}}}' \
   | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')"
-if [[ "$live" != "$version" ]]; then
-  echo "the Connector at $ADDRESS/mcp is not this build, $version: it gives its version as '$live'" >&2
+if [[ "$live_version" != "$version" ]]; then
+  echo "the Connector at $ADDRESS/mcp is not this build, $version: it gives its version as '$live_version'" >&2
   exit 1
 fi
 
