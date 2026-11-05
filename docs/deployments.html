@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geenee’s Deployments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* The visual language of how-geenee-works.html and how-geenee-deploys.html: one 38rem reading
+   column, ink for geenee, blue for igv, red for Juicebox, green for Spacewalk. */
+:root {
+  --bg: #f5f6f4;
+  --box: #ffffff;
+  --fg: #1b1d1c;
+  --muted: #636966;
+  --rule: #cdd2ce;
+  --igv: #2a5f9e;
+  --jb: #b8231a;
+  --sw: #2e7d4f;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d;
+    --igv: #7fadea; --jb: #ff7566; --sw: #6cc58f;
+    color-scheme: dark;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--serif); font-size: 1.0625rem; line-height: 1.6; }
+.page { max-width: 64rem; margin-inline: auto; padding: 3.5rem max(16px, env(safe-area-inset-right, 0px)) 5rem max(16px, env(safe-area-inset-left, 0px)); }
+.page :is(h1, h2, h3, p, ol, ul, pre, .tablewrap) { max-width: 38rem; }
+h1 { font-family: var(--sans); font-weight: 600; font-size: 2rem; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.75rem; }
+.lede { font-size: 1.2rem; line-height: 1.5; color: var(--muted); margin: 0 0 2.5rem; }
+h2 { font-family: var(--sans); font-weight: 600; font-size: 1.0625rem; margin: 3.25rem 0 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fg); }
+h3 { font-family: var(--sans); font-weight: 600; font-size: 0.95rem; margin: 2rem 0 0.5rem; }
+p { margin: 0 0 1rem; }
+ol, ul { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; }
+code { font-family: var(--mono); font-size: 0.84em; }
+.igv { color: var(--igv); }
+.jb { color: var(--jb); }
+.sw { color: var(--sw); }
+a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: currentColor; }
+.toc { font-family: var(--sans); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1rem; padding: 0; list-style: none; max-width: 38rem; columns: 2 14rem; }
+.toc li { margin: 0 0 0.2rem; break-inside: avoid; }
+.toc a { text-decoration: none; color: var(--muted); }
+.toc a:hover { color: var(--fg); }
+.status { font-family: var(--sans); font-size: 0.85rem; line-height: 1.45; max-width: 38rem; background: var(--box); border: 1px solid var(--rule); border-left: 3px solid var(--fg); padding: 0.7rem 1rem; margin: 0 0 2.5rem; }
+.rules { max-width: 38rem; padding-left: 1.4rem; }
+.rules li { margin-bottom: 0.6rem; }
+figure { margin: 2rem 0 2.25rem; }
+.figwrap { overflow-x: auto; }
+svg.fig { display: block; width: 100%; max-width: 50rem; min-width: 40rem; height: auto; color: var(--fg); font-family: var(--sans); }
+figcaption { font-family: var(--sans); font-size: 0.8rem; line-height: 1.45; color: var(--muted); max-width: 38rem; margin-top: 0.75rem; }
+figcaption b { color: var(--fg); font-weight: 600; }
+.fig text { fill: currentColor; font-size: 12px; }
+.fig .m { font-family: var(--mono); font-size: 11px; }
+.fig .band { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; fill: var(--muted); }
+.fig .bx { fill: var(--box); stroke: currentColor; stroke-width: 1.75; }
+.fig .bi { fill: var(--box); stroke: var(--igv); stroke-width: 1.25; }
+.fig .bj { fill: var(--box); stroke: var(--jb); stroke-width: 1.25; }
+.fig .bs { fill: var(--box); stroke: var(--sw); stroke-width: 1.25; }
+.fig .pg { stroke-dasharray: 4 3; }
+.fig .w { stroke: currentColor; stroke-width: 1; fill: none; }
+.fig .sep { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+.tablewrap { overflow-x: auto; margin: 1.25rem 0 1.5rem; }
+.page .tablewrap.wide { max-width: 64rem; }
+table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.85rem; line-height: 1.4; }
+th, td { text-align: left; vertical-align: top; padding: 0.5rem 1.1rem 0.5rem 0; border-bottom: 1px solid var(--rule); }
+thead th { font-weight: 600; border-bottom: 1px solid var(--fg); }
+tbody th { font-weight: 600; white-space: nowrap; }
+tbody tr:last-child :is(th, td) { border-bottom: 0; }
+td code, th code { font-size: 0.92em; white-space: nowrap; }
+td.n { font-weight: 600; color: var(--muted); width: 1.5rem; }
+pre { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; background: var(--box); border: 1px solid var(--rule); padding: 0.75rem 1rem; overflow-x: auto; margin: 0 0 1.25rem; }
+.end { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-top: 3.5rem; max-width: 38rem; }
+</style>
+</head>
+<body>
+<main class="page">
+
+<h1>geenee’s Deployments</h1>
+<p class="lede">geenee and each of its three Upstreams run twice: once as <b>prod</b>, the copy people use, and once as <b>dev</b>, a slot for trying a change. This page lists every address, how to put a change on each, and how to tell what is running.</p>
+
+<p class="status"><b>Being rolled out.</b> This page describes where we are going (<a href="adr/0004-two-deployments-not-versioned-urls.md">ADR 0004</a>). Until the last step of <a href="#rollout">the rollout</a>, geenee prod still forwards to the dev Upstreams, and the old dev names (<code>igv-bot-…</code>, <code>juicebot-view-…</code>) are still live.</p>
+
+<ul class="toc">
+  <li><a href="#rules">The four rules</a></li>
+  <li><a href="#picture">The picture</a></li>
+  <li><a href="#addresses">Every address</a></li>
+  <li><a href="#dev">Trying a change on dev</a></li>
+  <li><a href="#prod">Releasing to prod</a></li>
+  <li><a href="#both">A change to an Upstream and geenee</a></li>
+  <li><a href="#running">What is running right now?</a></li>
+  <li><a href="#rollback">Rolling back</a></li>
+  <li><a href="#juicebot">Juicebot is not ours</a></li>
+  <li><a href="#rollout">The rollout</a></li>
+</ul>
+
+<h2 id="rules">The four rules</h2>
+
+<ol class="rules">
+  <li><b>prod talks to prod, dev talks to dev.</b> geenee prod forwards only to the prod Upstreams, geenee dev only to the dev ones. There is no switch.</li>
+  <li><b>Addresses never change; what is behind them does.</b> geenee does not pin a version of an Upstream. It uses whatever that Upstream’s Deployment is running.</li>
+  <li><b>prod changes only from a tag.</b> Every prod release is a tag on <code>main</code>, and rolling back is releasing an earlier tag. dev takes any branch, at any time.</li>
+  <li><b>Every Deployment says what it runs.</b> Ask any of them and it answers with its tag (or branch) and commit. geenee also tells you what each Upstream behind it is running.</li>
+</ol>
+
+<h2 id="picture">The picture</h2>
+
+<figure>
+  <div class="figwrap">
+  <svg class="fig" viewBox="0 0 760 300" role="img" aria-label="geenee prod forwards to the three prod Upstreams, geenee dev to the three dev Upstreams; each Upstream Worker has its Viewer page.">
+    <defs>
+      <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker>
+    </defs>
+    <text class="band" x="20" y="22">PROD</text>
+    <text class="band" x="270" y="22">UPSTREAM WORKERS</text>
+    <text class="band" x="520" y="22">VIEWERS</text>
+
+    <rect class="bx" x="20" y="34" width="170" height="98" rx="3"/>
+    <text x="34" y="78" font-weight="600">geenee</text>
+    <text class="m" x="34" y="96">geenee.3dg.io</text>
+
+    <path class="w" d="M190,83 C230,83 230,51 268,51" marker-end="url(#ah)"/>
+    <path class="w" d="M190,83 L268,83" marker-end="url(#ah)"/>
+    <path class="w" d="M190,83 C230,83 230,115 268,115" marker-end="url(#ah)"/>
+
+    <rect class="bi" x="270" y="38" width="210" height="26" rx="3"/><text class="m igv" x="282" y="55">igv-mcp.3dg.io</text>
+    <rect class="bj" x="270" y="70" width="210" height="26" rx="3"/><text class="m jb" x="282" y="87">juicebox-view-mcp.3dg.io</text>
+    <rect class="bs" x="270" y="102" width="210" height="26" rx="3"/><text class="m sw" x="282" y="119">spacewalk-mcp.3dg.io</text>
+
+    <path class="w" d="M480,51 L518,51" marker-end="url(#ah)"/>
+    <path class="w" d="M480,83 L518,83" marker-end="url(#ah)"/>
+    <path class="w" d="M480,115 L518,115" marker-end="url(#ah)"/>
+
+    <rect class="bi pg" x="520" y="38" width="225" height="26" rx="3"/><text class="m igv" x="532" y="55">igv-viewer.pages.dev</text>
+    <rect class="bj pg" x="520" y="70" width="225" height="26" rx="3"/><text class="m jb" x="532" y="87">juicebox-view.pages.dev</text>
+    <rect class="bs pg" x="520" y="102" width="225" height="26" rx="3"/><text class="m sw" x="532" y="119">spacewalk-viewer.pages.dev</text>
+
+    <line class="sep" x1="20" y1="152" x2="745" y2="152"/>
+
+    <text class="band" x="20" y="178">DEV</text>
+    <rect class="bx" x="20" y="190" width="170" height="98" rx="3"/>
+    <text x="34" y="234" font-weight="600">geenee</text>
+    <text class="m" x="34" y="252">geenee-dev.3dg.io</text>
+
+    <path class="w" d="M190,239 C230,239 230,207 268,207" marker-end="url(#ah)"/>
+    <path class="w" d="M190,239 L268,239" marker-end="url(#ah)"/>
+    <path class="w" d="M190,239 C230,239 230,271 268,271" marker-end="url(#ah)"/>
+
+    <rect class="bi" x="270" y="194" width="210" height="26" rx="3"/><text class="m igv" x="282" y="211">igv-mcp-dev.3dg.io</text>
+    <rect class="bj" x="270" y="226" width="210" height="26" rx="3"/><text class="m jb" x="282" y="243">juicebox-view-mcp-dev.3dg.io</text>
+    <rect class="bs" x="270" y="258" width="210" height="26" rx="3"/><text class="m sw" x="282" y="275">spacewalk-mcp-dev.3dg.io</text>
+
+    <path class="w" d="M480,207 L518,207" marker-end="url(#ah)"/>
+    <path class="w" d="M480,239 L518,239" marker-end="url(#ah)"/>
+    <path class="w" d="M480,271 L518,271" marker-end="url(#ah)"/>
+
+    <rect class="bi pg" x="520" y="194" width="225" height="26" rx="3"/><text class="m igv" x="532" y="211">igv-viewer-dev.pages.dev</text>
+    <rect class="bj pg" x="520" y="226" width="225" height="26" rx="3"/><text class="m jb" x="532" y="243">juicebox-view-dev.pages.dev</text>
+    <rect class="bs pg" x="520" y="258" width="225" height="26" rx="3"/><text class="m sw" x="532" y="275">spacewalk-viewer-dev.pages.dev</text>
+  </svg>
+  </div>
+  <figcaption><b>Eight Workers and six Viewer pages, in two separate sets.</b> Solid outlines are Workers, dashed outlines are Pages projects. Each Upstream Worker tells the Workspace which Viewer page to frame, so an Upstream and its Viewer always come as a pair and are released together. Nothing crosses from one set to the other.</figcaption>
+</figure>
+
+<h2 id="addresses">Every address</h2>
+
+<p>The naming rule: an Upstream’s Worker is <code>&lt;name&gt;-mcp</code> on <code>3dg.io</code>, its Viewer is <code>&lt;name&gt;-viewer</code> on <code>pages.dev</code>, and dev adds <code>-dev</code>. Juicebox is named for its Viewer, juicebox-view. Viewers have no custom domains.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th></th><th>Repository</th><th>prod</th><th>dev</th></tr></thead>
+  <tbody>
+    <tr><th>geenee</th><td><code>aidenlab/geenee</code></td><td><code>https://geenee.3dg.io/mcp</code></td><td><code>https://geenee-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="igv">igv Worker</th><td rowspan="2"><code>igvjs-mcp</code></td><td><code>https://igv-mcp.3dg.io/mcp</code></td><td><code>https://igv-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="igv">igv Viewer</th><td><code>https://igv-viewer.pages.dev/</code></td><td><code>https://igv-viewer-dev.pages.dev/</code></td></tr>
+    <tr><th class="jb">Juicebox Worker</th><td><code>juicebox-mcp</code></td><td><code>https://juicebox-view-mcp.3dg.io/mcp</code></td><td><code>https://juicebox-view-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="jb">Juicebox Viewer</th><td><code>juicebox-view</code></td><td><code>https://juicebox-view.pages.dev/</code></td><td><code>https://juicebox-view-dev.pages.dev/</code></td></tr>
+    <tr><th class="sw">Spacewalk Worker</th><td><code>spacewalk-mcp</code></td><td><code>https://spacewalk-mcp.3dg.io/mcp</code></td><td><code>https://spacewalk-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="sw">Spacewalk Viewer</th><td><code>spacewalk</code></td><td><code>https://spacewalk-viewer.pages.dev/viewer.html</code></td><td><code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The Connector people add to a Host is <code>https://geenee.3dg.io/mcp</code>. The other addresses are geenee’s own business.</p>
+
+<h2 id="dev">Trying a change on dev</h2>
+
+<p>Each dev Deployment is a single slot: whatever was deployed to it last is what it runs. Deploy the Upstream you changed, then try it through geenee dev, <code>https://geenee-dev.3dg.io/mcp</code>.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th></th><th>Run, from that repository</th><th>Deploys</th></tr></thead>
+  <tbody>
+    <tr><th>geenee</th><td><code>scripts/deploy-dev.sh [ref]</code></td><td>geenee dev at any branch, tag or commit (default <code>HEAD</code>)</td></tr>
+    <tr><th class="igv">igv</th><td><code>scripts/deploy-dev.sh</code></td><td>the igv Worker and Viewer, from your working copy</td></tr>
+    <tr><th class="jb">Juicebox</th><td><code>scripts/deploy-dev.sh &lt;juicebox-view clone&gt; [ref]</code></td><td>the Juicebox Worker and the juicebox-view page</td></tr>
+    <tr><th class="sw">Spacewalk</th><td><code>scripts/deploy-dev.sh</code></td><td>the Spacewalk Worker and Viewer, from your working copy</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The Juicebox dev Deployment is shared with Juicebot: it is also where Juicebot changes are tried before a Juicebot release. Expect it to move.</p>
+
+<h2 id="prod">Releasing to prod</h2>
+
+<p>A release is a tag. The tag names the date, with <code>.2</code>, <code>.3</code> … for a second release the same day.</p>
+
+<ol>
+  <li>Merge the change to <code>main</code>, after trying it on dev.</li>
+  <li>Tag <code>main</code> and push the tag. Where a Viewer lives in a second repository, tag that one too, with the same name.</li>
+  <li>Run the repository’s prod script with the tag. It checks the tag out into a throwaway copy, tests it, deploys the Worker and its Viewer, and checks that the live Deployment reports that tag.</li>
+</ol>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th></th><th>Tag</th><th>In</th><th>Run</th></tr></thead>
+  <tbody>
+    <tr><th>geenee</th><td><code>prod-YYYY-MM-DD</code></td><td><code>geenee</code></td><td><code>scripts/deploy.sh prod-YYYY-MM-DD</code></td></tr>
+    <tr><th class="igv">igv</th><td><code>prod-YYYY-MM-DD</code></td><td><code>igvjs-mcp</code></td><td><code>scripts/deploy-prod.sh prod-YYYY-MM-DD</code></td></tr>
+    <tr><th class="jb">Juicebox</th><td><code>view-prod-YYYY-MM-DD</code></td><td><code>juicebox-mcp</code> and <code>juicebox-view</code></td><td><code>scripts/deploy-view-prod.sh view-prod-YYYY-MM-DD</code></td></tr>
+    <tr><th class="sw">Spacewalk</th><td><code>prod-YYYY-MM-DD</code></td><td><code>spacewalk-mcp</code> and <code>spacewalk</code></td><td><code>scripts/deploy-prod.sh prod-YYYY-MM-DD</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>For example, releasing Spacewalk on 12 November:</p>
+
+<pre>git -C spacewalk-mcp tag prod-2026-11-12 main &amp;&amp; git -C spacewalk-mcp push origin prod-2026-11-12
+git -C spacewalk     tag prod-2026-11-12 main &amp;&amp; git -C spacewalk     push origin prod-2026-11-12
+cd spacewalk-mcp &amp;&amp; scripts/deploy-prod.sh prod-2026-11-12</pre>
+
+<p>Juicebox’s tags start with <code>view-prod-</code> because <code>juicebox-mcp</code> also releases Juicebot, with plain <code>prod-</code> tags. A tag names exactly one release.</p>
+
+<h2 id="both">A change to an Upstream and geenee</h2>
+
+<p>geenee forwards an Upstream’s tools as they are, so most Upstream changes need nothing from geenee: release the Upstream and geenee prod offers the change on the next request.</p>
+
+<p>When geenee itself depends on what changed (a tool <code>open_geenee</code> uses, the Viewer page, the Room), try both on dev together, then release in this order:</p>
+
+<ol>
+  <li>The Upstream to prod, in a form the current geenee prod still works with.</li>
+  <li>geenee to prod.</li>
+  <li>If the Upstream kept something only for the old geenee, remove it in a later Upstream release.</li>
+</ol>
+
+<h2 id="running">What is running right now?</h2>
+
+<p>Every Deployment gives what it runs as its version: a tag and commit on prod, a branch and commit on dev.</p>
+
+<pre>prod-2026-11-12 (a1b2c3d)
+main (d4e5f6a)</pre>
+
+<p>To see everything behind geenee at once, open <code>/versions</code> on either geenee:</p>
+
+<pre>https://geenee.3dg.io/versions
+https://geenee-dev.3dg.io/versions</pre>
+
+<p>It asks each Upstream as you load it, so it is never out of date. <code>scripts/deploy.sh</code> prints the same list at the end of each geenee release, which is a record of what that release was checked against. The version an Upstream gives covers its Viewer too, since they are released together.</p>
+
+<p>To ask one Deployment directly, without geenee:</p>
+
+<pre>curl -s -X POST https://spacewalk-mcp.3dg.io/mcp \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"me","version":"0"}}}' \
+  | grep -o '"serverInfo":{[^}]*}'</pre>
+
+<h2 id="rollback">Rolling back</h2>
+
+<p>Run the same prod script with the earlier tag. <code>git tag -l 'prod-*'</code> (or <code>'view-prod-*'</code>) lists them. dev never needs rolling back: deploy whatever you want it to run.</p>
+
+<h2 id="juicebot">Juicebot is not ours</h2>
+
+<p><code>juicebox-mcp</code> also releases Juicebot production, <code>https://juicebot-mcp.3dg.io/mcp</code> and <code>https://juicebot.3dg.io/</code>, with <code>scripts/deploy-prod.sh</code> and <code>prod-</code> tags. It runs the same code as geenee’s Juicebox Upstream, but it is a separate product with its own releases and its own users. geenee never forwards to it, and nothing on this page touches it.</p>
+
+<h2 id="rollout">The rollout</h2>
+
+<p>Done in this order, each step checked before the next. geenee prod keeps working on the dev Upstreams until step 4, the only step people using geenee will notice.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th class="n"></th><th>Step</th><th>What changes</th></tr></thead>
+  <tbody>
+    <tr><td class="n">1</td><th>Versions</th><td>geenee and each Upstream report their tag or branch and commit.</td></tr>
+    <tr><td class="n">2</td><th>dev renames</th><td>New dev Deployments under the new names; geenee dev pointed at them; the old <code>igv-bot-…</code> and <code>juicebot-view-…</code> dev Deployments deleted.</td></tr>
+    <tr><td class="n">3</td><th>prod Upstreams</th><td>igv prod created, Spacewalk’s first prod release, Juicebox <code>view-prod</code> created. Each checked on its own.</td></tr>
+    <tr><td class="n">4</td><th>geenee cutover</th><td>geenee prod released, forwarding to the prod Upstreams, with <code>/versions</code> and tag-only releases.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="end">Why it is built this way, and what would change it: <a href="adr/0004-two-deployments-not-versioned-urls.md">ADR 0004</a>. What one geenee deploy does on Cloudflare, step by step: <a href="how-geenee-deploys.html">How geenee deploys</a>.</p>
+
+</main>
+</body>
+</html>
