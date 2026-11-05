@@ -105,7 +105,7 @@ There are two deployments. **production** is the published Connector, the one pe
 | production | `geenee`        | `https://geenee.3dg.io`     | `scripts/deploy.sh`     |
 | dev        | `geenee-dev`    | `https://geenee-dev.3dg.io` | `scripts/deploy-dev.sh` |
 
-Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-bot-mcp-dev.3dg.io`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebot-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebot-view-dev.pages.dev/`.
+Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-mcp-dev.3dg.io`, whose Viewer is `https://igv-viewer-dev.pages.dev/`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebox-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebox-view-dev.pages.dev/`.
 
 ```sh
 npx wrangler login                    # first time on a machine

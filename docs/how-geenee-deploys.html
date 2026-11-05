@@ -351,7 +351,7 @@ pre {
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 620" role="img" aria-label="The Cloudflare account, by repository. geenee: two Workers, geenee (production, the published Connector) and geenee-dev (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-dev.sh the second. igvjs-mcp: the Worker igv-bot-mcp-dev with its Room Durable Object, and the Pages project igv-bot-web-dev, shared by both geenee deployments. spacewalk-mcp, below igv: the Worker spacewalk-mcp-dev with its Room Durable Object, and the Pages project spacewalk-viewer-dev, also shared by both. juicebox-mcp: the view stack, the Worker juicebot-view-mcp-dev and the Pages project juicebot-view-dev, also shared by both. geenee's scripts touch none of the other repositories' boxes.">
+  <svg class="fig" viewBox="0 0 1000 620" role="img" aria-label="The Cloudflare account, by repository. geenee: two Workers, geenee (production, the published Connector) and geenee-dev (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-dev.sh the second. igvjs-mcp: the Worker igv-mcp-dev with its Room Durable Object, and the Pages project igv-viewer-dev, shared by both geenee deployments. spacewalk-mcp, below igv: the Worker spacewalk-mcp-dev with its Room Durable Object, and the Pages project spacewalk-viewer-dev, also shared by both. juicebox-mcp: the view stack, the Worker juicebox-view-mcp-dev and the Pages project juicebox-view-dev, also shared by both. geenee's scripts touch none of the other repositories' boxes.">
     <rect x="8" y="8" width="984" height="604" rx="6" class="bx-q"/>
     <text x="24" y="30" class="t-band">CLOUDFLARE ACCOUNT · ZONE 3DG.IO</text>
 
@@ -361,7 +361,7 @@ pre {
     <text x="350" y="58" class="t-h ci" style="font-size:14px">igvjs-mcp</text>
     <text x="350" y="76" class="t-m ci">scripts/deploy-dev.sh [worker|viewer]</text>
     <text x="676" y="58" class="t-h cj" style="font-size:14px">juicebox-mcp</text>
-    <text x="676" y="76" class="t-m cj">scripts/deploy-test.sh view &lt;page&gt;</text>
+    <text x="676" y="76" class="t-m cj">scripts/deploy-dev.sh &lt;page-repo&gt;</text>
 
     <!-- geenee: production -->
     <text x="24" y="100" class="t-band">PRODUCTION · THE PUBLISHED CONNECTOR</text>
@@ -369,8 +369,8 @@ pre {
     <text x="38" y="127" class="t-n">Worker</text>
     <text x="38" y="146" class="t-h">geenee</text>
     <text x="38" y="163" class="t-m">geenee.3dg.io</text>
-    <text x="38" y="180" class="t-s">forwards to igv-bot-mcp-dev,</text>
-    <text x="38" y="194" class="t-s">juicebot-view-mcp-dev, spacewalk-mcp-dev</text>
+    <text x="38" y="180" class="t-s">forwards to igv-mcp-dev,</text>
+    <text x="38" y="194" class="t-s">juicebox-view-mcp-dev, spacewalk-mcp-dev</text>
     <rect x="38" y="204" width="86" height="62" class="bx"/>
     <text x="46" y="223" class="t-h" style="font-size:11px">Worker code</text>
     <text x="46" y="239" class="t-s">src/ + settings</text>
@@ -391,8 +391,8 @@ pre {
     <text x="38" y="359" class="t-n">Worker</text>
     <text x="38" y="378" class="t-h">geenee-dev</text>
     <text x="38" y="395" class="t-m">geenee-dev.3dg.io</text>
-    <text x="38" y="412" class="t-s">forwards to igv-bot-mcp-dev,</text>
-    <text x="38" y="426" class="t-s">juicebot-view-mcp-dev, spacewalk-mcp-dev</text>
+    <text x="38" y="412" class="t-s">forwards to igv-mcp-dev,</text>
+    <text x="38" y="426" class="t-s">juicebox-view-mcp-dev, spacewalk-mcp-dev</text>
     <rect x="38" y="436" width="86" height="62" class="bx"/>
     <text x="46" y="455" class="t-h" style="font-size:11px">Worker code</text>
     <text x="46" y="471" class="t-s">src/ + settings</text>
@@ -411,14 +411,14 @@ pre {
     <text x="350" y="100" class="t-band">SHARED BY BOTH</text>
     <rect x="350" y="108" width="300" height="104" class="bx-i"/>
     <text x="364" y="127" class="t-n">Worker · the igv Upstream</text>
-    <text x="364" y="146" class="t-h">igv-bot-mcp-dev</text>
-    <text x="364" y="163" class="t-m">igv-bot-mcp-dev.3dg.io</text>
+    <text x="364" y="146" class="t-h">igv-mcp-dev</text>
+    <text x="364" y="163" class="t-m">igv-mcp-dev.3dg.io</text>
     <rect x="364" y="176" width="170" height="24" class="bx"/>
     <text x="372" y="192" class="t-s">Durable Object · Room</text>
     <rect x="350" y="222" width="300" height="72" class="bx-i pgbx"/>
     <text x="364" y="241" class="t-n">Pages · the igv Viewer</text>
-    <text x="364" y="260" class="t-h">igv-bot-web-dev</text>
-    <text x="364" y="279" class="t-m">igv-bot-web-dev.pages.dev</text>
+    <text x="364" y="260" class="t-h">igv-viewer-dev</text>
+    <text x="364" y="279" class="t-m">igv-viewer-dev.pages.dev</text>
 
     <!-- Spacewalk, stacked below igv -->
     <text x="350" y="332" class="t-h cs" style="font-size:14px">spacewalk-mcp</text>
@@ -440,14 +440,14 @@ pre {
     <text x="676" y="100" class="t-band">VIEW STACK · SHARED BY BOTH</text>
     <rect x="676" y="108" width="300" height="104" class="bx-j"/>
     <text x="690" y="127" class="t-n">Worker · the Juicebox Upstream</text>
-    <text x="690" y="146" class="t-h">juicebot-view-mcp-dev</text>
-    <text x="690" y="163" class="t-m">juicebot-view-mcp-dev.3dg.io</text>
+    <text x="690" y="146" class="t-h">juicebox-view-mcp-dev</text>
+    <text x="690" y="163" class="t-m">juicebox-view-mcp-dev.3dg.io</text>
     <rect x="690" y="176" width="272" height="24" class="bx"/>
     <text x="698" y="192" class="t-s">Durable Objects · WebSocketRoom, McpSession</text>
     <rect x="676" y="222" width="300" height="72" class="bx-j pgbx"/>
     <text x="690" y="241" class="t-n">Pages · the Juicebox Viewer (juicebox-view)</text>
-    <text x="690" y="260" class="t-h">juicebot-view-dev</text>
-    <text x="690" y="279" class="t-m">juicebot-view-dev.pages.dev</text>
+    <text x="690" y="260" class="t-h">juicebox-view-dev</text>
+    <text x="690" y="279" class="t-m">juicebox-view-dev.pages.dev</text>
 
     <text x="676" y="600" class="tag">geenee’s script never touches this column</text>
   </svg>
@@ -533,7 +533,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
     <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_VERSION</code> set to the version from <code>scripts/version.sh</code>: the ref’s tag or branch and its short commit. The worktree is detached, so the script hands it the ref it was given (for <code>HEAD</code>, the branch you are on). Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
     <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
-    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: the Juicebox Viewer address must be the juicebox-view page, and the Spacewalk Viewer address must be <code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code>, or the script fails. Check (c) needs the Juicebox and Spacewalk Upstreams to be up.</td></tr>
+    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: each Viewer address must be the page the script names for that deployment (its <code>IGV_PAGE</code>, <code>JUICEBOX_PAGE</code> and <code>SPACEWALK_PAGE</code>, listed in <a href="#two">the table below</a>), or the script fails. Check (c) needs all three Upstreams to be up.</td></tr>
   </tbody>
 </table>
 </div>
@@ -599,16 +599,17 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><th>npm script</th><td><code>deploy:prod</code></td><td><code>deploy:dev</code></td></tr>
     <tr><th>Connector URL</th><td><code>https://geenee.3dg.io/mcp</code></td><td><code>https://geenee-dev.3dg.io/mcp</code></td></tr>
     <tr><th>Workspace</th><td><code>https://geenee.3dg.io/</code></td><td><code>https://geenee-dev.3dg.io/</code></td></tr>
-    <tr><th class="igv">igv Upstream</th><td colspan="2"><code>https://igv-bot-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
-    <tr><th class="jb">Juicebox Upstream</th><td colspan="2"><code>https://juicebot-view-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
-    <tr><th class="jb">Juicebox Viewer page</th><td colspan="2"><code>https://juicebot-view-dev.pages.dev/</code> (juicebox-view), the same for both</td></tr>
+    <tr><th class="igv">igv Upstream</th><td colspan="2"><code>https://igv-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
+    <tr><th class="igv">igv Viewer page</th><td colspan="2"><code>https://igv-viewer-dev.pages.dev/</code>, the same for both</td></tr>
+    <tr><th class="jb">Juicebox Upstream</th><td colspan="2"><code>https://juicebox-view-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
+    <tr><th class="jb">Juicebox Viewer page</th><td colspan="2"><code>https://juicebox-view-dev.pages.dev/</code> (juicebox-view), the same for both</td></tr>
     <tr><th class="sw">Spacewalk Upstream</th><td colspan="2"><code>https://spacewalk-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
     <tr><th class="sw">Spacewalk Viewer page</th><td colspan="2"><code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code>, the same for both</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>The Viewer pages are not configured in geenee at all. The Workspace asks geenee (<code>/viewers</code>), geenee asks each Upstream for its Join link, and the Upstream’s own settings decide which page that is.</p>
+<p>The Viewer pages are not configured in geenee at all. The Workspace asks geenee (<code>/viewers</code>), geenee asks each Upstream for its Join link, and the Upstream’s own settings decide which page that is. The deploy script names the pages only to check them, so when an Upstream moves its page, the script’s <code>*_PAGE</code> for each deployment that forwards to it changes too.</p>
 
 <h2 id="which">I changed X: what do I deploy?</h2>
 
@@ -621,10 +622,10 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-dev.sh</code> to try it, then <code>geenee/scripts/deploy.sh</code></td><td>One geenee Worker, with its Workspace page</td></tr>
     <tr><th>geenee: the Workspace page only</th><td>The same. Page and Worker always ship together.</td><td>The same</td></tr>
     <tr><th>geenee: an Upstream address in <code>wrangler.toml</code></th><td>The same</td><td>The same</td></tr>
-    <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-bot-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
-    <tr><th class="igv">The igv Viewer page</th><td><code>igvjs-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>igv-bot-web-dev</code> Pages project. Reload the Workspace to load it.</td></tr>
-    <tr><th class="jb">The Juicebox tools (Juicebox Upstream)</th><td><code>juicebox-mcp/scripts/deploy-test.sh view &lt;page-repo&gt;</code></td><td>The view stack’s Juicebox Worker <em>and</em> its Pages project. The script always redeploys the page too.</td></tr>
-    <tr><th class="jb">The Juicebox Viewer page only</th><td><code>WORKER=0 juicebox-mcp/scripts/deploy-test.sh view &lt;page-repo&gt;</code></td><td>The view stack’s Juicebox Pages project only</td></tr>
+    <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
+    <tr><th class="igv">The igv Viewer page</th><td><code>igvjs-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>igv-viewer-dev</code> Pages project. Reload the Workspace to load it.</td></tr>
+    <tr><th class="jb">The Juicebox tools (Juicebox Upstream)</th><td><code>juicebox-mcp/scripts/deploy-dev.sh &lt;page-repo&gt;</code></td><td><code>juicebox-view-mcp-dev</code> <em>and</em> the <code>juicebox-view-dev</code> Pages project. The script always redeploys the page too.</td></tr>
+    <tr><th class="jb">The Juicebox Viewer page only</th><td><code>WORKER=0 juicebox-mcp/scripts/deploy-dev.sh &lt;page-repo&gt;</code></td><td>The <code>juicebox-view-dev</code> Pages project only</td></tr>
     <tr><th class="sw">The Spacewalk tools (Spacewalk Upstream)</th><td><code>spacewalk-mcp/scripts/deploy-dev.sh worker</code></td><td><code>spacewalk-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
     <tr><th class="sw">The Spacewalk Viewer page</th><td><code>spacewalk-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>spacewalk-viewer-dev</code> Pages project, built from a <code>spacewalk</code> checkout next to <code>spacewalk-mcp</code>. Reload the Workspace to load it.</td></tr>
   </tbody>
