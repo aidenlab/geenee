@@ -16,6 +16,10 @@ _Avoid_: Plugin, integration, installation
 One of the existing servers whose tools geenee offers: the igv one, the Juicebox one or the Spacewalk one. Each stays a working Connector in its own right.
 _Avoid_: Backend, sub-server, source
 
+**Deployment**:
+One of the two long-lived copies of geenee or of an Upstream, prod or dev, each at an address that never changes. prod changes only when someone deliberately releases to it; dev is a single slot for trying a change. geenee prod forwards to the prod Upstreams, geenee dev to the dev ones.
+_Avoid_: Channel, stage, environment, version
+
 **Viewer**:
 One of the existing web pages showing a tool: the igv Viewer, the Juicebox Viewer or the Spacewalk Viewer. Each belongs to its Upstream and is shown inside the Workspace.
 _Avoid_: Page, widget, app
