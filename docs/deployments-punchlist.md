@@ -31,15 +31,15 @@ Each Deployment reports `tag (sha)` on prod, `branch (sha)` on dev. All four can
 
 | Done | Ticket | What | After |
 |:-:|---|---|---|
-| [ ] | [igvjs-mcp#50](https://github.com/aidenlab/igvjs-mcp/issues/50) | Create igv prod, `igv-mcp` / `igv-viewer`; first `prod-` release ⚠ | igvjs-mcp#48, #49 |
-| [ ] | [juicebox-mcp#21](https://github.com/aidenlab/juicebox-mcp/issues/21) | Create geenee's Juicebox prod, `juicebox-view-mcp` / `juicebox-view`; first `view-prod-` release ⚠ | juicebox-mcp#19, #20 |
-| [ ] | [spacewalk-mcp#60](https://github.com/aidenlab/spacewalk-mcp/issues/60) | First Spacewalk prod release, `spacewalk-mcp` / `spacewalk-viewer` ⚠ | spacewalk-mcp#59 |
+| [x] | [igvjs-mcp#50](https://github.com/aidenlab/igvjs-mcp/issues/50) | Create igv prod, `igv-mcp` / `igv-viewer`; first `prod-` release ⚠ | igvjs-mcp#48, #49 |
+| [x] | [juicebox-mcp#21](https://github.com/aidenlab/juicebox-mcp/issues/21) | Create geenee's Juicebox prod, `juicebox-view-mcp` / `juicebox-view`; first `view-prod-` release ⚠ | juicebox-mcp#19, #20 |
+| [x] | [spacewalk-mcp#60](https://github.com/aidenlab/spacewalk-mcp/issues/60) | First Spacewalk prod release, `spacewalk-mcp` / `spacewalk-viewer` ⚠ | spacewalk-mcp#59 |
 
 ## 4. geenee cutover
 
 | Done | Ticket | What | After |
 |:-:|---|---|---|
-| [ ] | [geenee#63](https://github.com/aidenlab/geenee/issues/63) | geenee prod forwards to the prod Upstreams; tag-only releases; `/versions`; update the deploy docs ⚠ | geenee#61, #62, igvjs-mcp#50, juicebox-mcp#21, spacewalk-mcp#60 |
+| [x] | [geenee#63](https://github.com/aidenlab/geenee/issues/63) | geenee prod forwards to the prod Upstreams; tag-only releases; `/versions`; update the deploy docs ⚠ | geenee#61, #62, igvjs-mcp#50, juicebox-mcp#21, spacewalk-mcp#60 |
 
 ## 5. Viewer page versions
 

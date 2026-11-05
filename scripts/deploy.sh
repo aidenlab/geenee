@@ -140,7 +140,7 @@ for upstream in $upstreams; do
   reported="$(curl -fsS -m 10 -X POST "$upstream" -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
     -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"geenee-deploy","version":"0"}}}' \
     | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')" || true
-  printf '  %-40s %s\n' "$upstream" "${reported:-did not answer}"
+  printf '  %-44s %s\n' "$upstream" "${reported:-did not answer}"
 done
 
 mcp() {
