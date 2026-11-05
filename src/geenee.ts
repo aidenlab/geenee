@@ -11,6 +11,7 @@
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room has expired or its id is malformed
  *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer, or the same expired page
  *   GET  /get - Get geenee: what geenee is and how to add it to each Host
+ *   GET  /versions - the version of geenee and of each Upstream behind it, each asked as the page loads (ADR 0004)
  *
  * The Workspace page itself is a static asset, served beside this at /.
  */
@@ -35,6 +36,7 @@ import { pageResponse } from './page.ts'
 import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SPACEWALK, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
+import { versionsPage } from './versions.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
 
 /**
@@ -60,6 +62,8 @@ export interface RoomRecord {
 }
 
 export interface GeeneeConfig {
+  /** geenee's own version, its tag or branch and commit (scripts/version.sh), which the Connector reports and /versions shows. */
+  version: string
   /** The igv Upstream's /mcp address. */
   igvUpstream: string
   /** The Juicebox Upstream's /mcp address. */
@@ -187,7 +191,7 @@ function expiredReply(room: string, unsent?: string): ToolResult {
   return errorReply(`Room ${room} has expired${notSent}. Call ${OPEN_GEENEE} without room to open geenee in a new Room${again}.`)
 }
 
-export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
+export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalkUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
   const targets: Target[] = [
     { viewer: IGV, upstream: upstreamAt(igvUpstream, fetch) },
     { viewer: JUICEBOX, upstream: upstreamAt(juiceboxUpstream, fetch) },
@@ -240,7 +244,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
-    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_VERSION ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
+    const server = new Server({ name: 'geenee', version }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
     // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       resources: [{ uri: CARD_URI, name: 'geenee card', mimeType: CARD_MIME_TYPE, _meta: CARD_META }],
@@ -365,6 +369,20 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
     }
     if (url.pathname === '/get' && request.method === 'GET') {
       return pageResponse(getGeeneePage(url.origin, parseRoomId(url.searchParams.get('room') ?? '')))
+    }
+    if (url.pathname === '/versions' && request.method === 'GET') {
+      // Asked anew on every load, as an Upstream can be released without geenee being deployed (ADR 0004).
+      const upstreams = await Promise.all(
+        targets.map(async ({ viewer, upstream }) => ({
+          viewer: viewer.name,
+          address: upstream.address,
+          version: await upstream.version().catch((error) => {
+            console.warn(`[versions] the ${viewer.name} Upstream could not be reached:`, error)
+            return null
+          }),
+        })),
+      )
+      return pageResponse(versionsPage(url.origin, version, upstreams))
     }
     if (url.pathname === '/ws' && request.headers.get('Upgrade') === 'websocket') {
       const room = parseRoomId(url.searchParams.get('room') ?? '')

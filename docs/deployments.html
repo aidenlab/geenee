@@ -50,7 +50,6 @@ a:hover { text-decoration-color: currentColor; }
 .toc li { margin: 0 0 0.2rem; break-inside: avoid; }
 .toc a { text-decoration: none; color: var(--muted); }
 .toc a:hover { color: var(--fg); }
-.status { font-family: var(--sans); font-size: 0.85rem; line-height: 1.45; max-width: 38rem; background: var(--box); border: 1px solid var(--rule); border-left: 3px solid var(--fg); padding: 0.7rem 1rem; margin: 0 0 2.5rem; }
 .rules { max-width: 38rem; padding-left: 1.4rem; }
 .rules li { margin-bottom: 0.6rem; }
 figure { margin: 2rem 0 2.25rem; }
@@ -86,8 +85,6 @@ pre { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; background:
 
 <h1>geenee’s Deployments</h1>
 <p class="lede">geenee and each of its three Upstreams run twice: once as <b>prod</b>, the copy people use, and once as <b>dev</b>, a slot for trying a change. This page lists every address, how to put a change on each, and how to tell what is running.</p>
-
-<p class="status"><b>Being rolled out.</b> This page describes where we are going (<a href="adr/0004-two-deployments-not-versioned-urls.md">ADR 0004</a>). Until the last step of <a href="#rollout">the rollout</a>, geenee prod still forwards to the dev Upstreams.</p>
 
 <ul class="toc">
   <li><a href="#rules">The four rules</a></li>

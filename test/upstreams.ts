@@ -1,7 +1,7 @@
 /**
  * Stand-in Upstreams: a `fetch` that answers for the igv, the Juicebox and the
- * Spacewalk Upstream's /mcp, listing the tools saved in test/fixtures and recording the
- * tool calls it is sent.
+ * Spacewalk Upstream's /mcp, giving a version, listing the tools saved in test/fixtures and
+ * recording the tool calls it is sent.
  */
 import igvTools from './fixtures/igv-tools.json' with { type: 'json' }
 import juiceboxTools from './fixtures/juicebox-tools.json' with { type: 'json' }
@@ -33,6 +33,8 @@ export interface StandInUpstream {
   refusal: string | null
   /** True makes every request fail, as for an Upstream that cannot be reached. */
   unreachable: boolean
+  /** The version it gives in its answer to initialize, its MCP serverInfo.version. */
+  version: string
 }
 
 export function standInUpstreams() {
@@ -41,6 +43,7 @@ export function standInUpstreams() {
     reply: () => ({ content: [{ type: 'text', text: 'Done.' }] }),
     refusal: null,
     unreachable: false,
+    version: 'main (0000000)',
   })
   const igv = standIn()
   const juicebox = standIn()
@@ -57,6 +60,9 @@ export function standInUpstreams() {
     if (!target) throw new Error(`stand-in Upstreams were asked for ${request.url}`)
     if (target.upstream.unreachable) throw new TypeError('fetch failed')
     const { id, method, params } = (await request.json()) as { id: number; method: string; params: UpstreamCall }
+    if (method === 'initialize') {
+      return Response.json({ jsonrpc: '2.0', id, result: { protocolVersion: '2025-06-18', capabilities: {}, serverInfo: { name: 'stand-in', version: target.upstream.version } } })
+    }
     if (method === 'tools/list') return Response.json({ jsonrpc: '2.0', id, result: { tools: target.tools } })
     if (method === 'tools/call') {
       const call = { name: params.name, arguments: params.arguments, session: request.headers.get('mcp-session-id') }

@@ -14,6 +14,8 @@ let geenee: ((request: Request) => Promise<Response>) | undefined
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     geenee ??= createGeenee({
+      // Set by the deploy:* builds (scripts/version.sh); `npm run dev` has none.
+      version: import.meta.env.VITE_VERSION ?? '0.0.0',
       igvUpstream: env.IGV_UPSTREAM_URL,
       juiceboxUpstream: env.JUICEBOX_UPSTREAM_URL,
       spacewalkUpstream: env.SPACEWALK_UPSTREAM_URL,
