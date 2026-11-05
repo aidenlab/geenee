@@ -287,17 +287,17 @@ pre {
 
 <h2 id="short">The short answer</h2>
 
-<p>Say you run <code>scripts/deploy.sh</code>, which deploys geenee production, the published Connector. This is what changes on Cloudflare:</p>
+<p>Say you run <code>scripts/deploy.sh prod-2026-11-12</code>, which releases that tag to geenee production, the published Connector. This is what changes on Cloudflare:</p>
 
 <div class="sum">
   <section>
     <h3>Replaced</h3>
     <ul>
-      <li>The code of the Worker <code>geenee</code>: <code>/mcp</code>, <code>/viewers</code>, <code>/connections</code>, <code>/ws</code>, the tool renaming, the server instructions, <code>open_geenee</code>.</li>
+      <li>The code of the Worker <code>geenee</code>: <code>/mcp</code>, <code>/viewers</code>, <code>/connections</code>, <code>/ws</code>, <code>/versions</code>, the tool renaming, the server instructions, <code>open_geenee</code>.</li>
       <li>The Workspace page: <code>index.html</code> and its JavaScript and CSS, served by the same Worker.</li>
       <li>The Worker’s settings: the three Upstream addresses, the binding to the Room Durable Object, logging.</li>
       <li>The code of the Room Durable Object, which is part of the Worker.</li>
-      <li>The version the Connector and the Workspace report.</li>
+      <li>The version the Connector, the Workspace and <code>/versions</code> report.</li>
     </ul>
   </section>
   <section class="kept">
@@ -351,17 +351,17 @@ pre {
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 620" role="img" aria-label="The Cloudflare account, by repository. geenee: two Workers, geenee (production, the published Connector) and geenee-dev (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-dev.sh the second. igvjs-mcp: the Worker igv-mcp-dev with its Room Durable Object, and the Pages project igv-viewer-dev, shared by both geenee deployments. spacewalk-mcp, below igv: the Worker spacewalk-mcp-dev with its Room Durable Object, and the Pages project spacewalk-viewer-dev, also shared by both. juicebox-mcp: the view stack, the Worker juicebox-view-mcp-dev and the Pages project juicebox-view-dev, also shared by both. geenee's scripts touch none of the other repositories' boxes.">
-    <rect x="8" y="8" width="984" height="604" rx="6" class="bx-q"/>
+  <svg class="fig" viewBox="0 0 1000 676" role="img" aria-label="The Cloudflare account, by repository. geenee: two Workers, geenee (production, the published Connector, released from a prod- tag) and geenee-dev (the slot for trying a branch), each holding its code, the Workspace page as static assets, and a Room Durable Object; deploy.sh replaces the first and deploy-dev.sh the second. geenee production forwards to the prod Upstreams, geenee dev to the dev ones. igvjs-mcp: the Workers igv-mcp and igv-mcp-dev, each with its Room Durable Object, and the Pages projects igv-viewer and igv-viewer-dev. spacewalk-mcp, below igv: the Workers spacewalk-mcp and spacewalk-mcp-dev, and the Pages projects spacewalk-viewer and spacewalk-viewer-dev. juicebox-mcp: the view stack, the Workers juicebox-view-mcp and juicebox-view-mcp-dev, and the Pages projects juicebox-view and juicebox-view-dev. geenee's scripts touch none of the other repositories' boxes.">
+    <rect x="8" y="8" width="984" height="660" rx="6" class="bx-q"/>
     <text x="24" y="30" class="t-band">CLOUDFLARE ACCOUNT · ZONE 3DG.IO</text>
 
     <!-- Column heads -->
     <text x="24" y="58" class="t-h" style="font-size:14px">geenee</text>
-    <text x="24" y="76" class="t-m">scripts/deploy.sh, deploy-dev.sh [ref]</text>
+    <text x="24" y="76" class="t-m">deploy.sh &lt;tag&gt;, deploy-dev.sh [ref]</text>
     <text x="350" y="58" class="t-h ci" style="font-size:14px">igvjs-mcp</text>
-    <text x="350" y="76" class="t-m ci">scripts/deploy-dev.sh [worker|viewer]</text>
+    <text x="350" y="76" class="t-m ci">deploy-prod.sh &lt;tag&gt;, deploy-dev.sh</text>
     <text x="676" y="58" class="t-h cj" style="font-size:14px">juicebox-mcp</text>
-    <text x="676" y="76" class="t-m cj">scripts/deploy-dev.sh &lt;page-repo&gt;</text>
+    <text x="676" y="76" class="t-m cj">deploy-view-prod.sh &lt;tag&gt;, deploy-dev.sh</text>
 
     <!-- geenee: production -->
     <text x="24" y="100" class="t-band">PRODUCTION · THE PUBLISHED CONNECTOR</text>
@@ -369,8 +369,8 @@ pre {
     <text x="38" y="127" class="t-n">Worker</text>
     <text x="38" y="146" class="t-h">geenee</text>
     <text x="38" y="163" class="t-m">geenee.3dg.io</text>
-    <text x="38" y="180" class="t-s">forwards to igv-mcp-dev,</text>
-    <text x="38" y="194" class="t-s">juicebox-view-mcp-dev, spacewalk-mcp-dev</text>
+    <text x="38" y="180" class="t-s">forwards to igv-mcp,</text>
+    <text x="38" y="194" class="t-s">juicebox-view-mcp, spacewalk-mcp</text>
     <rect x="38" y="204" width="86" height="62" class="bx"/>
     <text x="46" y="223" class="t-h" style="font-size:11px">Worker code</text>
     <text x="46" y="239" class="t-s">src/ + settings</text>
@@ -383,7 +383,7 @@ pre {
     <text x="238" y="223" class="t-h" style="font-size:11px">Durable Obj.</text>
     <text x="238" y="239" class="t-s">Room × n</text>
     <text x="238" y="256" class="t-s" style="font-weight:600">storage kept</text>
-    <text x="24" y="298" class="tag">↑ one run of deploy.sh replaces this</text>
+    <text x="24" y="298" class="tag">↑ one run of deploy.sh &lt;tag&gt; replaces this</text>
 
     <!-- geenee: dev -->
     <text x="24" y="332" class="t-band">DEV · A SLOT FOR TRYING A BRANCH</text>
@@ -408,66 +408,87 @@ pre {
     <text x="24" y="530" class="tag">↑ one run of deploy-dev.sh replaces this</text>
 
     <!-- igv -->
-    <text x="350" y="100" class="t-band">SHARED BY BOTH</text>
-    <rect x="350" y="108" width="300" height="104" class="bx-i"/>
-    <text x="364" y="127" class="t-n">Worker · the igv Upstream</text>
-    <text x="364" y="146" class="t-h">igv-mcp-dev</text>
-    <text x="364" y="163" class="t-m">igv-mcp-dev.3dg.io</text>
-    <rect x="364" y="176" width="170" height="24" class="bx"/>
-    <text x="372" y="192" class="t-s">Durable Object · Room</text>
-    <rect x="350" y="222" width="300" height="72" class="bx-i pgbx"/>
-    <text x="364" y="241" class="t-n">Pages · the igv Viewer</text>
-    <text x="364" y="260" class="t-h">igv-viewer-dev</text>
-    <text x="364" y="279" class="t-m">igv-viewer-dev.pages.dev</text>
+    <text x="350" y="100" class="t-band">PROD · BEHIND GEENEE PRODUCTION</text>
+    <rect x="350" y="108" width="300" height="46" class="bx-i"/>
+    <text x="364" y="127" class="t-h">igv-mcp</text>
+    <text x="364" y="145" class="t-m">igv-mcp.3dg.io</text>
+    <text x="636" y="127" class="t-n" text-anchor="end">Worker</text>
+    <rect x="350" y="160" width="300" height="40" class="bx-i pgbx"/>
+    <text x="364" y="177" class="t-h">igv-viewer</text>
+    <text x="364" y="193" class="t-m">igv-viewer.pages.dev</text>
+    <text x="636" y="177" class="t-n" text-anchor="end">Pages</text>
+    <text x="350" y="222" class="t-band">DEV · BEHIND GEENEE DEV</text>
+    <rect x="350" y="230" width="300" height="46" class="bx-i"/>
+    <text x="364" y="249" class="t-h">igv-mcp-dev</text>
+    <text x="364" y="267" class="t-m">igv-mcp-dev.3dg.io</text>
+    <text x="636" y="249" class="t-n" text-anchor="end">Worker</text>
+    <rect x="350" y="282" width="300" height="40" class="bx-i pgbx"/>
+    <text x="364" y="299" class="t-h">igv-viewer-dev</text>
+    <text x="364" y="315" class="t-m">igv-viewer-dev.pages.dev</text>
+    <text x="636" y="299" class="t-n" text-anchor="end">Pages</text>
 
     <!-- Spacewalk, stacked below igv -->
-    <text x="350" y="332" class="t-h cs" style="font-size:14px">spacewalk-mcp</text>
-    <text x="350" y="350" class="t-m cs">scripts/deploy-dev.sh [worker|viewer|all]</text>
-    <text x="350" y="374" class="t-band">SHARED BY BOTH</text>
-    <rect x="350" y="382" width="300" height="104" class="bx-s"/>
-    <text x="364" y="401" class="t-n">Worker · the Spacewalk Upstream</text>
-    <text x="364" y="420" class="t-h">spacewalk-mcp-dev</text>
-    <text x="364" y="437" class="t-m">spacewalk-mcp-dev.3dg.io</text>
-    <rect x="364" y="450" width="170" height="24" class="bx"/>
-    <text x="372" y="466" class="t-s">Durable Object · Room</text>
-    <rect x="350" y="496" width="300" height="72" class="bx-s pgbx"/>
-    <text x="364" y="515" class="t-n">Pages · the Spacewalk Viewer</text>
-    <text x="364" y="534" class="t-h">spacewalk-viewer-dev</text>
-    <text x="364" y="553" class="t-m">spacewalk-viewer-dev.pages.dev/viewer.html</text>
-    <text x="350" y="600" class="tag">geenee’s script never touches this column</text>
+    <text x="350" y="350" class="t-h cs" style="font-size:14px">spacewalk-mcp</text>
+    <text x="350" y="368" class="t-m cs">deploy-prod.sh &lt;tag&gt;, deploy-dev.sh</text>
+    <text x="350" y="392" class="t-band">PROD · BEHIND GEENEE PRODUCTION</text>
+    <rect x="350" y="400" width="300" height="46" class="bx-s"/>
+    <text x="364" y="419" class="t-h">spacewalk-mcp</text>
+    <text x="364" y="437" class="t-m">spacewalk-mcp.3dg.io</text>
+    <text x="636" y="419" class="t-n" text-anchor="end">Worker</text>
+    <rect x="350" y="452" width="300" height="40" class="bx-s pgbx"/>
+    <text x="364" y="469" class="t-h">spacewalk-viewer</text>
+    <text x="364" y="485" class="t-m">spacewalk-viewer.pages.dev/viewer.html</text>
+    <text x="636" y="469" class="t-n" text-anchor="end">Pages</text>
+    <text x="350" y="514" class="t-band">DEV · BEHIND GEENEE DEV</text>
+    <rect x="350" y="522" width="300" height="46" class="bx-s"/>
+    <text x="364" y="541" class="t-h">spacewalk-mcp-dev</text>
+    <text x="364" y="559" class="t-m">spacewalk-mcp-dev.3dg.io</text>
+    <text x="636" y="541" class="t-n" text-anchor="end">Worker</text>
+    <rect x="350" y="574" width="300" height="40" class="bx-s pgbx"/>
+    <text x="364" y="591" class="t-h">spacewalk-viewer-dev</text>
+    <text x="364" y="607" class="t-m">spacewalk-viewer-dev.pages.dev/viewer.html</text>
+    <text x="636" y="591" class="t-n" text-anchor="end">Pages</text>
+    <text x="350" y="656" class="tag">geenee’s script never touches this column</text>
 
-    <!-- Juicebox: view -->
-    <text x="676" y="100" class="t-band">VIEW STACK · SHARED BY BOTH</text>
-    <rect x="676" y="108" width="300" height="104" class="bx-j"/>
-    <text x="690" y="127" class="t-n">Worker · the Juicebox Upstream</text>
-    <text x="690" y="146" class="t-h">juicebox-view-mcp-dev</text>
-    <text x="690" y="163" class="t-m">juicebox-view-mcp-dev.3dg.io</text>
-    <rect x="690" y="176" width="272" height="24" class="bx"/>
-    <text x="698" y="192" class="t-s">Durable Objects · WebSocketRoom, McpSession</text>
-    <rect x="676" y="222" width="300" height="72" class="bx-j pgbx"/>
-    <text x="690" y="241" class="t-n">Pages · the Juicebox Viewer (juicebox-view)</text>
-    <text x="690" y="260" class="t-h">juicebox-view-dev</text>
-    <text x="690" y="279" class="t-m">juicebox-view-dev.pages.dev</text>
-
-    <text x="676" y="600" class="tag">geenee’s script never touches this column</text>
+    <!-- Juicebox: the view stack -->
+    <text x="676" y="100" class="t-band">PROD · BEHIND GEENEE PRODUCTION</text>
+    <rect x="676" y="108" width="300" height="46" class="bx-j"/>
+    <text x="690" y="127" class="t-h">juicebox-view-mcp</text>
+    <text x="690" y="145" class="t-m">juicebox-view-mcp.3dg.io</text>
+    <text x="962" y="127" class="t-n" text-anchor="end">Worker</text>
+    <rect x="676" y="160" width="300" height="40" class="bx-j pgbx"/>
+    <text x="690" y="177" class="t-h">juicebox-view</text>
+    <text x="690" y="193" class="t-m">juicebox-view.pages.dev</text>
+    <text x="962" y="177" class="t-n" text-anchor="end">Pages</text>
+    <text x="676" y="222" class="t-band">DEV · BEHIND GEENEE DEV</text>
+    <rect x="676" y="230" width="300" height="46" class="bx-j"/>
+    <text x="690" y="249" class="t-h">juicebox-view-mcp-dev</text>
+    <text x="690" y="267" class="t-m">juicebox-view-mcp-dev.3dg.io</text>
+    <text x="962" y="249" class="t-n" text-anchor="end">Worker</text>
+    <rect x="676" y="282" width="300" height="40" class="bx-j pgbx"/>
+    <text x="690" y="299" class="t-h">juicebox-view-dev</text>
+    <text x="690" y="315" class="t-m">juicebox-view-dev.pages.dev</text>
+    <text x="962" y="299" class="t-n" text-anchor="end">Pages</text>
+    <text x="676" y="656" class="tag">geenee’s script never touches this column</text>
   </svg>
   </div>
-  <figcaption><b>Figure 1. What lives on the account, by the repository that deploys it.</b> Solid outlines are Workers, dashed outlines are Pages projects. Ink is geenee, blue is igv, red is Juicebox, green is Spacewalk, drawn below igv. Only the two thick boxes on the left are geenee’s, and each run of one of its scripts replaces one of them. Juicebox’s web stack, with the retired juicebox-web page, is no longer used by geenee and is left out.</figcaption>
+  <figcaption><b>Figure 1. What lives on the account, by the repository that deploys it.</b> Solid outlines are Workers, dashed outlines are Pages projects. Ink is geenee, blue is igv, red is Juicebox, green is Spacewalk, drawn below igv. Each Upstream has a prod and a dev Deployment, each a Worker and the Viewer page it names; geenee production forwards only to the prod ones, geenee dev only to the dev ones. Only the two thick boxes on the left are geenee’s, and each run of one of its scripts replaces one of them. Juicebox’s web stack, with the retired juicebox-web page, is no longer used by geenee and is left out.</figcaption>
 </figure>
 
 <p>Because geenee only <em>forwards</em> (ADR 0001), it holds no copy of the igv, Juicebox or Spacewalk tools. When an Upstream changes its tools, geenee picks them up on the next request with no geenee deploy. The reverse is also true: a geenee deploy can never change what an Upstream or a Viewer does.</p>
 
 <h2 id="steps">What the script does, step by step</h2>
 
-<pre>scripts/deploy-dev.sh my-branch       # any branch, tag or commit to geenee-dev
-scripts/deploy.sh                     # deploys HEAD to geenee, the published Connector
-scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
+<pre>scripts/deploy-dev.sh my-branch       # dev: any branch, tag or commit
+git tag prod-2026-11-12 main          # production: tag main,
+git push origin prod-2026-11-12       # push the tag,
+scripts/deploy.sh prod-2026-11-12     # and release it</pre>
 
-<p><code>scripts/deploy-dev.sh</code> is <code>scripts/deploy.sh</code> pointed at the dev deployment; the steps are the same.</p>
+<p><code>scripts/deploy-dev.sh</code> is <code>scripts/deploy.sh</code> pointed at the dev deployment; the steps are the same, except that dev takes any ref and production only a <code>prod-</code> tag on origin. A second release the same day is <code>prod-2026-11-12.2</code>.</p>
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="The eight steps of the script in a row. Steps 1 to 6 run on your machine in a throwaway worktree: check the Cloudflare login, check out the ref, install, type-check, test, build. Step 7 uploads with wrangler deploy. Step 8 checks the live Worker. The build writes dist/geenee for the Worker and dist/client for the Workspace page, and those are what step 7 uploads. A failure in steps 1 to 6 uploads nothing; a failure in step 8 means the build is already live.">
+  <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="The eight steps of the script in a row. Steps 1 to 6 run on your machine in a throwaway worktree: check the ref and the Cloudflare login, check out the ref, install, type-check, test, build. Step 7 uploads with wrangler deploy. Step 8 checks the live Worker. The build writes dist/geenee for the Worker and dist/client for the Workspace page, and those are what step 7 uploads. A failure in steps 1 to 6 uploads nothing; a failure in step 8 means the build is already live.">
     <text x="21" y="30" class="t-band">ON YOUR MACHINE, IN A THROWAWAY WORKTREE</text>
     <text x="753" y="30" class="t-band">UPLOAD</text>
     <text x="875" y="30" class="t-band">LIVE</text>
@@ -476,7 +497,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
     <g>
       <rect x="21" y="48" width="104" height="66" class="bx"/>
-      <text x="31" y="66" class="t-n">1</text><text x="31" y="84" class="t-h">Logged in?</text><text x="31" y="101" class="t-s">wrangler whoami</text>
+      <text x="31" y="66" class="t-n">1</text><text x="31" y="84" class="t-h">May it run?</text><text x="31" y="101" class="t-s">tag, login</text>
       <rect x="143" y="48" width="104" height="66" class="bx"/>
       <text x="153" y="66" class="t-n">2</text><text x="153" y="84" class="t-h">Check out</text><text x="153" y="101" class="t-s">git worktree, ref</text>
       <rect x="265" y="48" width="104" height="66" class="bx"/>
@@ -526,21 +547,27 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <table>
   <thead><tr><th class="n"></th><th>Step</th><th>What happens</th></tr></thead>
   <tbody>
-    <tr><td class="n">1</td><th>Logged in?</th><td><code>npx wrangler whoami</code>. If you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
-    <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. The ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not. The ref is built with its own <code>wrangler.toml</code>, so the script stops here if that file does not give the deployment’s section the expected Worker: an older branch may have no <code>[env.prod]</code>, or an <code>[env.dev]</code> that names an older Worker. Merge <code>main</code> into it first.</td></tr>
+    <tr><td class="n">1</td><th>May it run?</th><td>For production, the ref must be a <code>prod-YYYY-MM-DD[.N]</code> tag, and origin must have that tag at the same commit; anything else, <code>main</code> included, is refused with the commands to tag and push. Then <code>npx wrangler whoami</code>: if you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
+    <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. For dev the ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not. The ref is built with its own <code>wrangler.toml</code>, so the script stops here if that file does not give the deployment’s section the expected Worker: an older branch may have no <code>[env.prod]</code>, or an <code>[env.dev]</code> that names an older Worker. Merge <code>main</code> into it first.</td></tr>
     <tr><td class="n">3</td><th>Install</th><td><code>npm ci</code>: installs exactly what <code>package-lock.json</code> says, from scratch.</td></tr>
     <tr><td class="n">4</td><th>Type-check</th><td><code>npm run typecheck</code>: regenerates the Worker’s types from <code>wrangler.toml</code>, then type-checks the Worker and tests, and the Workspace separately.</td></tr>
     <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
-    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_VERSION</code> set to the version from <code>scripts/version.sh</code>: the ref’s tag or branch and its short commit. The worktree is detached, so the script hands it the ref it was given (for <code>HEAD</code>, the branch you are on). Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
+    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_VERSION</code> set to the version from <code>scripts/version.sh</code>: the ref’s tag or branch and its short commit. The worktree is detached, so the script hands it the ref it was given (for <code>HEAD</code>, the branch you are on): <code>prod-2026-11-12 (a1b2c3d)</code> for a release. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
     <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
-    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: each Viewer address must be the page the script names for that deployment (its <code>IGV_PAGE</code>, <code>JUICEBOX_PAGE</code> and <code>SPACEWALK_PAGE</code>, listed in <a href="#two">the table below</a>), or the script fails. Check (c) needs all three Upstreams to be up.</td></tr>
+    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address, then one to each Upstream. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: each Viewer address must be the page the script names for that deployment (its <code>IGV_PAGE</code>, <code>JUICEBOX_PAGE</code> and <code>SPACEWALK_PAGE</code>, listed in <a href="#two">the table below</a>), or the script fails. Check (c) needs all three Upstreams to be up. (d) An MCP <code>initialize</code> to each Upstream that environment of <code>wrangler.toml</code> names: the version each reports is printed, or <code>did not answer</code>, as the record of what this release was checked against.</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>When it succeeds, the last line names the build, the Connector URL, the number of tools, and the Juicebox and Spacewalk Viewer pages:</p>
+<p>When it succeeds, it names the build, the number of tools and the Viewer pages, then what each Upstream reported, then the Connector URL:</p>
 
-<pre>deployed prod-2026-11-12 (a1b2c3d) to prod at https://geenee.3dg.io: …</pre>
+<pre>deployed prod-2026-11-12 (a1b2c3d) to prod at https://geenee.3dg.io: …
+checked against these Upstreams (see https://geenee.3dg.io/versions):
+  https://igv-mcp.3dg.io/mcp               prod-2026-11-05.2 (4c6e501)
+  https://juicebox-view-mcp.3dg.io/mcp     view-prod-2026-11-05.1 (ca0393c)
+  https://spacewalk-mcp.3dg.io/mcp         prod-2026-11-05.1 (871af8c)
+
+Connector URL: https://geenee.3dg.io/mcp</pre>
 
 <h2 id="upload">What one upload contains</h2>
 
@@ -588,7 +615,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <h2 id="two">production or dev</h2>
 
-<p>geenee has two deployments: <b>production</b>, the published Connector that people add to their Host, and <b>dev</b>, a single slot for trying a branch without touching production. Whichever ref was deployed to dev last is what it runs. They are two completely separate Workers. They share no code version, no Rooms and no storage, but forward to the same Upstreams. Only the script picks between them.</p>
+<p>geenee has two deployments: <b>production</b>, the published Connector that people add to their Host, and <b>dev</b>, a single slot for trying a branch without touching production. Whichever ref was deployed to dev last is what it runs. They are two completely separate Workers. They share no code version, no Rooms, no storage and no Upstreams: production forwards to the prod Upstreams, dev to the dev ones (ADR 0004). Production runs only a <code>prod-</code> tag; dev runs whatever was deployed to it last. Only the script picks between them.</p>
 
 <div class="tablewrap wide">
 <table>
@@ -599,12 +626,14 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><th>npm script</th><td><code>deploy:prod</code></td><td><code>deploy:dev</code></td></tr>
     <tr><th>Connector URL</th><td><code>https://geenee.3dg.io/mcp</code></td><td><code>https://geenee-dev.3dg.io/mcp</code></td></tr>
     <tr><th>Workspace</th><td><code>https://geenee.3dg.io/</code></td><td><code>https://geenee-dev.3dg.io/</code></td></tr>
-    <tr><th class="igv">igv Upstream</th><td colspan="2"><code>https://igv-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
-    <tr><th class="igv">igv Viewer page</th><td colspan="2"><code>https://igv-viewer-dev.pages.dev/</code>, the same for both</td></tr>
-    <tr><th class="jb">Juicebox Upstream</th><td colspan="2"><code>https://juicebox-view-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
-    <tr><th class="jb">Juicebox Viewer page</th><td colspan="2"><code>https://juicebox-view-dev.pages.dev/</code> (juicebox-view), the same for both</td></tr>
-    <tr><th class="sw">Spacewalk Upstream</th><td colspan="2"><code>https://spacewalk-mcp-dev.3dg.io/mcp</code>, the same for both</td></tr>
-    <tr><th class="sw">Spacewalk Viewer page</th><td colspan="2"><code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code>, the same for both</td></tr>
+    <tr><th>Takes</th><td>A pushed <code>prod-YYYY-MM-DD[.N]</code> tag</td><td>Any branch, tag or commit (default <code>HEAD</code>)</td></tr>
+    <tr><th>Versions</th><td><code>https://geenee.3dg.io/versions</code></td><td><code>https://geenee-dev.3dg.io/versions</code></td></tr>
+    <tr><th class="igv">igv Upstream</th><td><code>https://igv-mcp.3dg.io/mcp</code></td><td><code>https://igv-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="igv">igv Viewer page</th><td><code>https://igv-viewer.pages.dev/</code></td><td><code>https://igv-viewer-dev.pages.dev/</code></td></tr>
+    <tr><th class="jb">Juicebox Upstream</th><td><code>https://juicebox-view-mcp.3dg.io/mcp</code></td><td><code>https://juicebox-view-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="jb">Juicebox Viewer page</th><td><code>https://juicebox-view.pages.dev/</code> (juicebox-view)</td><td><code>https://juicebox-view-dev.pages.dev/</code> (juicebox-view)</td></tr>
+    <tr><th class="sw">Spacewalk Upstream</th><td><code>https://spacewalk-mcp.3dg.io/mcp</code></td><td><code>https://spacewalk-mcp-dev.3dg.io/mcp</code></td></tr>
+    <tr><th class="sw">Spacewalk Viewer page</th><td><code>https://spacewalk-viewer.pages.dev/viewer.html</code></td><td><code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code></td></tr>
   </tbody>
 </table>
 </div>
@@ -613,20 +642,20 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <h2 id="which">I changed X: what do I deploy?</h2>
 
-<p>Each repository deploys only itself, so a change is shipped by the script of the repository it lives in. A geenee deploy is needed only when geenee’s own code or settings change.</p>
+<p>Each repository deploys only itself, so a change is shipped by the script of the repository it lives in. A geenee deploy is needed only when geenee’s own code or settings change. The rows below put a change on dev; each Upstream reaches prod by its own tagged release (<code>deploy-prod.sh</code> in <code>igvjs-mcp</code> and <code>spacewalk-mcp</code>, <code>deploy-view-prod.sh</code> in <code>juicebox-mcp</code>), as <a href="deployments.html#prod">geenee’s Deployments</a> sets out.</p>
 
 <div class="tablewrap wide">
 <table>
   <thead><tr><th>What you changed</th><th>Run</th><th>Replaces</th></tr></thead>
   <tbody>
-    <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-dev.sh</code> to try it, then <code>geenee/scripts/deploy.sh</code></td><td>One geenee Worker, with its Workspace page</td></tr>
+    <tr><th>geenee: the Connector, routing, renaming, instructions, the Room</th><td><code>geenee/scripts/deploy-dev.sh</code> to try it, then merge, tag and <code>geenee/scripts/deploy.sh &lt;tag&gt;</code></td><td>One geenee Worker, with its Workspace page</td></tr>
     <tr><th>geenee: the Workspace page only</th><td>The same. Page and Worker always ship together.</td><td>The same</td></tr>
     <tr><th>geenee: an Upstream address in <code>wrangler.toml</code></th><td>The same</td><td>The same</td></tr>
-    <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
+    <tr><th class="igv">The igv tools (igv Upstream)</th><td><code>igvjs-mcp/scripts/deploy-dev.sh worker</code></td><td><code>igv-mcp-dev</code>. geenee dev sees the new tools on the next request.</td></tr>
     <tr><th class="igv">The igv Viewer page</th><td><code>igvjs-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>igv-viewer-dev</code> Pages project. Reload the Workspace to load it.</td></tr>
     <tr><th class="jb">The Juicebox tools (Juicebox Upstream)</th><td><code>juicebox-mcp/scripts/deploy-dev.sh &lt;page-repo&gt;</code></td><td><code>juicebox-view-mcp-dev</code> <em>and</em> the <code>juicebox-view-dev</code> Pages project. The script always redeploys the page too.</td></tr>
     <tr><th class="jb">The Juicebox Viewer page only</th><td><code>WORKER=0 juicebox-mcp/scripts/deploy-dev.sh &lt;page-repo&gt;</code></td><td>The <code>juicebox-view-dev</code> Pages project only</td></tr>
-    <tr><th class="sw">The Spacewalk tools (Spacewalk Upstream)</th><td><code>spacewalk-mcp/scripts/deploy-dev.sh worker</code></td><td><code>spacewalk-mcp-dev</code>. Both geenee deployments see the new tools on the next request.</td></tr>
+    <tr><th class="sw">The Spacewalk tools (Spacewalk Upstream)</th><td><code>spacewalk-mcp/scripts/deploy-dev.sh worker</code></td><td><code>spacewalk-mcp-dev</code>. geenee dev sees the new tools on the next request.</td></tr>
     <tr><th class="sw">The Spacewalk Viewer page</th><td><code>spacewalk-mcp/scripts/deploy-dev.sh viewer</code></td><td>The <code>spacewalk-viewer-dev</code> Pages project, built from a <code>spacewalk</code> checkout next to <code>spacewalk-mcp</code>. Reload the Workspace to load it.</td></tr>
   </tbody>
 </table>
@@ -634,11 +663,11 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p class="note">The igv and Spacewalk dev scripts deploy from your working copy, not from a throwaway checkout, so uncommitted igv or Spacewalk changes <em>do</em> ship. The geenee and Juicebox scripts deploy from a commit.</p>
 
-<p>The <span class="igv">igv</span> stack has one dev deployment, shared by both geenee deployments, so an igv deploy reaches both at once. The same holds for the <span class="jb">Juicebox</span> view stack and the <span class="sw">Spacewalk</span> dev stack. A change to any Upstream cannot be tried on geenee dev alone: production sees it too.</p>
+<p>An Upstream’s dev deploy reaches geenee dev only, and its prod release geenee production only, with no geenee deploy: geenee reaches each Upstream by its address and does not pin a version. So a change to any Upstream can be tried on geenee dev without production seeing it, and <code>/versions</code> is how to tell what is behind either geenee now.</p>
 
 <h2 id="live">Which build is live?</h2>
 
-<p>Every deploy is stamped with its version: the tag or branch it was built from and its short commit, for example <code>prod-2026-11-12 (a1b2c3d)</code> on prod and <code>main (d4e5f6a)</code> on dev. Both come from git at build time; nothing is bumped by hand. You can read it in three places:</p>
+<p>Every deploy is stamped with its version: the tag or branch it was built from and its short commit, for example <code>prod-2026-11-12 (a1b2c3d)</code> on prod and <code>main (d4e5f6a)</code> on dev. Both come from git at build time; nothing is bumped by hand. You can read it in four places:</p>
 
 <ul>
   <li><b>The Workspace</b> shows it at the right end of its tab bar, with the Connector URL. Remember that an open tab shows the build it was loaded with; reload to see the live one.</li>
@@ -647,6 +676,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"me","version":"0"}}}'</pre></li>
+  <li><b><code>/versions</code></b>, a page on each geenee (<code>https://geenee.3dg.io/versions</code>), gives its version and the version each Upstream behind it reports, asked as the page loads. An Upstream that does not answer is shown as such.</li>
   <li><b>Cloudflare</b> lists the Worker’s versions, newest first: <code>npx wrangler deployments list --env prod</code> (or <code>--env dev</code>).</li>
 </ul>
 
@@ -656,11 +686,12 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <table>
   <thead><tr><th>Situation</th><th>What to know</th></tr></thead>
   <tbody>
-    <tr><th>You run <code>npm run deploy:prod</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. Its version then has <code>-dirty</code> after the commit. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
+    <tr><th>You run <code>npm run deploy:prod</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no tag, no type-check, no tests and no final checks. Production then runs something no tag names: don’t. Its version then has <code>-dirty</code> after the commit. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
     <tr><th>Step 8 fails</th><td>The new build is already live. A version mismatch usually means the upload did not go through; a Juicebox or Spacewalk page mismatch usually means that Upstream is down or is pointing at another page.</td></tr>
     <tr><th>The tool count is below 55</th><td>An Upstream did not answer. geenee still works with the others. Not a failure of the deploy.</td></tr>
-    <tr><th>You want to undo a deploy</th><td>Run the script again with the earlier commit: <code>scripts/deploy.sh &lt;ref&gt;</code>. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env prod</code>), but redeploying a ref keeps git as the record of what is live.</td></tr>
-    <tr><th>Someone else deploys after you</th><td>Both deployments are shared, and a deploy replaces the Worker for everyone. dev has one slot: agree who is using it. Try a branch on dev before it reaches production.</td></tr>
+    <tr><th>You want to undo a release</th><td>Release the earlier tag again: <code>scripts/deploy.sh prod-2026-11-05</code>; <code>git tag -l 'prod-*'</code> lists them. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env prod</code>), but releasing a tag keeps git as the record of what is live.</td></tr>
+    <tr><th>Someone else deploys after you</th><td>Both deployments are shared, and a deploy replaces the Worker for everyone. dev has one slot: agree who is using it. Try a branch on dev before it is merged and tagged for production.</td></tr>
+    <tr><th><code>scripts/deploy.sh main</code> is refused</th><td>Production takes only a <code>prod-</code> tag that is on origin. Tag the commit, push the tag, and run the script with it.</td></tr>
     <tr><th>You rename or remove the <code>Room</code> class</th><td>That needs a new <code>[[migrations]]</code> entry in <code>wrangler.toml</code>, or <code>wrangler deploy</code> refuses. Changing what is <em>inside</em> <code>Room</code> needs none.</td></tr>
     <tr><th>First deploy on a new machine</th><td><code>npx wrangler login</code> with a login that can reach the account in <code>wrangler.toml</code>. There are no secrets to set.</td></tr>
     <tr><th>The Workspace looks unchanged after a deploy</th><td>Reload the tab. The page’s files are fetched once, when it opens.</td></tr>
@@ -671,7 +702,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. How the parts talk to each other once deployed is in <a href="how-geenee-works.html">How geenee works</a>. The Juicebox side of deploying is covered in more depth by <code>docs/how-juicebot-deploys.html</code> in <code>juicebox-mcp</code>.</p>
 
-<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream.</p>
+<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream. Revised 5 November 2026 for the prod Upstreams, tag-only releases and <code>/versions</code> (ADR 0004).</p>
 
 </main>
 </body>

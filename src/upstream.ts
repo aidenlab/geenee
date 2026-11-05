@@ -19,6 +19,10 @@ export interface ToolResult {
 }
 
 export interface Upstream {
+  /** The /mcp address it is reached at. */
+  address: string
+  /** The version it reports, its MCP serverInfo.version: its tag or branch and commit (ADR 0004). Throws when it does not answer. */
+  version(): Promise<string>
   listTools(): Promise<Tool[]>
   /** Calls a tool by the Upstream's own name for it. `session` is sent as the call's MCP session id. */
   callTool(name: string, args: Record<string, unknown>, session?: string): Promise<ToolResult>
@@ -26,11 +30,13 @@ export interface Upstream {
 
 /** Longer than any Upstream waits for its Viewer (igv 15 s, Juicebox 10 s, Spacewalk 20 s), so a slow Viewer is the Upstream's to report. */
 const TIMEOUT_MS = 30_000
+/** Asked of every Upstream as /versions loads, so one that does not answer soon is shown as such rather than holding up the page. */
+const VERSION_TIMEOUT_MS = 5_000
 
 export function upstreamAt(address: string, fetch: typeof globalThis.fetch): Upstream {
   let rpcId = 0
   /** The Upstream's answer to one request: its result, or the message of the JSON-RPC error it refused the request with. Throws when it gives no answer. */
-  async function rpc<Result>(method: string, params: object, session?: string): Promise<{ result: Result } | { refusal: string }> {
+  async function rpc<Result>(method: string, params: object, session?: string, timeout = TIMEOUT_MS): Promise<{ result: Result } | { refusal: string }> {
     const response = await fetch(address, {
       method: 'POST',
       headers: {
@@ -39,7 +45,7 @@ export function upstreamAt(address: string, fetch: typeof globalThis.fetch): Ups
         ...(session ? { 'mcp-session-id': session } : {}),
       },
       body: JSON.stringify({ jsonrpc: '2.0', id: ++rpcId, method, params }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeout),
     })
     if (!response.ok) throw new Error(`${address} answered ${method} with ${response.status}`)
     const body = (await response.json()) as { result?: Result; error?: { message?: string } }
@@ -49,6 +55,15 @@ export function upstreamAt(address: string, fetch: typeof globalThis.fetch): Ups
   }
 
   return {
+    address,
+    async version() {
+      const params = { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'geenee', version: '0' } }
+      const answer = await rpc<{ serverInfo?: { version?: unknown } }>('initialize', params, undefined, VERSION_TIMEOUT_MS)
+      if ('refusal' in answer) throw new Error(`${address} refused initialize: ${answer.refusal}`)
+      const version = answer.result.serverInfo?.version
+      if (typeof version !== 'string') throw new Error(`${address} gave no version`)
+      return version
+    },
     async listTools() {
       const answer = await rpc<{ tools: Tool[] }>('tools/list', {})
       if ('refusal' in answer) throw new Error(`${address} refused tools/list: ${answer.refusal}`)

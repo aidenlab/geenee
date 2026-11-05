@@ -34,10 +34,11 @@ JUICEBOX_UPSTREAM_URL = "https://juicebox-view-mcp-dev.3dg.io/mcp"
 SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp-dev.3dg.io/mcp"
 
 # ── The two deployments ──────────────────────────────────────────────────────
-# prod is the one people add as a Connector; dev is a single slot for trying a
-# branch without touching it. Both forward to the same Upstreams. They share
-# nothing else: each is its own Worker with its own Rooms, so a deploy to one
-# never touches the other. Wrangler creates the DNS record for each custom
+# prod is the one people add as a Connector, released only from a prod- tag;
+# dev is a single slot for trying a branch without touching it. prod forwards
+# to the prod Upstreams and dev to the dev ones (ADR 0004). They share nothing:
+# each is its own Worker with its own Rooms, so a deploy to one never touches
+# the other. Wrangler creates the DNS record for each custom
 # domain; the zone is on the same account. No *.workers.dev hostname and no
 # preview URLs, so each has one public address. Named environments do not
 # inherit `vars` or `durable_objects`, so those are repeated; migrations are
@@ -63,10 +64,10 @@ name = "ROOM"
 class_name = "Room"
 
 [env.prod.vars]
-# The dev Upstreams, until the cutover to the prod Upstreams (ADR 0004, #63).
-IGV_UPSTREAM_URL = "https://igv-mcp-dev.3dg.io/mcp"
-JUICEBOX_UPSTREAM_URL = "https://juicebox-view-mcp-dev.3dg.io/mcp"
-SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp-dev.3dg.io/mcp"
+# The prod Upstreams, each released only from a tag of its own repository.
+IGV_UPSTREAM_URL = "https://igv-mcp.3dg.io/mcp"
+JUICEBOX_UPSTREAM_URL = "https://juicebox-view-mcp.3dg.io/mcp"
+SPACEWALK_UPSTREAM_URL = "https://spacewalk-mcp.3dg.io/mcp"
 
 # "geenee dev": Worker geenee-dev at https://geenee-dev.3dg.io, laid out as
 # geenee production. Whichever ref was deployed to it last is what it runs.

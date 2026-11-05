@@ -92,33 +92,44 @@ npm run typecheck
 npm run test:run   # the Connector, through its fetch handler, with stand-in Upstreams
 ```
 
-The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, the Hand-off and the Get geenee page, a Room's expiry (with a stand-in clock), which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
+The tests need no Worker runtime and no network. The stand-in Upstreams (`test/upstreams.ts`) list the tools saved in `test/fixtures/`, which are copies of the Upstreams' real tool lists, and record the calls they are sent. They cover the combined tool list and its renaming, where a call is sent and what is passed back, `open_geenee`, the server instructions, an Upstream that cannot be reached, `/viewers`, `/versions`, the Hand-off and the Get geenee page, a Room's expiry (with a stand-in clock), which Viewer a tool call is reported for and that the report reaches the Workspaces of its Room, and `/connections`.
 
 The Rooms in the tests are stand-ins too (`test/workspaces.ts`): they run the Room's own logic (`src/workspaceChannel.ts`) over fake sockets. The Durable Object that wraps it (`src/room.ts`) and the Workspace page have no automated tests. They are checked by hand in a real Host, with the rest of each stage.
 
 ## Deploying
 
-There are two deployments. **production** is the published Connector, the one people add to their Host. **dev** is a single slot for trying a branch without touching it: whichever ref was deployed to it last is what it runs. Each is its own Worker with its own Rooms, so deploying one never affects the other. Nothing deploys from CI.
+There are two deployments. **production** is the published Connector, the one people add to their Host, released only from a `prod-` tag. **dev** is a single slot for trying a branch without touching it: whichever ref was deployed to it last is what it runs. Each is its own Worker with its own Rooms, so deploying one never affects the other. Nothing deploys from CI.
 
 | Deployment | Cloudflare name | Address                     | Script                  |
 | ---------- | --------------- | --------------------------- | ----------------------- |
 | production | `geenee`        | `https://geenee.3dg.io`     | `scripts/deploy.sh`     |
 | dev        | `geenee-dev`    | `https://geenee-dev.3dg.io` | `scripts/deploy-dev.sh` |
 
-Each Worker serves `/mcp` for Hosts and `/` for the Workspace. Both forward to the igv Upstream `https://igv-mcp-dev.3dg.io`, whose Viewer is `https://igv-viewer-dev.pages.dev/`, the Spacewalk Upstream `https://spacewalk-mcp-dev.3dg.io` and the Juicebox Upstream `https://juicebox-view-mcp-dev.3dg.io`, whose Viewer is the juicebox-view page `https://juicebox-view-dev.pages.dev/`.
+Each Worker serves `/mcp` for Hosts, `/` for the Workspace and `/versions`, a page giving its own version and the version each of its Upstreams reports, asked as the page loads. production forwards to the prod Upstreams and dev to the dev ones (ADR 0004):
+
+| Upstream  | production                          | dev                                     |
+| --------- | ----------------------------------- | --------------------------------------- |
+| igv       | `https://igv-mcp.3dg.io`            | `https://igv-mcp-dev.3dg.io`            |
+| Juicebox  | `https://juicebox-view-mcp.3dg.io`  | `https://juicebox-view-mcp-dev.3dg.io`  |
+| Spacewalk | `https://spacewalk-mcp.3dg.io`      | `https://spacewalk-mcp-dev.3dg.io`      |
+
+Their Viewers are `https://igv-viewer[-dev].pages.dev/`, the juicebox-view page `https://juicebox-view[-dev].pages.dev/` and `https://spacewalk-viewer[-dev].pages.dev/viewer.html`.
 
 ```sh
 npx wrangler login                    # first time on a machine
 scripts/deploy-dev.sh my-branch       # try a branch, tag or commit on geenee dev
-scripts/deploy.sh                     # deploy HEAD to geenee production, the published Connector
-scripts/deploy.sh <ref>               # or a branch, tag or commit
+git tag prod-2026-11-12               # release geenee production, the published Connector:
+git push origin prod-2026-11-12       #   tag the commit, push the tag,
+scripts/deploy.sh prod-2026-11-12     #   and deploy it; a second release that day is prod-2026-11-12.2
 ```
 
-The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. It builds the ref with the ref's own `wrangler.toml`, so it refuses a ref whose configuration does not name the expected Worker; merge `main` into an older branch first. Then it installs, type-checks, runs the tests, builds and deploys. It then checks that the deployed Connector gives this build's version, counts the tools it lists and checks that its Workspace frames the igv, Juicebox and Spacewalk Viewer pages.
+`scripts/deploy.sh` refuses anything but a `prod-YYYY-MM-DD[.N]` tag that is on origin as it is here, so that geenee production always runs a commit anyone can check out. `scripts/deploy-dev.sh` takes any branch, tag or commit, and HEAD by default.
+
+The script checks out the ref into a throwaway worktree, so uncommitted changes never ship. It builds the ref with the ref's own `wrangler.toml`, so it refuses a ref whose configuration does not name the expected Worker; merge `main` into an older branch first. Then it installs, type-checks, runs the tests, builds and deploys. It then checks that the deployed Connector gives this build's version, counts the tools it lists and checks that its Workspace frames the igv, Juicebox and Spacewalk Viewer pages. Last, it prints the version each Upstream reports, the record of what the release was checked against.
 
 Each deploy is stamped with its version: the tag or branch it was built from and its short commit, e.g. `prod-2026-11-12 (a1b2c3d)` on prod and `main (d4e5f6a)` on dev, both read from git at build time (`-dirty` follows the commit when `npm run deploy:*` builds a working copy with uncommitted changes; `scripts/version.sh`). The Connector gives it as its version, the Workspace shows it with the Connector URL at the right end of its tab bar, and the script checks that the live Connector gives this build's version and prints it when it finishes. `npm run dev` shows none.
 
-geenee only forwards, so the script deploys geenee alone. Each Upstream it forwards to is deployed from its own repository (`igvjs-mcp`, `juicebox-mcp`, `spacewalk-mcp`), and all three have to be up for the final check to pass.
+geenee only forwards, so the script deploys geenee alone. Each Upstream it forwards to is released from its own repository, and can be released again without geenee: `/versions` shows what is behind geenee now (`igvjs-mcp`, `juicebox-mcp`, `spacewalk-mcp`), and all three have to be up for the final check to pass.
 
 It needs a Cloudflare login that can reach the account that owns the `3dg.io` zone, which is named in `wrangler.toml` and also holds the Upstreams. The first deploy of each creates the DNS record for its custom domain. There is no sign-in and there are no secrets, as for the Upstreams.
 
@@ -138,7 +149,7 @@ Run from the repository root.
 | `npm run typecheck`  | Write the types, then type-check the Worker and the tests, and the Workspace apart from them |
 | `npm run test:run`   | Run every test once                                                       |
 | `npm test`           | Run the tests in watch mode                                               |
-| `npm run deploy:prod` | Build the `prod` environment and deploy it, with no checks; `scripts/deploy.sh` runs them first |
+| `npm run deploy:prod` | Build the `prod` environment and deploy it, with no checks; `scripts/deploy.sh` runs them first and takes only a pushed `prod-` tag |
 | `npm run deploy:dev` | Build the `dev` environment and deploy it, with no checks; `scripts/deploy-dev.sh` runs them first |
 
 Run a single test file by adding its path: `npx vitest run test/routing.test.ts`.
@@ -181,7 +192,7 @@ test/
   connector.ts           The Host's side of the Connector, for the tests, with a stand-in clock
   *.test.ts              Tests
 scripts/
-  deploy.sh              Deploy geenee production, the published Connector
+  deploy.sh              Release a prod- tag to geenee production, the published Connector
   deploy-dev.sh          Deploy geenee dev, the slot for trying a branch
 docs/
   adr/                   The decisions: forwarding, and the Workspace
@@ -196,6 +207,6 @@ docs/
 - `wrangler.toml`, `JUICEBOX_UPSTREAM_URL`: the `/mcp` address of the Juicebox Upstream.
 - `wrangler.toml`, `SPACEWALK_UPSTREAM_URL`: the `/mcp` address of the Spacewalk Upstream.
 
-The top-level values are for local development, the `[env.prod]` and `[env.dev]` values for the two deployments. All of them name the same deployed dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
+The top-level values are for local development, the `[env.prod]` and `[env.dev]` values for the two deployments. `[env.prod]` names the prod Upstreams; the others name the dev Upstreams. The Viewers' own addresses are not configured: each Upstream gives its Viewer's.
 
 To refresh a fixture after an Upstream's tools change, save the `tools` array of its `tools/list` reply over the file in `test/fixtures/`.

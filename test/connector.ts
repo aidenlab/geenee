@@ -33,13 +33,14 @@ function standInClock() {
   }
 }
 
-/** A geenee whose Upstreams, Rooms and clock are stand-ins. `opened` are Rooms open_geenee opened just before. */
-export function geenee({ opened = [] }: { opened?: string[] } = {}) {
+/** A geenee whose Upstreams, Rooms and clock are stand-ins. `opened` are Rooms open_geenee opened just before; `version` is the version it reports. */
+export function geenee({ opened = [], version = 'main (1234567)' }: { opened?: string[]; version?: string } = {}) {
   const upstreams = standInUpstreams()
   const rooms = standInRooms()
   const clock = standInClock()
   for (const room of opened) rooms.start(room, clock.now())
   const handle = createGeenee({
+    version,
     igvUpstream: IGV_UPSTREAM,
     juiceboxUpstream: JUICEBOX_UPSTREAM,
     spacewalkUpstream: SPACEWALK_UPSTREAM,
