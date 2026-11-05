@@ -131,6 +131,18 @@ export GEENEE_REF
 version="$(scripts/version.sh)"
 npm run "deploy:$DEPLOYMENT"
 
+# The version each Upstream reports, as the record of what this release was checked against: an
+# Upstream is reached by its address, not pinned, so it can be released again without geenee.
+# Printed before the checks, so that it is there when one of them fails.
+echo "the Upstreams behind it (see $ADDRESS/versions):"
+upstreams="$(awk -v section="[env.$DEPLOYMENT.vars]" '$0 == section { inside = 1; next } /^\[/ { inside = 0 } inside && $1 ~ /_UPSTREAM_URL$/ { gsub(/"/, "", $3); print $3 }' wrangler.toml)"
+for upstream in $upstreams; do
+  reported="$(curl -fsS -m 10 -X POST "$upstream" -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+    -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"geenee-deploy","version":"0"}}}' \
+    | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')" || true
+  printf '  %-40s %s\n' "$upstream" "${reported:-did not answer}"
+done
+
 mcp() {
   curl -fsS -X POST "$ADDRESS/mcp" \
     -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d "$1"
@@ -163,14 +175,4 @@ frames igv igv "$IGV_PAGE"
 frames juicebox Juicebox "$JUICEBOX_PAGE"
 frames spacewalk Spacewalk "$SPACEWALK_PAGE"
 
-# The version each Upstream reports, as the record of what this release was checked against: an
-# Upstream is reached by its address, not pinned, so it can be released again without geenee.
 echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Viewers are $IGV_PAGE, $JUICEBOX_PAGE and $SPACEWALK_PAGE"
-echo "checked against these Upstreams (see $ADDRESS/versions):"
-upstreams="$(awk -v section="[env.$DEPLOYMENT.vars]" '$0 == section { inside = 1; next } /^\[/ { inside = 0 } inside && $1 ~ /_UPSTREAM_URL$/ { gsub(/"/, "", $3); print $3 }' wrangler.toml)"
-for upstream in $upstreams; do
-  reported="$(curl -fsS -m 10 -X POST "$upstream" -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
-    -d '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"geenee-deploy","version":"0"}}}' \
-    | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')" || true
-  printf '  %-40s %s\n' "$upstream" "${reported:-did not answer}"
-done

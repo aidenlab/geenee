@@ -4,11 +4,12 @@
  * address, not pinned, so this is where the builds behind a Deployment are read.
  */
 import { escapeHtml, page } from './page.ts'
+import type { Viewer } from './servedTools.ts'
 
 /** One Upstream as /versions shows it: `version` is null when it did not answer. */
 export interface UpstreamVersion {
-  /** The Viewer it serves: igv, Juicebox or Spacewalk. */
-  name: string
+  /** The Viewer it serves. */
+  viewer: Viewer['name']
   /** Its /mcp address. */
   address: string
   version: string | null
@@ -16,11 +17,11 @@ export interface UpstreamVersion {
 
 /** The page, for the geenee at `origin` running `version`, in front of `upstreams`. */
 export function versionsPage(origin: string, version: string, upstreams: UpstreamVersion[]): string {
-  const row = (name: string, host: string, version: string | null) => `
+  const row = (name: string, address: string, reported: string | null) => `
       <tr>
         <th scope="row">${escapeHtml(name)}</th>
-        <td>${version === null ? '<span class="absent">did not answer</span>' : `<code>${escapeHtml(version)}</code>`}</td>
-        <td><code class="host">${escapeHtml(host)}</code></td>
+        <td>${reported === null ? '<span class="absent">did not answer</span>' : `<code>${escapeHtml(reported)}</code>`}</td>
+        <td><code class="host">${escapeHtml(new URL(address).host)}</code></td>
       </tr>`
   return page({
     title: 'geenee versions',
@@ -40,8 +41,8 @@ td code { overflow-wrap: anywhere; }
   <h1>Versions</h1>
   <p class="lede">What this geenee runs, and what each Upstream behind it reports, asked as this page loaded.</p>
   <table>
-    <thead><tr><th scope="col">Deployment</th><th scope="col">Version</th><th scope="col">Address</th></tr></thead>
-    <tbody>${row('geenee', new URL(origin).host, version)}${upstreams.map((upstream) => row(upstream.name, new URL(upstream.address).host, upstream.version)).join('')}
+    <thead><tr><td></td><th scope="col">Version</th><th scope="col">Address</th></tr></thead>
+    <tbody>${row('geenee', origin, version)}${upstreams.map((upstream) => row(upstream.viewer, upstream.address, upstream.version)).join('')}
     </tbody>
   </table>
   <footer>Each version is a tag or branch and its commit. Reload to ask again.</footer>

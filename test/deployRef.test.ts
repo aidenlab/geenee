@@ -85,8 +85,9 @@ describe('releasing geenee production', () => {
 
       const { stderr } = deploy(tag)
 
+      // The next step is the Cloudflare login, which the copy cannot pass.
+      expect(stderr).toContain('not logged in to Cloudflare')
       expect(stderr).not.toMatch(REFUSED)
-      expect(stderr).not.toContain('is not on origin')
     })
   }
 })

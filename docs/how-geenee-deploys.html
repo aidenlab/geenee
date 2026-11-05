@@ -554,18 +554,18 @@ scripts/deploy.sh prod-2026-11-12     # and release it</pre>
     <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
     <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_VERSION</code> set to the version from <code>scripts/version.sh</code>: the ref’s tag or branch and its short commit. The worktree is detached, so the script hands it the ref it was given (for <code>HEAD</code>, the branch you are on): <code>prod-2026-11-12 (a1b2c3d)</code> for a release. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
     <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
-    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address, then one to each Upstream. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: each Viewer address must be the page the script names for that deployment (its <code>IGV_PAGE</code>, <code>JUICEBOX_PAGE</code> and <code>SPACEWALK_PAGE</code>, listed in <a href="#two">the table below</a>), or the script fails. Check (c) needs all three Upstreams to be up. (d) An MCP <code>initialize</code> to each Upstream that environment of <code>wrangler.toml</code> names: the version each reports is printed, or <code>did not answer</code>, as the record of what this release was checked against.</td></tr>
+    <tr><td class="n">8</td><th>Check</th><td>First, an MCP <code>initialize</code> to each Upstream that environment of <code>wrangler.toml</code> names: the version each reports is printed, or <code>did not answer</code>, as the record of what this release was checked against, and is printed before any check can fail. Then three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: each Viewer address must be the page the script names for that deployment (its <code>IGV_PAGE</code>, <code>JUICEBOX_PAGE</code> and <code>SPACEWALK_PAGE</code>, listed in <a href="#two">the table below</a>), or the script fails. Check (c) needs all three Upstreams to be up.</td></tr>
   </tbody>
 </table>
 </div>
 
-<p>When it succeeds, it names the build, the number of tools and the Viewer pages, then what each Upstream reported, then the Connector URL:</p>
+<p>After the upload it prints what each Upstream reported; when the checks pass, it names the build, the number of tools and the Viewer pages, then the Connector URL:</p>
 
-<pre>deployed prod-2026-11-12 (a1b2c3d) to prod at https://geenee.3dg.io: …
-checked against these Upstreams (see https://geenee.3dg.io/versions):
+<pre>the Upstreams behind it (see https://geenee.3dg.io/versions):
   https://igv-mcp.3dg.io/mcp               prod-2026-11-05.2 (4c6e501)
   https://juicebox-view-mcp.3dg.io/mcp     view-prod-2026-11-05.1 (ca0393c)
   https://spacewalk-mcp.3dg.io/mcp         prod-2026-11-05.1 (871af8c)
+deployed prod-2026-11-12 (a1b2c3d) to prod at https://geenee.3dg.io: …
 
 Connector URL: https://geenee.3dg.io/mcp</pre>
 

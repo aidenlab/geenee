@@ -30,6 +30,7 @@ const PAGES: ReviewedPage[] = [
   // A Room geenee never opened counts as expired.
   { id: 'expired', name: 'Expired Room', source: 'src/expiredRoom.ts', path: () => '/r/0000000000' },
   { id: 'malformed', name: 'Malformed Room link', source: 'src/malformedRoomLink.ts', path: () => '/r/nope' },
+  { id: 'versions', name: 'Versions', source: 'src/versions.ts', path: () => '/versions' },
 ]
 
 const FRAME: Record<Size, { width: string; height: string }> = {

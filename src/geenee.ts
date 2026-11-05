@@ -374,7 +374,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       // Asked anew on every load, as an Upstream can be released without geenee being deployed (ADR 0004).
       const upstreams = await Promise.all(
         targets.map(async ({ viewer, upstream }) => ({
-          name: viewer.name,
+          viewer: viewer.name,
           address: upstream.address,
           version: await upstream.version().catch((error) => {
             console.warn(`[versions] the ${viewer.name} Upstream could not be reached:`, error)

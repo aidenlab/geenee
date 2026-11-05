@@ -34,6 +34,7 @@ How to look at the pages of the Guest flow and change them, on your own machine.
 | Get geenee from a Hand-off | A Guest following the Hand-off's link: Get geenee, with the way back to their Room | `src/getGeenee.ts`    | `test/getGeenee.test.ts`  |
 | Expired Room        | Anyone who opens the link of an expired Room         | `src/expiredRoom.ts`                         | `test/expiry.test.ts`     |
 | Malformed Room link | Anyone who opens a Room link with a broken Room id   | `src/malformedRoomLink.ts`                   | `test/roomLink.test.ts`   |
+| Versions            | Whoever checks what a geenee and its Upstreams run, at `/versions` | `src/versions.ts`              | `test/versions.test.ts`   |
 
 Colours, fonts, buttons and headings are shared. They live in `src/page.ts`, where a change reaches every page. The Card uses the same colours and fonts, and has the rest of its style in `src/card.ts`.
 
