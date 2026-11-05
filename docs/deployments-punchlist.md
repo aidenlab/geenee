@@ -41,6 +41,17 @@ Each Deployment reports `tag (sha)` on prod, `branch (sha)` on dev. All four can
 |:-:|---|---|---|
 | [ ] | [geenee#63](https://github.com/aidenlab/geenee/issues/63) | geenee prod forwards to the prod Upstreams; tag-only releases; `/versions`; update the deploy docs ⚠ | geenee#61, #62, igvjs-mcp#50, juicebox-mcp#21, spacewalk-mcp#60 |
 
+## 5. Viewer page versions
+
+Each Upstream serves `/version`: its Worker's version and its Viewer page's, which the dev scripts can deploy apart. geenee's `/versions` then shows both. The three Upstream tickets can be done at once, any time after step 1; only geenee#66 waits for the cutover.
+
+| Done | Ticket | What | After |
+|:-:|---|---|---|
+| [ ] | [spacewalk-mcp#62](https://github.com/aidenlab/spacewalk-mcp/issues/62) | Spacewalk serves `/version`: Worker, Viewer page, protocol and `spacewalk-remote` pin | spacewalk-mcp#59 |
+| [ ] | [igvjs-mcp#52](https://github.com/aidenlab/igvjs-mcp/issues/52) | igv serves `/version`: Worker and Viewer page | igvjs-mcp#48 |
+| [ ] | [juicebox-mcp#23](https://github.com/aidenlab/juicebox-mcp/issues/23) | Juicebox serves `/version`: Worker and Viewer page | juicebox-mcp#19 |
+| [ ] | [geenee#66](https://github.com/aidenlab/geenee/issues/66) | `/versions` shows each Upstream's Worker and Viewer page; geenee `/version`; amend ADR 0004 and deployments.html | geenee#63, spacewalk-mcp#62, igvjs-mcp#52, juicebox-mcp#23 |
+
 ## Finally
 
 - [ ] Close [geenee#60](https://github.com/aidenlab/geenee/issues/60)
