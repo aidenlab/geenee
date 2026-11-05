@@ -6,7 +6,7 @@ Work top to bottom. A ticket can start once everything in its **After** column i
 
 ## Before starting
 
-- [ ] Tell David Weisz about juicebox-mcp #20 and #21 (Juicebot production is not touched)
+- [x] Tell David Weisz about juicebox-mcp #20 and #21 (Juicebot production is not touched)
 
 ## 1. Versions
 
