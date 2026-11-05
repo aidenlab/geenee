@@ -6,7 +6,7 @@ Work top to bottom. A ticket can start once everything in its **After** column i
 
 ## Before starting
 
-- [ ] Tell David Weisz about juicebox-mcp #20 and #21 (Juicebot production is not touched)
+- [x] Tell David Weisz about juicebox-mcp #20 and #21 (Juicebot production is not touched)
 
 ## 1. Versions
 
@@ -14,18 +14,18 @@ Each Deployment reports `tag (sha)` on prod, `branch (sha)` on dev. All four can
 
 | Done | Ticket | What | After |
 |:-:|---|---|---|
-| [ ] | [geenee#61](https://github.com/aidenlab/geenee/issues/61) | geenee reports tag or branch and commit | — |
-| [ ] | [igvjs-mcp#48](https://github.com/aidenlab/igvjs-mcp/issues/48) | igv reports tag or branch and commit | — |
-| [ ] | [juicebox-mcp#19](https://github.com/aidenlab/juicebox-mcp/issues/19) | Juicebox reports tag or branch and commit | — |
-| [ ] | [spacewalk-mcp#59](https://github.com/aidenlab/spacewalk-mcp/issues/59) | Spacewalk reports tag or branch and commit | — |
+| [x] | [geenee#61](https://github.com/aidenlab/geenee/issues/61) | geenee reports tag or branch and commit | — |
+| [x] | [igvjs-mcp#48](https://github.com/aidenlab/igvjs-mcp/issues/48) | igv reports tag or branch and commit | — |
+| [x] | [juicebox-mcp#19](https://github.com/aidenlab/juicebox-mcp/issues/19) | Juicebox reports tag or branch and commit | — |
+| [x] | [spacewalk-mcp#59](https://github.com/aidenlab/spacewalk-mcp/issues/59) | Spacewalk reports tag or branch and commit | — |
 
 ## 2. dev renames
 
 | Done | Ticket | What | After |
 |:-:|---|---|---|
-| [ ] | [igvjs-mcp#49](https://github.com/aidenlab/igvjs-mcp/issues/49) | New dev at `igv-mcp-dev` / `igv-viewer-dev`; no custom domain; close #15 | — |
-| [ ] | [juicebox-mcp#20](https://github.com/aidenlab/juicebox-mcp/issues/20) | New dev at `juicebox-view-mcp-dev` / `juicebox-view-dev` | — |
-| [ ] | [geenee#62](https://github.com/aidenlab/geenee/issues/62) | geenee dev and prod forward to the new dev names; delete the old igv and Juicebox dev Deployments ⚠ | igvjs-mcp#49, juicebox-mcp#20 |
+| [x] | [igvjs-mcp#49](https://github.com/aidenlab/igvjs-mcp/issues/49) | New dev at `igv-mcp-dev` / `igv-viewer-dev`; no custom domain; close #15 | — |
+| [x] | [juicebox-mcp#20](https://github.com/aidenlab/juicebox-mcp/issues/20) | New dev at `juicebox-view-mcp-dev` / `juicebox-view-dev` | — |
+| [x] | [geenee#62](https://github.com/aidenlab/geenee/issues/62) | geenee dev and prod forward to the new dev names; delete the old igv and Juicebox dev Deployments ⚠ | igvjs-mcp#49, juicebox-mcp#20 |
 
 ## 3. prod Upstreams
 
