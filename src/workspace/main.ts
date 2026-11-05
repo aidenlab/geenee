@@ -166,17 +166,18 @@ async function open(): Promise<void> {
 }
 
 /**
- * Shows a deployed build's number and its Connector's address at the right end
- * of the tab bar, so a person testing it can tell which build is live and what
- * to add as a connector. The Worker serves both, so the Connector is this
- * page's /mcp. `npm run dev` has no build number, and shows none.
+ * Shows a deployed build's version, its tag or branch and commit, and its
+ * Connector's address at the right end of the tab bar, so a person testing it
+ * can tell which build is live and what to add as a connector. The Worker
+ * serves both, so the Connector is this page's /mcp. `npm run dev` has no
+ * version, and shows none.
  */
-function showBuild(): void {
-  const build = import.meta.env.VITE_BUILD
-  if (!build) return
+function showVersion(): void {
+  const version = import.meta.env.VITE_VERSION
+  if (!version) return
   const label = document.createElement('p')
-  label.className = 'build'
-  label.textContent = `Build ${build} · ${new URL('/mcp', location.href)}`
+  label.className = 'version'
+  label.textContent = `${version} · ${new URL('/mcp', location.href)}`
   document.body.append(label)
 }
 
@@ -185,6 +186,6 @@ if (!handOffOnPhone()) {
     tab.addEventListener('click', () => show(tab.dataset.viewer as ViewerKey))
   }
   show('igv')
-  showBuild()
+  showVersion()
   void open()
 }

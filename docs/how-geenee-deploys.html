@@ -297,7 +297,7 @@ pre {
       <li>The Workspace page: <code>index.html</code> and its JavaScript and CSS, served by the same Worker.</li>
       <li>The Worker’s settings: the three Upstream addresses, the binding to the Room Durable Object, logging.</li>
       <li>The code of the Room Durable Object, which is part of the Worker.</li>
-      <li>The build number the Connector and the Workspace report.</li>
+      <li>The version the Connector and the Workspace report.</li>
     </ul>
   </section>
   <section class="kept">
@@ -531,16 +531,16 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><td class="n">3</td><th>Install</th><td><code>npm ci</code>: installs exactly what <code>package-lock.json</code> says, from scratch.</td></tr>
     <tr><td class="n">4</td><th>Type-check</th><td><code>npm run typecheck</code>: regenerates the Worker’s types from <code>wrangler.toml</code>, then type-checks the Worker and tests, and the Workspace separately.</td></tr>
     <tr><td class="n">5</td><th>Test</th><td><code>npm run test:run</code>: the whole suite, against stand-in Upstreams. No network.</td></tr>
-    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_BUILD</code> set to the build number from <code>scripts/build-number.sh</code>. Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
+    <tr><td class="n">6</td><th>Build</th><td><code>npm run deploy:prod</code> (or <code>deploy:dev</code>) first runs <code>vite build</code> with <code>CLOUDFLARE_ENV</code> set to that environment of <code>wrangler.toml</code>, and with <code>VITE_VERSION</code> set to the version from <code>scripts/version.sh</code>: the ref’s tag or branch and its short commit. The worktree is detached, so the script hands it the ref it was given (for <code>HEAD</code>, the branch you are on). Cloudflare’s Vite plugin writes two folders: <code>dist/geenee/</code>, the bundled Worker with a <code>wrangler.json</code> holding that environment’s settings, and <code>dist/client/</code>, the Workspace page.</td></tr>
     <tr><td class="n">7</td><th>Deploy</th><td>The same npm script then runs <code>wrangler deploy</code>, which uploads what step 6 built as a new version of the Worker and makes it live. See <a href="#upload">What one upload contains</a>.</td></tr>
-    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must contain this commit’s short hash, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: the Juicebox Viewer address must be the juicebox-view page, and the Spacewalk Viewer address must be <code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code>, or the script fails. Check (c) needs the Juicebox and Spacewalk Upstreams to be up.</td></tr>
+    <tr><td class="n">8</td><th>Check</th><td>Three requests to the live address. (a) An MCP <code>initialize</code> to <code>/mcp</code>: the version it reports must be this build’s, its tag or branch and short commit, or the script fails. (b) <code>tools/list</code>: counts the tools and prints the number. 55 means all three Upstreams answered; this one is not a failure if it is lower. (c) <code>open_geenee</code> opens a Room, then <code>GET /viewers</code> for it: the Juicebox Viewer address must be the juicebox-view page, and the Spacewalk Viewer address must be <code>https://spacewalk-viewer-dev.pages.dev/viewer.html</code>, or the script fails. Check (c) needs the Juicebox and Spacewalk Upstreams to be up.</td></tr>
   </tbody>
 </table>
 </div>
 
 <p>When it succeeds, the last line names the build, the Connector URL, the number of tools, and the Juicebox and Spacewalk Viewer pages:</p>
 
-<pre>deployed build 24 (1c33760, 2026-10-22 10:41 EDT) to prod at https://geenee.3dg.io: …</pre>
+<pre>deployed prod-2026-11-12 (a1b2c3d) to prod at https://geenee.3dg.io: …</pre>
 
 <h2 id="upload">What one upload contains</h2>
 
@@ -556,7 +556,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
     <tr><th>Durable Object binding</th><td><code>ROOM</code> → class <code>Room</code></td><td>Unchanged in practice: the same binding each time.</td></tr>
     <tr><th>Migration</th><td><code>[[migrations]] tag = "v1"</code>: “<code>Room</code> is a Durable Object class with SQLite storage”</td><td>Applied once, on the first deploy. Cloudflare remembers that <code>v1</code> ran, so later deploys skip it.</td></tr>
     <tr><th>Route</th><td><code>geenee.3dg.io</code> or <code>geenee-dev.3dg.io</code> as a custom domain</td><td>Created, with its DNS record, on the first deploy. Kept after that.</td></tr>
-    <tr><th>Build number</th><td><code>VITE_BUILD</code>, written into both the Worker code and the Workspace JavaScript at build time</td><td>Replaced, because it is part of the code.</td></tr>
+    <tr><th>Version</th><td><code>VITE_VERSION</code>, written into both the Worker code and the Workspace JavaScript at build time</td><td>Replaced, because it is part of the code.</td></tr>
     <tr><th>Logging</th><td><code>observability.logs.enabled = true</code></td><td>Kept on.</td></tr>
   </tbody>
 </table>
@@ -576,7 +576,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
   <tbody>
     <tr><th>A Host calling <code>/mcp</code></th><td>The next request runs the new code. geenee keeps no state between MCP requests, so nothing is lost.</td></tr>
     <tr><th>A Room Durable Object</th><td>Restarted on the new code. Its open WebSockets are closed. Its storage, the <code>lastUse</code> report, is untouched.</td></tr>
-    <tr><th>An open Workspace</th><td>Its socket to <code>/ws</code> drops. It rejoins after 1 s, then 2 s, and so on up to 5 s between tries. On rejoining it is told the last report again, and acts on it only if it had not seen it. <b>It is still the old Workspace code</b>: reload the tab to get the new page and the new build number.</td></tr>
+    <tr><th>An open Workspace</th><td>Its socket to <code>/ws</code> drops. It rejoins after 1 s, then 2 s, and so on up to 5 s between tries. On rejoining it is told the last report again, and acts on it only if it had not seen it. <b>It is still the old Workspace code</b>: reload the tab to get the new page and the new version.</td></tr>
     <tr><th>The Viewers inside it</th><td>Not affected. Each is a frame loaded from its own Pages project and connected to its own Upstream, neither of which changed. The genome, the map and everything on screen stay as they were.</td></tr>
     <tr><th>The model’s Room id</th><td>Still good. A Room is found by name (<code>idFromName(room)</code>), so the same id reaches the same Room and the same storage on the new version.</td></tr>
     <tr><th>The Host’s view of geenee</th><td>geenee asks the Upstreams for their tools afresh on every request. But a Host usually reads geenee’s tool list and server instructions when a conversation connects, so after changing tool names, descriptions or <code>INSTRUCTIONS</code>, start a new conversation to be sure the model sees them.</td></tr>
@@ -637,7 +637,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 
 <h2 id="live">Which build is live?</h2>
 
-<p>Every deploy is stamped with a build number: the commit count, the short hash, and the time of the build, for example <code>24 (1c33760, 2026-10-22 10:41 EDT)</code>. The count and hash say which code; the time says which deploy. You can read it in three places:</p>
+<p>Every deploy is stamped with its version: the tag or branch it was built from and its short commit, for example <code>prod-2026-11-12 (a1b2c3d)</code> on prod and <code>main (d4e5f6a)</code> on dev. Both come from git at build time; nothing is bumped by hand. You can read it in three places:</p>
 
 <ul>
   <li><b>The Workspace</b> shows it at the right end of its tab bar, with the Connector URL. Remember that an open tab shows the build it was loaded with; reload to see the live one.</li>
@@ -655,7 +655,7 @@ scripts/deploy.sh my-branch           # any branch, tag or commit</pre>
 <table>
   <thead><tr><th>Situation</th><th>What to know</th></tr></thead>
   <tbody>
-    <tr><th>You run <code>npm run deploy:prod</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. The build number then ends in <code>-dirty</code>. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
+    <tr><th>You run <code>npm run deploy:prod</code> directly</th><td>It builds and deploys your <em>working copy</em>, uncommitted edits included, with no type-check, no tests and no final checks. Its version then has <code>-dirty</code> after the commit. It is the fastest loop, and also the easiest way to ship something you did not mean to. It writes your local <code>dist/</code>; the script does not.</td></tr>
     <tr><th>Step 8 fails</th><td>The new build is already live. A version mismatch usually means the upload did not go through; a Juicebox or Spacewalk page mismatch usually means that Upstream is down or is pointing at another page.</td></tr>
     <tr><th>The tool count is below 55</th><td>An Upstream did not answer. geenee still works with the others. Not a failure of the deploy.</td></tr>
     <tr><th>You want to undo a deploy</th><td>Run the script again with the earlier commit: <code>scripts/deploy.sh &lt;ref&gt;</code>. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env prod</code>), but redeploying a ref keeps git as the record of what is live.</td></tr>
