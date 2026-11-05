@@ -32,10 +32,10 @@ body {
   border-bottom: 1px solid var(--edge);
 }
 
-/* A deployed build's number and Connector address, over the right end of the
+/* A deployed build's version and Connector address, over the right end of the
    tab bar: the bar is a tablist, so it holds nothing but tabs. Selectable, so
    the address can be copied. */
-.build {
+.version {
   position: absolute;
   top: 0;
   right: 12px;

@@ -240,7 +240,7 @@ export function createGeenee({ igvUpstream, juiceboxUpstream, spacewalkUpstream,
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
-    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_BUILD ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
+    const server = new Server({ name: 'geenee', version: import.meta.env.VITE_VERSION ?? '0.0.0' }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
     // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       resources: [{ uri: CARD_URI, name: 'geenee card', mimeType: CARD_MIME_TYPE, _meta: CARD_META }],

@@ -81,7 +81,13 @@ npm ci --no-audit --no-fund --loglevel=error
 npm run typecheck
 npm run test:run
 # deploy:<env> in package.json builds that environment of wrangler.toml (CLOUDFLARE_ENV), and
-# `wrangler deploy` then deploys what was built.
+# `wrangler deploy` then deploys what was built. The worktree is detached, so the version
+# (scripts/version.sh) takes its tag or branch from GEENEE_REF.
+# HEAD names the branch checked out here, if there is one.
+GEENEE_REF="$REF"
+[[ "$REF" == HEAD ]] && GEENEE_REF="$(git -C "$REPO_ROOT" symbolic-ref --short -q HEAD || echo HEAD)"
+export GEENEE_REF
+version="$(scripts/version.sh)"
 npm run "deploy:$DEPLOYMENT"
 
 mcp() {
@@ -89,11 +95,11 @@ mcp() {
     -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d "$1"
 }
 
-# The deployed Connector should be this build: it gives its build number as its version.
-build="$(mcp '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"deploy-test","version":"0"}}}' \
+# The deployed Connector should be this build: it gives its tag or branch and commit as its version.
+live_version="$(mcp '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"deploy-test","version":"0"}}}' \
   | sed -n 's/.*"serverInfo":{[^}]*"version":"\([^"]*\)".*/\1/p')"
-if [[ "$build" != *"($(git rev-parse --short HEAD),"* ]]; then
-  echo "the Connector at $ADDRESS/mcp is not this build: it gives its version as '$build'" >&2
+if [[ "$live_version" != "$version" ]]; then
+  echo "the Connector at $ADDRESS/mcp is not this build, $version: it gives its version as '$live_version'" >&2
   exit 1
 fi
 
@@ -115,4 +121,4 @@ if [[ "$viewers" != *"\"spacewalk\":\"$SPACEWALK_PAGE"* ]]; then
   exit 1
 fi
 
-echo "deployed build $build to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE and its Spacewalk Viewer is $SPACEWALK_PAGE"
+echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (55 with all three Upstreams reachable); its Juicebox Viewer is $JUICEBOX_PAGE and its Spacewalk Viewer is $SPACEWALK_PAGE"
