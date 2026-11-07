@@ -54,7 +54,7 @@ describe('open_geenee', () => {
     expect(tool._meta).toEqual({ ui: { resourceUri: 'ui://geenee/open' }, 'ui/resourceUri': 'ui://geenee/open' })
   })
 
-  it('serves the Card, with Open geenee as its button', async () => {
+  it('serves the Card, with Open Geenee as its button', async () => {
     const { rpc } = geenee()
 
     const listed = await rpc<{ resources: Array<{ uri: string; mimeType: string }> }>('resources/list')
@@ -63,8 +63,8 @@ describe('open_geenee', () => {
     expect(listed.result!.resources).toEqual([expect.objectContaining({ uri: 'ui://geenee/open', mimeType: 'text/html;profile=mcp-app' })])
     const [card] = read.result!.contents
     expect(card.mimeType).toBe('text/html;profile=mcp-app')
-    expect(card.text).toContain('<button id="open" hidden>Open geenee</button>')
-    expect(card.text).toContain('geenee should open in the panel on the right; if it does not, press Open geenee.')
+    expect(card.text).toMatch(/<button id="open" hidden><img src="data:image\/png;base64,[^"]+" alt="">Open Geenee<\/button>/)
+    expect(card.text).toContain('geenee should open in the panel on the right; if it does not, press Open Geenee.')
     expect(card.text).not.toContain('<details') // the link and QR code are always shown, not tucked away
     expect(card.text).not.toContain('geenee room') // a Room id means nothing to a person
     expect(card.text).toContain('$("link").onclick = (e) => open(e, roomLink)') // a plain link does nothing in the Card's sandbox

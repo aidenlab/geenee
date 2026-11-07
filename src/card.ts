@@ -31,10 +31,10 @@ export const CARD_HTML = `<!DOCTYPE html>
   :root[data-theme="light"] { color-scheme: light; }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 1rem/1.5 var(--serif); }
   #text { display: flex; flex-direction: column; gap: 12px; min-width: 200px; }
-  /* geenee's icon leads the message; Show large puts it, with the name, over the QR code. */
-  #head { display: flex; align-items: center; gap: 8px; }
-  #mark { flex: none; width: 24px; height: 24px; }
-  #name { display: none; font: 600 2rem/1 var(--sans); letter-spacing: -0.01em; }
+  /* geenee's icon is on Open Geenee; Show large puts it, with the name, over the QR code. */
+  #head { display: none; align-self: center; align-items: center; gap: 12px; }
+  #head img { width: 64px; height: 64px; }
+  #name { font: 600 2rem/1 var(--sans); letter-spacing: -0.01em; }
   #status { text-wrap: pretty; }
   a { align-self: flex-start; font: 0.85rem var(--mono); color: var(--muted); overflow-wrap: anywhere; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
   a:hover { color: var(--fg); text-decoration-color: currentColor; }
@@ -42,6 +42,10 @@ export const CARD_HTML = `<!DOCTYPE html>
     align-self: flex-start; padding: 0.6rem 1.1rem; cursor: pointer;
     font: 500 0.95rem var(--sans); color: var(--bg); background: var(--fg); border: 1px solid var(--fg); border-radius: 4px;
   }
+  /* Open Geenee: an outline on the Card's own background, darkening under the pointer, the icon beside its name. */
+  #open:not([hidden]) { display: inline-flex; align-items: center; gap: 10px; padding: 0.5rem 1.25rem 0.5rem 0.9rem; font-size: 1.05rem; color: var(--fg); background: var(--bg); }
+  #open:hover { background: color-mix(in srgb, var(--fg) 8%, var(--bg)); }
+  #open img { width: 36px; height: 36px; }
   button.quiet { padding: 0.35rem 0.8rem; font-size: 0.85rem; color: var(--fg); background: transparent; border-color: var(--rule); }
   :is(button, a):focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
   #code { display: flex; gap: 12px; }
@@ -50,9 +54,7 @@ export const CARD_HTML = `<!DOCTYPE html>
   #hint { font: 0.85rem/1.45 var(--sans); color: var(--muted); }
   /* Show large: the QR code fills the Card, the Guests' line under it, and the way back. */
   body.large :is(#status, #open, #link) { display: none; }
-  body.large #head { align-self: center; gap: 12px; }
-  body.large #mark { width: 64px; height: 64px; }
-  body.large #name { display: block; }
+  body.large #head { display: flex; }
   body.large :is(#text, #code) { align-items: center; }
   body.large button { align-self: center; }
   body.large #code { flex-direction: column; width: 100%; }
@@ -63,8 +65,9 @@ export const CARD_HTML = `<!DOCTYPE html>
 <body>
 <!-- One message and three ways to open, all shown at once: the button, the link, the QR code. -->
 <div id="text">
-  <div id="head"><img id="mark" src="${ICON_DATA_URI}" alt=""><span id="name">geenee</span><div id="status">Waiting for the geenee link…</div></div>
-  <button id="open" hidden>Open geenee</button>
+  <div id="head"><img src="${ICON_DATA_URI}" alt=""><span id="name">geenee</span></div>
+  <div id="status">Waiting for the geenee link…</div>
+  <button id="open" hidden><img src="${ICON_DATA_URI}" alt="">Open Geenee</button>
   <a id="link" href="#" target="_blank" rel="noopener" hidden></a>
   <div id="code"><img id="qr" alt="QR code of the Room link" hidden><button id="large" class="quiet" aria-pressed="false" hidden>Show large</button></div>
   <div id="hint" hidden>Guests: scan to join this Room on your laptop. Expires after a day without use.</div>
@@ -107,7 +110,7 @@ export const CARD_HTML = `<!DOCTYPE html>
     $("status").textContent = openFailed
       ? "Could not open geenee from here: use the link below or scan the code."
       : desktop
-      ? "geenee should open in the panel on the right; if it does not, press Open geenee. If asked, choose to always allow this website."
+      ? "geenee should open in the panel on the right; if it does not, press Open Geenee. If asked, choose to always allow this website."
       : "geenee is ready.";
     $("open").hidden = false;
     $("link").textContent = roomLink; $("link").href = roomLink; $("link").hidden = false;

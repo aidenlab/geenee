@@ -35,12 +35,13 @@ describe("geenee's icon", () => {
     }
   })
 
-  it('leads the Card\'s message, and heads Show large with geenee\'s name, outside the QR code', async () => {
+  it('is on the Card\'s Open Geenee button, and heads Show large with geenee\'s name, outside the QR code', async () => {
     const read = await geenee().rpc<{ contents: Array<{ text: string }> }>('resources/read', { uri: 'ui://geenee/open' })
 
     const card = read.result!.contents[0].text
-    expect(card).toContain('<div id="head"><img id="mark" src="data:image/png;base64,')
-    expect(card).toContain('<span id="name">geenee</span>')
-    expect(card).toContain('body.large #name { display: block; }')
+    expect(card).toMatch(/<button id="open" hidden><img src="data:image\/png;base64,[^"]+" alt="">Open Geenee<\/button>/)
+    expect(card).toMatch(/<div id="head"><img src="data:image\/png;base64,[^"]+" alt=""><span id="name">geenee<\/span><\/div>/)
+    expect(card).toContain('body.large #head { display: flex; }')
+    expect(card).not.toMatch(/<div id="status">[^<]*<img/) // the message itself carries no icon
   })
 })
