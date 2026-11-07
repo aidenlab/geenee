@@ -29,6 +29,7 @@ import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
 import { getGeeneePage } from './getGeenee.ts'
 import { handOffPage } from './handOff.ts'
+import { serverIcons } from './icon.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
@@ -244,7 +245,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
 
   /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
-    const server = new Server({ name: 'geenee', version }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
+    const server = new Server({ name: 'geenee', version, icons: serverIcons(new URL(request.url).origin) }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
     // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       resources: [{ uri: CARD_URI, name: 'geenee card', mimeType: CARD_MIME_TYPE, _meta: CARD_META }],

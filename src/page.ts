@@ -3,6 +3,7 @@
  * Room, Get geenee, the Hand-off): the visual language of docs/how-geenee-works.html, in light and
  * dark, a Copy button, and the switch between a Room's Hand-off and Get geenee.
  */
+import { ICON_LINKS } from './icon.ts'
 import { handOffPath } from './roomId.ts'
 
 export const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
@@ -104,6 +105,7 @@ export function page({ title, description, style = '', body }: { title: string; 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${title}</title>${description ? `\n<meta name="description" content="${description}">` : ''}
+${ICON_LINKS}
 <link rel="stylesheet" href="${FONTS}">
 <style>${STYLE}${style}</style>
 </head>
