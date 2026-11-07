@@ -61,5 +61,5 @@ The page that tells a person what geenee is and how to add it as a Connector to 
 _Avoid_: Install page, signup, landing page
 
 **Card**:
-What a Host shows in the conversation when geenee is opened: a short message, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.
+What a Host shows in the conversation when geenee is opened: a short message led by geenee's icon, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card under geenee's icon and name, for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.
 _Avoid_: Screen, view, widget

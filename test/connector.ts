@@ -71,7 +71,7 @@ export function geenee({ opened = [], version = 'main (1234567)' }: { opened?: s
     rpc,
     async initialize() {
       const params = { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '0' } }
-      return (await rpc<{ instructions?: string; serverInfo: { name: string } }>('initialize', params)).result!
+      return (await rpc<{ instructions?: string; serverInfo: { name: string; icons?: Array<{ src: string; mimeType?: string; sizes?: string[] }> } }>('initialize', params)).result!
     },
     async listTools() {
       return (await rpc<{ tools: Tool[] }>('tools/list')).result!.tools

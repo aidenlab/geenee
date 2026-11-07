@@ -8,6 +8,7 @@
  * the user's own browser. The Workspace itself is not framed here: Claude's
  * sandbox forbids framing other origins.
  */
+import { ICON_DATA_URI } from './icon.ts'
 import { FONTS, TOKENS } from './page.ts'
 
 export const CARD_URI = 'ui://geenee/open'
@@ -16,7 +17,7 @@ export const CARD_MIME_TYPE = 'text/html;profile=mcp-app'
 /** Client bundle the Card loads, as in Claude's no-build MCP Apps quickstart. */
 const APP_CLIENT = 'https://unpkg.com/@modelcontextprotocol/ext-apps@1.7.5/dist/src/app-with-deps.js'
 
-/** `_meta` for the resource: the sandbox may load the client and the fonts (Google's stylesheet and the font files it names); the QR is a data: image. */
+/** `_meta` for the resource: the sandbox may load the client and the fonts (Google's stylesheet and the font files it names); the QR and the icon are data: images. */
 export const CARD_META = { ui: { csp: { resourceDomains: [new URL(APP_CLIENT).origin, new URL(FONTS).origin, 'https://fonts.gstatic.com'] } } }
 
 /** `_meta` for the tool: the current key and the flat one older Hosts read. */
@@ -30,6 +31,10 @@ export const CARD_HTML = `<!DOCTYPE html>
   :root[data-theme="light"] { color-scheme: light; }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg); font: 1rem/1.5 var(--serif); }
   #text { display: flex; flex-direction: column; gap: 12px; min-width: 200px; }
+  /* geenee's icon leads the message; Show large puts it, with the name, over the QR code. */
+  #head { display: flex; align-items: center; gap: 8px; }
+  #mark { flex: none; width: 24px; height: 24px; }
+  #name { display: none; font: 600 2rem/1 var(--sans); letter-spacing: -0.01em; }
   #status { text-wrap: pretty; }
   a { align-self: flex-start; font: 0.85rem var(--mono); color: var(--muted); overflow-wrap: anywhere; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
   a:hover { color: var(--fg); text-decoration-color: currentColor; }
@@ -41,21 +46,24 @@ export const CARD_HTML = `<!DOCTYPE html>
   :is(button, a):focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
   #code { display: flex; gap: 12px; }
   /* White all round in either theme: the padding is the quiet zone a scanner needs. */
-  img { box-sizing: border-box; width: 160px; height: auto; aspect-ratio: 1; padding: 8px; image-rendering: pixelated; background: #fff; border-radius: 4px; }
+  #qr { box-sizing: border-box; width: 160px; height: auto; aspect-ratio: 1; padding: 8px; image-rendering: pixelated; background: #fff; border-radius: 4px; }
   #hint { font: 0.85rem/1.45 var(--sans); color: var(--muted); }
   /* Show large: the QR code fills the Card, the Guests' line under it, and the way back. */
   body.large :is(#status, #open, #link) { display: none; }
+  body.large #head { align-self: center; gap: 12px; }
+  body.large #mark { width: 64px; height: 64px; }
+  body.large #name { display: block; }
   body.large :is(#text, #code) { align-items: center; }
   body.large button { align-self: center; }
   body.large #code { flex-direction: column; width: 100%; }
-  body.large img { width: min(100%, 36rem); padding: 7%; } /* about four modules of quiet zone */
-  :root[data-mode="fullscreen"] body.large img { width: min(100%, calc(100vh - 9rem)); }
+  body.large #qr { width: min(100%, 36rem); padding: 7%; } /* about four modules of quiet zone */
+  :root[data-mode="fullscreen"] body.large #qr { width: min(100%, calc(100vh - 14rem)); }
   body.large #hint { font-size: 1.1rem; text-align: center; }
 </style></head>
 <body>
 <!-- One message and three ways to open, all shown at once: the button, the link, the QR code. -->
 <div id="text">
-  <div id="status">Waiting for the geenee link…</div>
+  <div id="head"><img id="mark" src="${ICON_DATA_URI}" alt=""><span id="name">geenee</span><div id="status">Waiting for the geenee link…</div></div>
   <button id="open" hidden>Open geenee</button>
   <a id="link" href="#" target="_blank" rel="noopener" hidden></a>
   <div id="code"><img id="qr" alt="QR code of the Room link" hidden><button id="large" class="quiet" aria-pressed="false" hidden>Show large</button></div>
