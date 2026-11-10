@@ -2,9 +2,10 @@
  * The Hand-off, the page at /h/<Room id> (#23): where a Room link opened on a
  * phone goes, since geenee is too small to use on one. It shows the Room link
  * and the ways to send it on to a computer: email, the phone's own share sheet,
- * and copy. The Workspace sends a phone here from a Room link (workspace/phone.ts).
+ * and copy, and the way to get geenee. The Workspace sends a phone here from a
+ * Room link (workspace/phone.ts).
  */
-import { COPY_SCRIPT, escapeHtml, getGeeneePath, page, roomSwitch } from './page.ts'
+import { COPY_SCRIPT, escapeHtml, INSTALL_PATH, page } from './page.ts'
 import { roomLinkPath } from './roomId.ts'
 
 const EXPIRES = 'Expires after a day without use.'
@@ -26,7 +27,7 @@ function emailLink(roomLink: string, getGeenee: string): string {
 /** The Hand-off of `room`, a parsed Room id, for the geenee at `origin`. */
 export function handOffPage(origin: string, room: string): string {
   const roomLink = new URL(roomLinkPath(room), origin).toString()
-  const getGeenee = new URL('/get', origin).toString()
+  const getGeenee = new URL(INSTALL_PATH, origin).toString()
   return page({
     title: 'Your geenee Room',
     style: `
@@ -41,7 +42,7 @@ footer { display: flex; flex-direction: column; align-items: flex-start; font: 5
 footer a { padding-block: 0.65rem; color: var(--fg); text-decoration-color: currentColor; text-wrap: balance; }
 `,
     body: `<main>
-  ${roomSwitch(room, 'room')}
+  <p class="brand">geenee</p>
   <h1>Send this link to your computer</h1>
   <p class="lede">You've been invited to a live geenee Room. It's built for a laptop or desktop. Email or text yourself the link, then open it there.</p>
 
@@ -57,7 +58,7 @@ footer a { padding-block: 0.65rem; color: var(--fg); text-decoration-color: curr
 
   <footer>
     <a href="/?room=${room}">Open here anyway</a>
-    <a href="${getGeeneePath(room)}">Get geenee for your own Claude or ChatGPT →</a>
+    <a href="${INSTALL_PATH}">Get geenee for your own Claude or ChatGPT →</a>
   </footer>
 </main>
 ${COPY_SCRIPT}

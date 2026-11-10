@@ -37,7 +37,7 @@ describe('the Hand-off', () => {
     const body = email.searchParams.get('body')!
     expect(body).toContain('https://geenee.test/r/7ZQH4M2K9X')
     expect(body).toContain('Expires after a day without use.')
-    expect(body).toContain('https://geenee.test/get')
+    expect(body).toContain('Get geenee: https://geenee.test/install')
   })
 
   it('offers to share and to copy the Room link', async () => {
@@ -47,19 +47,19 @@ describe('the Hand-off', () => {
     expect(page).toContain('Copy link')
   })
 
-  it('opens the Workspace here anyway, and leads to Get geenee', async () => {
+  it('opens the Workspace here anyway, and leads to the install address', async () => {
     const page = await handOff()
 
     expect(page).toContain('href="/?room=7ZQH4M2K9X"')
-    expect(page).toContain('href="/get?room=7ZQH4M2K9X"')
-    expect(page).toContain('Get geenee for your own Claude or ChatGPT →')
+    expect(page).toContain('<a href="/install">Get geenee')
   })
 
-  it('switches to Get geenee at the top of the page, and is the page it is on', async () => {
+  it('has no switch between the Room and Get geenee: a Guest uses the back button', async () => {
     const page = await handOff()
 
-    expect(page).toContain('<span aria-current="page">Your Room</span>')
-    expect(page).toContain('<a href="/get?room=7ZQH4M2K9X">Get geenee</a>')
+    expect(page).toContain('<p class="brand">geenee</p>')
+    expect(page).not.toContain('<nav')
+    expect(page).not.toContain('/get')
   })
 
   it('with a malformed Room id, gets the page saying so', async () => {

@@ -117,7 +117,7 @@ describe("an expired Room's link", () => {
       const page = await response.text()
       expect(page).toContain('<title>This geenee Room has expired</title>')
       expect(page).toContain('<h1>This Room has expired</h1>')
-      expect(page).toContain('<a class="button" href="/get">Get geenee</a>')
+      expect(page).toContain('<a class="button" href="/install">Get geenee</a>')
     })
   }
 

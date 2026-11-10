@@ -26,7 +26,7 @@ describe("geenee's icon", () => {
   })
 
   it('is the tab icon of the Workspace and of geenee\'s own pages', async () => {
-    const page = await (await geenee().handle(new Request(`${GEENEE}/get`))).text()
+    const page = await (await geenee().handle(new Request(`${GEENEE}/r/not-a-room`))).text()
     const workspace = readFileSync(repoFile('index.html'), 'utf8')
 
     for (const html of [page, workspace]) {
