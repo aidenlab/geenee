@@ -318,7 +318,15 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
   }
 
   return async (request) => {
+    const response = await route(request)
+    // A HEAD gets a page's status and headers without its body, as link checkers and link previews ask.
+    return request.method === 'HEAD' ? new Response(null, response) : response
+  }
+
+  async function route(request: Request): Promise<Response> {
     const url = new URL(request.url)
+    // geenee's pages answer HEAD as they answer GET; its endpoints for the Workspace answer only GET.
+    const page = request.method === 'GET' || request.method === 'HEAD'
     if (url.pathname === '/mcp') {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS })
       if (request.method !== 'POST') {
@@ -353,7 +361,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       return Response.json(Object.fromEntries(connected))
     }
     const roomLink = inRoomLinkPath(url.pathname)
-    if (roomLink !== null && request.method === 'GET') {
+    if (roomLink !== null && page) {
       const room = parseRoomId(roomLink)
       if (!room) return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
       if (await roomRecord(room).expired(now())) return pageResponse(EXPIRED_ROOM_HTML, 410)
@@ -361,17 +369,17 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       return workspacePage(request)
     }
     const handOff = inHandOffPath(url.pathname)
-    if (handOff !== null && request.method === 'GET') {
+    if (handOff !== null && page) {
       const room = parseRoomId(handOff)
       if (!room) return pageResponse(MALFORMED_ROOM_LINK_HTML, 404)
       if (await roomRecord(room).expired(now())) return pageResponse(EXPIRED_ROOM_HTML, 410)
       return pageResponse(handOffPage(url.origin, room))
     }
     // /get is the old address, kept because Hand-off emails already sent contain it.
-    if ((url.pathname === '/install' || url.pathname === '/get') && request.method === 'GET') {
+    if ((url.pathname === '/install' || url.pathname === '/get') && page) {
       return Response.redirect(INSTALL_PAGE, 302)
     }
-    if (url.pathname === '/versions' && request.method === 'GET') {
+    if (url.pathname === '/versions' && page) {
       // Asked anew on every load, as an Upstream can be released without geenee being deployed (ADR 0004).
       const upstreams = await Promise.all(
         targets.map(async ({ viewer, upstream }) => ({
