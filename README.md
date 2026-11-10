@@ -2,6 +2,8 @@
 
 Drive the [igv.js](https://github.com/igvteam/igv.js) genome browser, the [Juicebox](https://github.com/aidenlab/juicebox.js) contact-map viewer and the [Spacewalk](https://github.com/aidenlab/spacewalk) 3D chromatin viewer from one Claude or ChatGPT conversation, shown together beside it.
 
+<img src="docs/images/workspace.png" width="720" alt="geenee showing a Juicebox Hi-C contact map of GM12878 around MYC on chromosome 8, with tabs for IGV, Juicebox and Spacewalk, each marked connected">
+
 ## Install
 
 **[geenee.3dg.io/install](https://geenee.3dg.io/install)**
