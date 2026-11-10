@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>geenee’s addresses</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* The visual language of how-geenee-works.html: one 38rem reading column, tables across the page. Ink for geenee, blue for igv, red for Juicebox, green for Spacewalk. */
+:root {
+  --bg: #f5f6f4; --box: #ffffff; --fg: #1b1d1c; --muted: #636966; --rule: #cdd2ce;
+  --igv: #2a5f9e; --jb: #b8231a; --sw: #2e7d4f;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d; --igv: #7fadea; --jb: #ff7566; --sw: #6cc58f; color-scheme: dark; }
+}
+
+body { margin: 0; background: var(--bg); color: var(--fg); font: 1.0625rem/1.6 var(--serif); }
+.page {
+  max-width: 64rem; margin-inline: auto;
+  padding: 2.5rem max(16px, env(safe-area-inset-right, 0px)) 5rem max(16px, env(safe-area-inset-left, 0px));
+}
+.page :is(h1, h2, h3, p, ol, ul) { max-width: 38rem; }
+
+h1 { font: 600 2rem/1.15 var(--sans); letter-spacing: -0.01em; margin: 0 0 0.75rem; text-wrap: balance; }
+.lede { font-size: 1.2rem; line-height: 1.5; color: var(--muted); margin: 0 0 2rem; }
+h2 {
+  font: 600 1.0625rem var(--sans); margin: 3.25rem 0 0.75rem; padding-top: 0.75rem;
+  border-top: 1px solid var(--fg); text-wrap: balance; scroll-margin-top: 5rem;
+}
+p { margin: 0 0 1rem; }
+ol, ul { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; }
+code { font-family: var(--mono); font-size: 0.84em; }
+a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: currentColor; }
+:is(a, button, input):focus-visible { outline: 2px solid var(--igv); outline-offset: 2px; }
+.igv { color: var(--igv); }
+.jb { color: var(--jb); }
+.sw { color: var(--sw); }
+.muted { color: var(--muted); }
+
+.toc { font: 0.85rem/1.5 var(--sans); margin: 0 0 1rem; padding: 0; list-style: none; columns: 2 14rem; }
+.toc li { margin: 0 0 0.2rem; }
+.toc a { text-decoration: none; color: var(--muted); }
+.toc a:hover { color: var(--fg); }
+
+/* The bar: which Deployment, which Room. Everything below reads from it. */
+.bar {
+  position: sticky; top: 0; z-index: 1;
+  background: var(--bg); border-bottom: 1px solid var(--rule);
+  font: 0.85rem var(--sans);
+}
+.bar .inner {
+  max-width: 64rem; margin-inline: auto;
+  padding: 0.6rem max(16px, env(safe-area-inset-right, 0px)) 0.6rem max(16px, env(safe-area-inset-left, 0px));
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.75rem;
+}
+.bar .name { font: 400 0.85rem var(--mono); color: var(--muted); }
+.field { display: flex; align-items: center; gap: 0.6rem; }
+.field > span { color: var(--muted); }
+.choice { display: flex; gap: 0.15rem; }
+.choice label { cursor: pointer; padding: 0.2rem 0.45rem; border-radius: 3px; color: var(--muted); }
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+.choice input:checked + span { color: var(--fg); font-weight: 600; }
+.choice label:has(input:checked) { background: var(--box); box-shadow: inset 0 0 0 1px var(--rule); }
+.choice label:has(input:focus-visible) { outline: 2px solid var(--igv); outline-offset: 1px; }
+#room {
+  width: 8.5rem; padding: 0.3rem 0.5rem; font: 0.85rem var(--mono); letter-spacing: 0.03em; text-transform: uppercase;
+  color: var(--fg); background: var(--box); border: 1px solid var(--rule); border-radius: 3px;
+}
+#room::placeholder { text-transform: none; letter-spacing: 0; color: var(--muted); font-family: var(--sans); }
+#room[aria-invalid="true"] { border-color: var(--jb); }
+button {
+  padding: 0.3rem 0.7rem; cursor: pointer; font: 500 0.8rem var(--sans);
+  color: var(--bg); background: var(--fg); border: 1px solid var(--fg); border-radius: 3px;
+}
+button.quiet { color: var(--muted); background: transparent; border-color: var(--rule); }
+button.quiet:hover { color: var(--fg); }
+#status { color: var(--muted); }
+#status.error { color: var(--jb); }
+
+/* Tables */
+.tablewrap { overflow-x: auto; margin: 1.25rem 0 1.5rem; }
+table { border-collapse: collapse; width: 100%; font: 0.85rem/1.4 var(--sans); }
+th, td { text-align: left; vertical-align: top; padding: 0.55rem 1.1rem 0.55rem 0; border-bottom: 1px solid var(--rule); }
+thead th { font-weight: 600; border-bottom: 1px solid var(--fg); }
+tbody th { font-weight: 600; white-space: nowrap; }
+tbody tr:last-child :is(th, td) { border-bottom: 0; }
+td.addr { white-space: nowrap; }
+td.addr a, td.addr span { font: 0.82rem var(--mono); }
+a.off { color: var(--muted); }
+td.code { white-space: nowrap; font: 0.8rem var(--mono); color: var(--muted); }
+
+/* Commands */
+.cmd { position: relative; max-width: 50rem; margin: 0.5rem 0 1.5rem; }
+.cmd pre {
+  margin: 0; padding: 0.8rem 5rem 0.8rem 0.9rem; overflow-x: auto;
+  font: 0.8rem/1.55 var(--mono); background: var(--box); border: 1px solid var(--rule); border-radius: 4px;
+}
+.cmd button { position: absolute; top: 0.5rem; right: 0.5rem; }
+.cmd .expect { font: 0.8rem/1.45 var(--sans); color: var(--muted); margin: 0.4rem 0 0; }
+h3 { font: 600 0.95rem var(--sans); margin: 2rem 0 0.25rem; }
+
+.steps { counter-reset: step; list-style: none; padding: 0; max-width: 38rem; }
+.steps > li { counter-increment: step; position: relative; padding-left: 2rem; margin-bottom: 0.9rem; }
+.steps > li::before { content: counter(step); position: absolute; left: 0; font: 600 0.85rem var(--sans); color: var(--muted); }
+
+.end { font: 0.8rem var(--sans); color: var(--muted); margin-top: 3.5rem; max-width: 38rem; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="inner">
+    <span class="name">geenee</span>
+    <div class="field" role="radiogroup" aria-label="Deployment">
+      <span>Deployment</span>
+      <div class="choice">
+        <label><input type="radio" name="deployment" value="prod"><span>prod</span></label>
+        <label><input type="radio" name="deployment" value="dev" checked><span>dev</span></label>
+        <label><input type="radio" name="deployment" value="local"><span>local</span></label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="room"><span class="muted">Room</span></label>
+      <input id="room" placeholder="Room id" maxlength="12" autocomplete="off" spellcheck="false">
+      <button type="button" id="new-room">New Room</button>
+      <span id="status" aria-live="polite"></span>
+    </div>
+  </div>
+</div>
+
+<main class="page">
+<h1>geenee’s addresses</h1>
+<p class="lede">Every address geenee answers at, what each one shows, and the commands to poke at them. Pick a Deployment and a Room above, and every link and command on this page fills in.</p>
+
+<ul class="toc">
+  <li><a href="#room-addresses">A Room’s addresses</a></li>
+  <li><a href="#no-room">Addresses that need no Room</a></li>
+  <li><a href="#terminal">From the terminal</a></li>
+  <li><a href="#walk">A walk through every page</a></li>
+  <li><a href="#behind">Behind geenee: the Upstreams and Viewers</a></li>
+  <li><a href="#tricks">Tricks worth knowing</a></li>
+</ul>
+
+<h2 id="room-addresses">A Room’s addresses</h2>
+<p>A Room is what ties one conversation to its Workspace. Its id is ten letters and digits, and geenee accepts it in either case. Press <b>New Room</b> to open one on the chosen Deployment, the way <code>open_geenee</code> does, or paste an id from a Card.</p>
+
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Address</th><th>What it shows</th><th>Who uses it</th></tr></thead>
+  <tbody>
+    <tr><td class="addr"><a data-path="/r/{room}"></a></td>
+      <td><b>The Room link.</b> On a computer, the Workspace, with a quiet “Get geenee” link at the right of the tab bar. On a phone, the Workspace hands over to the Hand-off.</td>
+      <td>Guests: it is the link in the Card’s text and QR code.</td></tr>
+    <tr><td class="addr"><a data-path="/?room={room}"></a></td>
+      <td>The Workspace, with no Hand-off on a phone and no Get geenee link.</td>
+      <td>The Organizer: the Card’s Open geenee button and the model use it.</td></tr>
+    <tr><td class="addr"><a data-path="/h/{room}"></a></td>
+      <td><b>The Hand-off:</b> send the Room link to a computer by email, share sheet or copy. Open it here to see it on a computer.</td>
+      <td>A Guest on a phone, sent from the Room link.</td></tr>
+    <tr><td class="addr"><a data-path="/viewers?room={room}"></a></td>
+      <td>JSON: the Join link of each Viewer, the address the Workspace frames. Opening one shows that Viewer alone in the Room.</td>
+      <td>The Workspace, once as it loads.</td></tr>
+    <tr><td class="addr"><a data-path="/connections?room={room}"></a></td>
+      <td>JSON: whether each Viewer is connected right now. These are the marks on the Workspace’s tabs.</td>
+      <td>The Workspace, every few seconds while someone looks at it.</td></tr>
+    <tr><td class="addr"><span data-path="/ws?room={room}"></span></td>
+      <td>Not a page: the WebSocket that tells the Workspace which Viewer a tool call was for.</td>
+      <td>The Workspace, for as long as it is open.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every one of these but the WebSocket is a use of the Room. A Room expires after a day without use, and then stays expired: these addresses answer with the expired page, or <code>410</code> for the JSON ones.</p>
+
+<h2 id="no-room">Addresses that need no Room</h2>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Address</th><th>Answer</th><th>What it shows</th></tr></thead>
+  <tbody>
+    <tr><td class="addr"><a data-path="/install"></a></td><td class="code">302</td>
+      <td><b>geenee’s install address</b>, the one for papers and slides. It redirects to the Marketplace install page, <a href="https://geenee-install.3dg.io/install"><code>geenee-install.3dg.io/install</code></a>, from every Deployment.</td></tr>
+    <tr><td class="addr"><a data-path="/get"></a></td><td class="code">302</td>
+      <td>The same redirect, for the old address in Hand-off emails already sent.</td></tr>
+    <tr><td class="addr"><a data-path="/versions"></a></td><td class="code">200</td>
+      <td>What this Deployment runs, its tag or branch and commit, and what each Upstream behind it runs.</td></tr>
+    <tr><td class="addr"><a data-path="/r/0000000000"></a></td><td class="code">410</td>
+      <td>The expired-Room page. geenee never opened this Room, so it counts as expired.</td></tr>
+    <tr><td class="addr"><a data-path="/r/nope"></a></td><td class="code">404</td>
+      <td>The page for a Room link whose id is malformed.</td></tr>
+    <tr><td class="addr"><a data-path="/"></a></td><td class="code">200</td>
+      <td>The Workspace with no Room, which says to open geenee from a conversation.</td></tr>
+    <tr><td class="addr"><a data-path="/mcp"></a></td><td class="code">405</td>
+      <td>The Connector address. Hosts POST to it; a browser’s GET is refused.</td></tr>
+    <tr class="local-only"><td class="addr"><a data-path="/pages"></a></td><td class="code">200</td>
+      <td>The page review: every page of the Guest flow, the Card included, at phone and computer size. <code>npm run pages</code>; local only.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="terminal">From the terminal</h2>
+<p>Each command uses the Deployment and Room chosen above. <code>/mcp</code> needs no sign-in and no session: one POST is one call.</p>
+
+<h3>Open a Room</h3>
+<div class="cmd"><pre data-cmd="open"></pre><button type="button" class="quiet">Copy</button>
+<p class="expect">Prints the Room id. This is what <b>New Room</b> does.</p></div>
+
+<h3>Check the install redirects</h3>
+<div class="cmd"><pre data-cmd="redirects"></pre><button type="button" class="quiet">Copy</button>
+<p class="expect">Each line should read <code>302  https://geenee-install.3dg.io/install</code>. <code>curl</code> does not follow redirects, so this is geenee’s own answer.</p></div>
+
+<h3>Drive a Viewer</h3>
+<div class="cmd"><pre data-cmd="gene"></pre><button type="button" class="quiet">Copy</button>
+<p class="expect">With the Workspace open, <span class="igv">igv</span> comes forward and goes to MYC. Any tool name from the list below works the same way, with the Room id as <code>room</code>.</p></div>
+
+<h3>List the tools</h3>
+<div class="cmd"><pre data-cmd="tools"></pre><button type="button" class="quiet">Copy</button>
+<p class="expect">The tools geenee serves: <code>open_geenee</code>, and each Upstream’s tools renamed <code class="igv">igv_…</code>, <code class="jb">juicebox_…</code> and <code class="sw">spacewalk_…</code>.</p></div>
+
+<h3>Ask about a Room</h3>
+<div class="cmd"><pre data-cmd="room"></pre><button type="button" class="quiet">Copy</button>
+<p class="expect">The Join links and whether each Viewer is connected, or <code>410</code> if the Room has expired.</p></div>
+
+<h2 id="walk">A walk through every page</h2>
+<p>After a deploy, this covers everything a Guest or an Organizer can meet.</p>
+<ol class="steps">
+  <li>Press <b>New Room</b>, or say “open geenee” in a Host connected to this Deployment and paste the Room id from the Card.</li>
+  <li>Open <a data-path="/r/{room}"></a> on a computer. All three tabs should load and their marks fill. “Get geenee” sits at the right of the tab bar, beside the version.</li>
+  <li>Open <a data-path="/?room={room}"></a>. It is the same Workspace without the Get geenee link.</li>
+  <li>Run <a href="#terminal">Drive a Viewer</a> with the Workspace open, and watch igv come forward.</li>
+  <li>Open the Room link on a phone, or scan the Card’s QR code. It should go on to the Hand-off, whose “Get geenee…” link reaches the install page and whose email ends with the install address.</li>
+  <li>Open <a data-path="/r/0000000000"></a>, and follow its Get geenee button.</li>
+  <li>Open <a data-path="/versions"></a> to confirm which build is live.</li>
+</ol>
+
+<h2 id="behind">Behind geenee: the Upstreams and Viewers</h2>
+<p>geenee forwards each tool call to the Upstream that owns it. Each Upstream serves its own Viewer page, and the Workspace frames those pages. prod geenee uses only the prod ones, and dev geenee and local development use the dev ones.</p>
+<div class="tablewrap">
+<table>
+  <thead><tr><th></th><th>Upstream</th><th>Viewer page</th></tr></thead>
+  <tbody>
+    <tr><th class="igv">igv</th><td class="addr"><span data-host="igv-mcp{-dev}.3dg.io" data-at="/mcp"></span></td><td class="addr"><a data-host="igv-viewer{-dev}.pages.dev" data-at="/"></a></td></tr>
+    <tr><th class="jb">Juicebox</th><td class="addr"><span data-host="juicebox-view-mcp{-dev}.3dg.io" data-at="/mcp"></span></td><td class="addr"><a data-host="juicebox-view{-dev}.pages.dev" data-at="/"></a></td></tr>
+    <tr><th class="sw">Spacewalk</th><td class="addr"><span data-host="spacewalk-mcp{-dev}.3dg.io" data-at="/mcp"></span></td><td class="addr"><a data-host="spacewalk-viewer{-dev}.pages.dev" data-at="/viewer.html"></a></td></tr>
+  </tbody>
+</table>
+</div>
+<p>An Upstream has no page of its own: its <code>/mcp</code> is a working Connector in its own right, and geenee’s <code>/versions</code> asks each one what it runs. A Join link is a Viewer page with <code>?room=&lt;Room id&gt;</code>. The Workspace adds <code>&amp;embedded</code> so that the Viewer leaves out what the Workspace supplies.</p>
+
+<h2 id="tricks">Tricks worth knowing</h2>
+<ul>
+  <li><b>See the phone flow on a computer.</b> In Chrome’s developer tools, turn on the device toolbar (⌘⇧M), choose a phone, and reload the Room link: it goes on to the Hand-off. A phone is told apart by touch and screen size, never by browser name.</li>
+  <li><b>“Open here anyway”</b> on the Hand-off uses the <code>/?room=</code> link, because that link never hands over to the Hand-off.</li>
+  <li><b>Keep a Room alive</b> by leaving its Workspace open in a visible tab: the <code>/connections</code> check every few seconds counts as a use.</li>
+  <li><b>The case of a Room id does not matter</b>, and nothing from a malformed link is ever shown back on the page.</li>
+  <li><b>Local development</b> runs the Worker and the Workspace on <code>localhost:5173</code> (<code>npm run dev</code>) against the dev Upstreams. A Host on the internet cannot reach it without a tunnel; Claude Code on this machine can.</li>
+</ul>
+
+<p class="end">Written 10 November 2026 from the routes in <code>src/geenee.ts</code>, as of #75, which added <code>/install</code>. The words used here are defined in <code>GLOSSARY.md</code>; how the parts fit together is in <code>how-geenee-works.html</code>.</p>
+</main>
+
+<script>
+  const ORIGINS = { prod: "https://geenee.3dg.io", dev: "https://geenee-dev.3dg.io", local: "http://localhost:5173" };
+  const ROOM_ID = /^[0-9A-HJKMNP-TV-Z]{10}$/;
+  const PLACEHOLDER = "<Room id>";
+  const roomInput = document.getElementById("room");
+  const status = document.getElementById("status");
+
+  // The choices live in the address, #dev/7ZQH4M2K9X, so a reload or a bookmark comes back to them.
+  const [hashDeployment, hashRoom] = location.hash.slice(1).split("/");
+  if (hashDeployment in ORIGINS) document.querySelector(`input[value="${hashDeployment}"]`).checked = true;
+  if (hashRoom) roomInput.value = hashRoom;
+
+  const deployment = () => document.querySelector('input[name="deployment"]:checked').value;
+  const room = () => { const id = roomInput.value.trim().toUpperCase(); return ROOM_ID.test(id) ? id : null; };
+
+  const MCP_HEADERS = `-H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream'`;
+  const call = (origin, body) => `curl -s ${origin}/mcp \\\n  ${MCP_HEADERS} \\\n  -d '${JSON.stringify(body)}'`;
+  const COMMANDS = {
+    open: (o) => `${call(o, { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "open_geenee", arguments: {} } })} \\\n  | grep -o '"room":"[^"]*"'`,
+    redirects: (o) => `for p in /install /get '/get?room=7ZQH4M2K9X'; do\n  curl -s -o /dev/null -w "$p  %{http_code}  %{redirect_url}\\n" "${o}$p"\ndone`,
+    gene: (o, r) => call(o, { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "igv_go_to_gene", arguments: { gene: "MYC", room: r } } }),
+    tools: (o) => `${call(o, { jsonrpc: "2.0", id: 3, method: "tools/list" })} \\\n  | grep -o '"name":"[^"]*"'`,
+    room: (o, r) => `curl -s "${o}/viewers?room=${r}"\ncurl -s "${o}/connections?room=${r}"`,
+  };
+
+  function render() {
+    const origin = ORIGINS[deployment()];
+    const id = room();
+    roomInput.setAttribute("aria-invalid", String(roomInput.value.trim() !== "" && !id));
+    history.replaceState(null, "", `#${deployment()}${id ? `/${id}` : ""}`);
+
+    for (const element of document.querySelectorAll("[data-path]")) {
+      const path = element.dataset.path;
+      const needsRoom = path.includes("{room}");
+      const shown = path.replace("{room}", id ?? PLACEHOLDER);
+      element.textContent = shown;
+      if (element.tagName !== "A") continue;
+      element.classList.toggle("off", needsRoom && !id);
+      if (needsRoom && !id) element.removeAttribute("href");
+      else element.href = origin + shown;
+    }
+    // The prod Upstreams for prod; the dev ones for dev and for local development.
+    const suffix = deployment() === "prod" ? "" : "-dev";
+    for (const element of document.querySelectorAll("[data-host]")) {
+      const host = element.dataset.host.replace("{-dev}", suffix);
+      // A Viewer page is a link; an Upstream is shown by its /mcp, which only geenee calls.
+      if (element.tagName === "A") {
+        element.textContent = host;
+        element.href = `https://${host}${element.dataset.at}`;
+      } else element.textContent = host + element.dataset.at;
+    }
+    for (const row of document.querySelectorAll(".local-only")) row.hidden = deployment() !== "local";
+    for (const pre of document.querySelectorAll("[data-cmd]")) pre.textContent = COMMANDS[pre.dataset.cmd](origin, id ?? PLACEHOLDER);
+  }
+
+  function say(message, isError = false) {
+    status.textContent = message;
+    status.classList.toggle("error", isError);
+  }
+
+  // What the Host does when it calls open_geenee: one POST to /mcp, which allows any origin.
+  document.getElementById("new-room").addEventListener("click", async () => {
+    say("Opening…");
+    try {
+      const reply = await fetch(`${ORIGINS[deployment()]}/mcp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "open_geenee", arguments: {} } }),
+      });
+      const id = (await reply.json()).result?.structuredContent?.room;
+      if (!id) throw new Error("no Room id in the reply");
+      roomInput.value = id;
+      render();
+      say("Opened. It expires after a day without use.");
+    } catch (error) {
+      say(deployment() === "local" ? "Could not reach localhost:5173. Is npm run dev running?" : `Could not open a Room: ${error.message}`, true);
+    }
+  });
+
+  for (const button of document.querySelectorAll(".cmd button")) {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.previousElementSibling.textContent);
+      button.textContent = "Copied";
+      setTimeout(() => (button.textContent = "Copy"), 1500);
+    });
+  }
+
+  for (const input of document.querySelectorAll('input[name="deployment"]')) input.addEventListener("change", () => { say(""); render(); });
+  roomInput.addEventListener("input", () => { say(""); render(); });
+  render();
+</script>
+</body>
+</html>
