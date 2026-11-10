@@ -11,7 +11,7 @@ import { roomLinkPath } from './roomId.ts'
 const EXPIRES = 'Expires after a day without use.'
 
 /** The email a Guest sends themselves: to no one yet, so the mail app asks. */
-function emailLink(roomLink: string, getGeenee: string): string {
+function emailLink(roomLink: string, install: string): string {
   const body = [
     'Open this link on a laptop or desktop to join the geenee Room:',
     roomLink,
@@ -19,7 +19,7 @@ function emailLink(roomLink: string, getGeenee: string): string {
     EXPIRES,
     '',
     'geenee shows the igv genome browser, the Juicebox contact-map viewer and the Spacewalk 3D chromatin viewer beside a Claude or ChatGPT conversation.',
-    `Get geenee: ${getGeenee}`,
+    `Get geenee: ${install}`,
   ].join('\r\n')
   return `mailto:?subject=${encodeURIComponent('Your geenee Room')}&body=${encodeURIComponent(body)}`
 }
@@ -27,7 +27,7 @@ function emailLink(roomLink: string, getGeenee: string): string {
 /** The Hand-off of `room`, a parsed Room id, for the geenee at `origin`. */
 export function handOffPage(origin: string, room: string): string {
   const roomLink = new URL(roomLinkPath(room), origin).toString()
-  const getGeenee = new URL(INSTALL_PATH, origin).toString()
+  const install = new URL(INSTALL_PATH, origin).toString()
   return page({
     title: 'Your geenee Room',
     style: `
@@ -50,7 +50,7 @@ footer a { padding-block: 0.65rem; color: var(--fg); text-decoration-color: curr
   <div class="address"><code id="link" aria-labelledby="link-label">${escapeHtml(roomLink)}</code></div>
 
   <div class="actions">
-    <a class="button" href="${escapeHtml(emailLink(roomLink, getGeenee))}">Email me this link</a>
+    <a class="button" href="${escapeHtml(emailLink(roomLink, install))}">Email me this link</a>
     <button class="quiet" type="button" id="share" hidden>Share…</button>
     <button class="quiet" type="button" data-copy="link">Copy link</button>
   </div>

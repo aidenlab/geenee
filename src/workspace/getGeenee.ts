@@ -10,4 +10,3 @@ import { inRoomLinkPath, parseRoomId } from '../roomId.ts'
 export function offersGetGeenee(pathname: string): boolean {
   return parseRoomId(inRoomLinkPath(pathname) ?? '') !== null
 }
-

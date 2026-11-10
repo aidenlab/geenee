@@ -8,7 +8,7 @@ import { ICON_LINKS } from './icon.ts'
 /** geenee's stable install address, on every Deployment: what each "Get geenee" link points at (ADR 0005). */
 export const INSTALL_PATH = '/install'
 
-/** Where geenee's install address redirects: the Marketplace install page, in aidenlab/plugins. geenee shows no install steps of its own. */
+/** Where geenee's install address redirects: the Marketplace install page, built in aidenlab/plugins and served here. geenee shows no install steps of its own. */
 export const INSTALL_PAGE = 'https://geenee-install.3dg.io/install'
 
 export const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
