@@ -32,17 +32,33 @@ body {
   border-bottom: 1px solid var(--edge);
 }
 
-/* A deployed build's version and Connector address, over the right end of the
-   tab bar: the bar is a tablist, so it holds nothing but tabs. Selectable, so
-   the address can be copied. */
-.version {
+/* Over the right end of the tab bar, which is a tablist and so holds nothing
+   but tabs: the quiet Get geenee line for a Guest, and a deployed build's
+   version and Connector address, selectable so the address can be copied. */
+.corner {
   position: absolute;
   top: 0;
   right: 12px;
-  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
   padding: 7px 0;
   color: var(--muted);
   font-size: 11px;
+}
+
+.corner a {
+  color: inherit;
+  text-decoration-color: var(--edge);
+  text-underline-offset: 0.15em;
+}
+
+.corner a:hover {
+  text-decoration-color: currentColor;
+}
+
+.version {
+  margin: 0;
   user-select: text;
 }
 

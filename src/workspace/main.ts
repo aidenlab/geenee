@@ -5,8 +5,10 @@
  * until a person picks another with a tab. Each tab carries a mark showing
  * whether its Viewer is connected.
  */
+import { INSTALL_PATH } from '../page.ts'
 import { handOffPath, inRoomLinkPath, parseRoomId, roomLinkPath } from '../roomId.ts'
 import { embedded } from './embedded.ts'
+import { offersGetGeenee } from './getGeenee.ts'
 import { onPhone } from './phone.ts'
 import type { ViewerKey, ViewerUsed } from '../workspaceChannel.ts'
 import './workspace.css'
@@ -166,19 +168,30 @@ async function open(): Promise<void> {
 }
 
 /**
- * Shows a deployed build's version, its tag or branch and commit, and its
- * Connector's address at the right end of the tab bar, so a person testing it
- * can tell which build is live and what to add as a connector. The Worker
- * serves both, so the Connector is this page's /mcp. `npm run dev` has no
- * version, and shows none.
+ * The right end of the tab bar, over it, as the bar is a tablist and holds
+ * nothing but tabs: the Get geenee line for a Guest, and a deployed build's
+ * version, its tag or branch and commit, and its Connector's address, so a
+ * person testing it can tell which build is live and what to add as a
+ * connector. The Worker serves both, so the Connector is this page's /mcp.
+ * `npm run dev` has no version, and shows none.
  */
-function showVersion(): void {
+function showCorner(): void {
+  const corner = document.createElement('div')
+  corner.className = 'corner'
+  if (offersGetGeenee(location.pathname)) {
+    const link = document.createElement('a')
+    link.href = INSTALL_PATH
+    link.textContent = 'Get geenee'
+    corner.append(link)
+  }
   const version = import.meta.env.VITE_VERSION
-  if (!version) return
-  const label = document.createElement('p')
-  label.className = 'version'
-  label.textContent = `${version} · ${new URL('/mcp', location.href)}`
-  document.body.append(label)
+  if (version) {
+    const label = document.createElement('p')
+    label.className = 'version'
+    label.textContent = `${version} · ${new URL('/mcp', location.href)}`
+    corner.append(label)
+  }
+  if (corner.childElementCount) document.body.append(corner)
 }
 
 if (!handOffOnPhone()) {
@@ -186,6 +199,6 @@ if (!handOffOnPhone()) {
     tab.addEventListener('click', () => show(tab.dataset.viewer as ViewerKey))
   }
   show('igv')
-  showVersion()
+  showCorner()
   void open()
 }

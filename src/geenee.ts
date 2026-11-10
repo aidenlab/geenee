@@ -10,7 +10,7 @@
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room has expired or its id is malformed
  *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer, or the same expired page
- *   GET  /get - Get geenee: what geenee is and how to add it to each Host
+ *   GET  /install - 302 to the Marketplace install page in aidenlab/plugins (ADR 0005); /get, its old address, too
  *   GET  /versions - the version of geenee and of each Upstream behind it, each asked as the page loads (ADR 0004)
  *
  * The Workspace page itself is a static asset, served beside this at /.
@@ -27,13 +27,12 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
 import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
-import { getGeeneePage } from './getGeenee.ts'
 import { handOffPage } from './handOff.ts'
 import { serverIcons } from './icon.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
-import { pageResponse } from './page.ts'
+import { INSTALL_PAGE, pageResponse } from './page.ts'
 import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SPACEWALK, type Viewer } from './servedTools.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
@@ -368,8 +367,9 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       if (await roomRecord(room).expired(now())) return pageResponse(EXPIRED_ROOM_HTML, 410)
       return pageResponse(handOffPage(url.origin, room))
     }
-    if (url.pathname === '/get' && request.method === 'GET') {
-      return pageResponse(getGeeneePage(url.origin, parseRoomId(url.searchParams.get('room') ?? '')))
+    // /get is the old address, kept because Hand-off emails already sent contain it.
+    if ((url.pathname === '/install' || url.pathname === '/get') && request.method === 'GET') {
+      return Response.redirect(INSTALL_PAGE, 302)
     }
     if (url.pathname === '/versions' && request.method === 'GET') {
       // Asked anew on every load, as an Upstream can be released without geenee being deployed (ADR 0004).

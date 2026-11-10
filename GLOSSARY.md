@@ -8,9 +8,17 @@ One Connector that lets a person drive the igv.js genome browser, the Juicebox c
 The application a person talks to the model in: Claude desktop, or ChatGPT desktop in Codex mode.
 _Avoid_: MCP client, client, chat app
 
+**Marketplace**:
+The `aidenlab/plugins` GitHub repository, added to a Host once by name, that lists the Aiden Lab's Plugins and carries their updates.
+_Avoid_: Catalog, store, repo (when talking to people)
+
+**Plugin**:
+An installable package from the Marketplace that bundles a Connector and a skill. geenee is one.
+_Avoid_: App, extension, integration
+
 **Connector**:
-geenee as a person adds it to a Host, once, to get all the Viewers.
-_Avoid_: Plugin, integration, installation
+A Host's saved connection to geenee, which supplies the tools for all the Viewers. The Plugin carries it.
+_Avoid_: MCP server (when talking to people), integration, installation
 
 **Upstream**:
 One of the existing servers whose tools geenee offers: the igv one, the Juicebox one or the Spacewalk one. Each stays a working Connector in its own right.
@@ -57,8 +65,8 @@ The page a Room link opens on a phone, where a Guest sends the Room link on to a
 _Avoid_: Landing page, interstitial, redirect
 
 **Get geenee**:
-The page that tells a person what geenee is and how to add it as a Connector to a Host. A Guest who comes to it from a Hand-off can go back to their Room from it.
-_Avoid_: Install page, signup, landing page
+A Marketplace install: add the Marketplace to a Host, then install the geenee Plugin from it. Every "Get geenee" link points at `/install`, geenee's stable install address, which redirects to the install page in the Marketplace's repository. geenee shows no install steps of its own.
+_Avoid_: Custom connector, signup, landing page
 
 **Card**:
 What a Host shows in the conversation when geenee is opened: a short message led by geenee's icon, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card under geenee's icon and name, for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.

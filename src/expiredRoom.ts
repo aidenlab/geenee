@@ -3,7 +3,7 @@
  * 0003): one plain statement, and the way to get geenee. Nothing from the
  * address is shown.
  */
-import { page } from './page.ts'
+import { INSTALL_PATH, page } from './page.ts'
 
 export const EXPIRED_ROOM_HTML = page({
   title: 'This geenee Room has expired',
@@ -17,6 +17,6 @@ p { margin: 0; color: var(--muted); }
   <p class="brand">geenee</p>
   <h1>This Room has expired</h1>
   <p>A geenee Room expires after a day without use, and what it showed is gone with it. Ask for a new Room link, or get geenee to open a Room of your own.</p>
-  <p class="action"><a class="button" href="/get">Get geenee</a></p>
+  <p class="action"><a class="button" href="${INSTALL_PATH}">Get geenee</a></p>
 </main>`,
 })
