@@ -697,7 +697,7 @@ td.how { white-space: nowrap; }
 </table>
 </div>
 
-<p>With <code>open_geenee</code>, geenee serves 54 tools in all: 12 for igv, 30 for Juicebox and 11 for Spacewalk. Three tools are withheld, and nothing stands in for them: <code>get_shareable_url</code> from igv and Spacewalk, and Spacewalk’s <code>read_viewer_count</code>, which geenee uses itself.</p>
+<p>With <code>open_geenee</code>, geenee serves every tool its Upstreams list, so the count grows as they add tools: on 10 November 2026 it was 56, 13 for igv, 31 for Juicebox and 11 for Spacewalk. Three tools are withheld, and nothing stands in for them: <code>get_shareable_url</code> from igv and Spacewalk, and Spacewalk’s <code>read_viewer_count</code>, which geenee uses itself.</p>
 
 <p>Spacewalk’s Room must also be opened before it takes any call, and <code>open_geenee</code> does that (step 1 above). Its Upstream was changed in two small ways for geenee: <code>open_viewer</code> accepts a new, well-formed Room id (<code>spacewalk-mcp</code> #27), and <code>read_viewer_count</code> answers the marks (#28). The igv and Juicebox Upstreams were not changed.</p>
 

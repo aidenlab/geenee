@@ -645,6 +645,28 @@
     }
   },
   {
+    "name": "show_panel_controls",
+    "title": "Show Panel Controls",
+    "description": "Hide or show the Juicebox Panel Controls (the bar above each map with its map name, locus box and menus) on every panel of the page, and on panels opened later: the same switch as the controls button in the page header. It always acts on the whole page, so it takes no panel. Repeating the current state changes nothing; list_panels says which it is.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "show": {
+          "type": "boolean",
+          "description": "true shows the Juicebox Panel Controls, false hides them"
+        }
+      },
+      "required": [
+        "show"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "execution": {
+      "taskSupport": "forbidden"
+    }
+  },
+  {
     "name": "goto_locus",
     "title": "Navigate to Locus",
     "description": "Navigate to a specific genomic locus in the currently loaded map. Supports natural language, gene names, standard format, and structured objects. Examples: \"chr1:1000-2000\", \"BRCA1\", \"chromosome 1 from 1000 to 2000\", or {chr: \"chr1\", start: 1000, end: 2000}. When a single chromosome is specified, it applies to both axes of the Hi-C contact map.",
@@ -735,7 +757,7 @@
   {
     "name": "list_panels",
     "title": "List Panels",
-    "description": "List the panels (contact-map viewers) open in the page, left to right: position, whether it is the current one, map name, genome, control map, track count and locus. Tools that take `panel` address a panel by this position, by its map name, or \"all\".",
+    "description": "List the panels (contact-map viewers) open in the page, left to right: position, whether it is the current one, map name, genome, control map, track count and locus, then whether the Juicebox Panel Controls are shown. Tools that take `panel` address a panel by this position, by its map name, or \"all\".",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
@@ -774,7 +796,7 @@
   {
     "name": "get_juicebox_url",
     "title": "Get Juicebox URL",
-    "description": "Get the join link that opens Juicebox connected to the room bound to this MCP session. Use this when users ask how to connect, how to open the Juicebox app, or say things like \"Hello juicebox\", \"Hello juicebot\", \"Open juicebox\", \"Show me juicebox\", \"Launch juicebox\", etc. A card with an Open Juicebox button is shown to the user. If you have a browser that shows pages inside this app, beside the conversation, open the join link in it right away: the page connects to this session's room and later tool calls redraw it there. Use only such an in-app browser; a tool that drives the user's own web browser is not one. Do not repeat the room id or a QR code.",
+    "description": "Get the join link that opens Juicebox connected to the room bound to this MCP session, and open Juicebox beside the conversation. Use this first when users ask how to connect, how to open the Juicebox app, or say things like \"Hello juicebox\", \"Hello juicebot\", \"Open juicebox\", \"Show me juicebox\", \"Launch juicebox\", etc., and before loading anything when no page is connected. A card with an Open Juicebox button is shown to the user, but the button is only the fallback: right after this call, open the join link yourself in the browser panel that shows pages inside this app, beside the conversation (in Claude Desktop, its built-in browser). If that browser's tools are deferred or must be enabled, load or enable them first; do not conclude you have no such browser without checking. The page connects to this session's room and later tool calls redraw it there. A tool that drives the user's own web browser (such as a Chrome extension) is not such a browser. Only if no in-app browser exists, or opening fails, point the user to the Open Juicebox button. Do not repeat the room id or a QR code.",
     "inputSchema": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",

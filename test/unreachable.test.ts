@@ -14,7 +14,7 @@ describe('with the igv Upstream unreachable', () => {
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(42)
+    expect(names).toHaveLength(43)
     expect(names[0]).toBe('open_geenee')
     expect(names.filter((name) => name.startsWith('igv_'))).toEqual([])
   })
@@ -49,7 +49,7 @@ describe('with the Juicebox Upstream unreachable', () => {
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(24)
+    expect(names).toHaveLength(25)
     expect(names.filter((name) => name.startsWith('juicebox_'))).toEqual([])
   })
 

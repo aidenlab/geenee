@@ -175,4 +175,4 @@ frames igv igv "$IGV_PAGE"
 frames juicebox Juicebox "$JUICEBOX_PAGE"
 frames spacewalk Spacewalk "$SPACEWALK_PAGE"
 
-echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools (54 with all three Upstreams reachable); its Viewers are $IGV_PAGE, $JUICEBOX_PAGE and $SPACEWALK_PAGE"
+echo "deployed $version to $DEPLOYMENT at $ADDRESS: the Connector lists $listed tools; its Viewers are $IGV_PAGE, $JUICEBOX_PAGE and $SPACEWALK_PAGE"
