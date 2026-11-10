@@ -143,7 +143,7 @@ describe('with the Spacewalk Upstream unreachable', () => {
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(43)
+    expect(names).toHaveLength(45)
     expect(names.filter((name) => name.startsWith('spacewalk_'))).toEqual([])
   })
 

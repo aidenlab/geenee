@@ -8,11 +8,11 @@ import { GEENEE, geenee, type Tool } from './connector.ts'
 const ROOM_ID = /^[0-9A-HJKMNP-TV-Z]{10}$/ // Crockford base32: no I, L, O, U
 
 describe('open_geenee', () => {
-  it('is listed first, making 54 tools with those of the three Upstreams', async () => {
+  it('is listed first, making 56 tools with those of the three Upstreams', async () => {
     const tools = await geenee().listTools()
 
     expect(tools[0].name).toBe('open_geenee')
-    expect(tools).toHaveLength(54)
+    expect(tools).toHaveLength(56)
   })
 
   it('says it opens all three Viewers, and is called for Spacewalk and 3D chromatin too', async () => {
