@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee } from './connector.ts'
 
-const visit = (path: string) => geenee().handle(new Request(`${GEENEE}${path}`))
+const visit = (path: string, method = 'GET') => geenee().handle(new Request(`${GEENEE}${path}`, { method }))
 
 describe('the install address', () => {
   for (const path of ['/install', '/get', '/get?room=7ZQH4M2K9X']) {
@@ -17,4 +17,12 @@ describe('the install address', () => {
       expect(response.headers.get('Location')).toBe('https://geenee-install.3dg.io/install')
     })
   }
+
+  it('answers a HEAD, as a link checker or a link preview asks, with the same redirect', async () => {
+    const response = await visit('/install', 'HEAD')
+
+    expect(response.status).toBe(302)
+    expect(response.headers.get('Location')).toBe('https://geenee-install.3dg.io/install')
+    expect(response.body).toBeNull()
+  })
 })

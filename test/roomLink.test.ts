@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { GEENEE, geenee, WORKSPACE_PAGE } from './connector.ts'
 
-const visit = (path: string) => geenee({ opened: ['7ZQH4M2K9X'] }).handle(new Request(`${GEENEE}${path}`))
+const visit = (path: string, method = 'GET') => geenee({ opened: ['7ZQH4M2K9X'] }).handle(new Request(`${GEENEE}${path}`, { method }))
 
 describe('a Room link', () => {
   it('opens the Workspace, at the short link itself', async () => {
@@ -12,6 +12,13 @@ describe('a Room link', () => {
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe(WORKSPACE_PAGE)
+  })
+
+  it('answers a HEAD with the Workspace page\'s status and headers, and no body', async () => {
+    const response = await visit('/r/7ZQH4M2K9X', 'HEAD')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toBeNull()
   })
 
   it('takes a Room id typed in lower case', async () => {
