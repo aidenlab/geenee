@@ -1,44 +1,64 @@
-**Subject:** Geenee × Regulome: two file-access issues
+**Subject:** Loading Regulome tracks in IGV
 
 Hi [name],
 
-Thanks for the note about Regulome. We've started on the integration. Your MCP server at `https://regulome.org/mcp/http` works well: we can search samples and get full metadata and file paths with no setup. We hit two issues when loading the files into IGV and Juicebox, and both need a change on your side.
-
-**1. File URLs from the MCP return 403**
-
-`get_file_paths` and `get_sample` return URLs on `regulome.org`, for example:
+We use your MCP server to find Regulome samples and their file URLs, then load the files into IGV running in the browser. The tracks don't load. These URLs failed:
 
 ```
-https://regulome.org/data/per_sample/AG10028/AG10028.normalized_density.bw
+https://regulome.altius.org/data/per_sample/AG11020/AG11020.normalized_density.bw
+https://regulome.altius.org/data/per_sample/AG11020/peaks/fdr0.05/AG11020.peaks.fdr0.05.bb
+https://regulome.org/data/per_sample/AG11020/AG11020.normalized_density.bw
 ```
 
-Every request we made to these URLs returned `403`. The same path on `regulome.altius.org` works and supports range requests (`206`):
+Two changes on your side would fix this.
 
-```
-https://regulome.altius.org/data/per_sample/AG10028/AG10028.normalized_density.bw
-```
+## 1. Add CORS headers to `regulome.altius.org/data/`
 
-We only tested from a command-line client, not a browser, so this may be bot filtering rather than a broken path. Either way, MCP clients fetch these URLs directly, so right now they can't use the paths the server returns. Could the MCP return `regulome.altius.org` URLs, or could `regulome.org/data/` serve the files to non-browser clients?
+**The problem:** the files download fine from the command line, but your server doesn't send CORS headers. Without them, the browser won't let a web page such as IGV read the files.
 
-**2. No CORS headers on the file server**
-
-IGV and Juicebox run in the browser and load tracks by fetching byte ranges from your server. `regulome.altius.org/data/` sends no `Access-Control-Allow-Origin` header, including on the preflight request for a `Range` header. Browsers will therefore block every Regulome track. Since the data is public, a wildcard origin is fine. On nginx it's roughly:
+**The change:** your server reports nginx 1.20.1. Add this to the `server` block for `regulome.altius.org`, then reload nginx (`nginx -t && nginx -s reload`). If `/data/` already has a `location` block, put these lines in it instead of adding a second one.
 
 ```nginx
 location /data/ {
-    add_header Access-Control-Allow-Origin  "*" always;
-    add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
-    add_header Access-Control-Allow-Headers "Range" always;
+    add_header Access-Control-Allow-Origin   "*" always;
+    add_header Access-Control-Allow-Methods  "GET, HEAD, OPTIONS" always;
+    add_header Access-Control-Allow-Headers  "Range" always;
     add_header Access-Control-Expose-Headers "Content-Length, Content-Range, Accept-Ranges" always;
-    if ($request_method = OPTIONS) { return 204; }
+
+    if ($request_method = OPTIONS) {
+        return 204;
+    }
 }
 ```
 
-This also lets igv.org, the UCSC browser and other web tools load your files.
+What each line is for:
 
-**A small optional request:** the per-sample directories contain bigBed (`.bb`) and tabix-indexed (`.tbi`) versions of the peaks and hotspots, but the MCP returns only the `.bed.gz` paths. Genome browsers load bigBed and indexed files much better, so returning those paths too would help.
+- **`Allow-Origin "*"`** lets any web page read the files. The data is public, so `*` is safe.
+- **`Allow-Headers "Range"`** is needed because IGV reads only part of each file, using `Range` requests. Your server already supports those.
+- **`Expose-Headers`** lets IGV see the file size and which byte range it got back.
+- **The `OPTIONS` block** answers the check the browser sends before each `Range` request.
 
-Once these are fixed, we'll make sure Regulome files load cleanly in Geenee and show where each result came from, with its Regulome metadata.
+**To check it worked:**
 
-Best,
+```sh
+curl -s -D - -o /dev/null -r 0-99 -H "Origin: https://example.org" \
+  https://regulome.altius.org/data/per_sample/AG11020/AG11020.normalized_density.bw
+```
+
+The reply should include `HTTP/2 206` and `access-control-allow-origin: *`.
+
+## 2. Make the URLs your MCP returns reachable
+
+**The problem:** your MCP returns URLs on `regulome.org`, such as the third URL above, and those answer `403 Forbidden`. The same paths on `regulome.altius.org` work.
+
+**The change:** either of these fixes it:
+
+- **(a)** Have the MCP return `https://regulome.altius.org/data/...` URLs instead of `https://regulome.org/data/...`. Or:
+- **(b)** Make `regulome.org/data/` serve the files. Find the rule that refuses them, for example a bot filter or a `deny`. Then add the same CORS headers as in step 1.
+
+**To check it worked:** take a URL your MCP returns and run the `curl` command from step 1 on it. It should return `206` with the CORS header.
+
+Once both checks pass, Regulome tracks should load directly in IGV and in other browser-based viewers such as igv.org and the UCSC Genome Browser.
+
+Thanks,
 [signature]
