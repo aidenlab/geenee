@@ -282,6 +282,7 @@ pre {
   <li><a href="#two">production or dev</a></li>
   <li><a href="#which">I changed X: what do I deploy?</a></li>
   <li><a href="#live">Which build is live?</a></li>
+  <li><a href="#retire">Retiring an address</a></li>
   <li><a href="#gotchas">Shortcuts and traps</a></li>
 </ul>
 
@@ -680,6 +681,20 @@ Connector URL: https://geenee.3dg.io/mcp</pre>
   <li><b>Cloudflare</b> lists the Worker’s versions, newest first: <code>npx wrangler deployments list --env prod</code> (or <code>--env dev</code>).</li>
 </ul>
 
+<h2 id="retire">Retiring an address</h2>
+
+<p>A deploy only ever creates or replaces. When a Deployment moves to a new address, or its Worker is renamed in <code>wrangler.toml</code>, the first deploy brings up a new Worker at the new address and leaves the old one running, still answering at its old address with whatever code it last had. Nothing in the repository mentions it again, so nobody notices. The rename to production and dev on 30 October 2026 left two such Workers, <code>geenee-view-dev</code> and <code>geenee-test</code>, serving a two-week-old <code>/get</code> page until 14 November.</p>
+
+<p>So retire the old Worker in the same change that moves the address, once the new one has passed its checks. First remove its custom domain, in the Cloudflare dashboard under the Worker’s Settings, Domains &amp; Routes. Then delete the Worker:</p>
+
+<pre>npx wrangler delete --name &lt;old-worker&gt;</pre>
+
+<p>This removes the Worker and its Rooms. It cannot be undone. Check afterwards that the old address answers like any unknown name: <code>3dg.io</code> has a wildcard DNS record, so the name still resolves, but the request fails with a 5xx instead of reaching geenee.</p>
+
+<pre>curl -s -o /dev/null -w "%{http_code}\n" https://&lt;old-address&gt;/get    # 5xx, not 200 or 302</pre>
+
+<p class="note">To see what is on the account, list its Workers in the Cloudflare dashboard, under Workers &amp; Pages. Every <code>geenee</code> Worker other than <code>geenee</code>, <code>geenee-dev</code> and <code>geenee-install</code> is a leftover.</p>
+
 <h2 id="gotchas">Shortcuts and traps</h2>
 
 <div class="tablewrap wide">
@@ -702,7 +717,7 @@ Connector URL: https://geenee.3dg.io/mcp</pre>
 
 <p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. How the parts talk to each other once deployed is in <a href="how-geenee-works.html">How geenee works</a>. The Juicebox side of deploying is covered in more depth by <code>docs/how-juicebot-deploys.html</code> in <code>juicebox-mcp</code>.</p>
 
-<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream. Revised 5 November 2026 for the prod Upstreams, tag-only releases and <code>/versions</code> (ADR 0004).</p>
+<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream. Revised 5 November 2026 for the prod Upstreams, tag-only releases and <code>/versions</code> (ADR 0004). Revised 14 November 2026 for retiring an address.</p>
 
 </main>
 </body>
