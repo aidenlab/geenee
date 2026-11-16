@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloudflare, for an Apache hand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* The visual language of deployments.html: one 38rem reading column, ink for geenee,
+   blue for igv, red for Juicebox, green for Spacewalk. */
+:root {
+  --bg: #f5f6f4;
+  --box: #ffffff;
+  --fg: #1b1d1c;
+  --muted: #636966;
+  --rule: #cdd2ce;
+  --igv: #2a5f9e;
+  --jb: #b8231a;
+  --sw: #2e7d4f;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151716; --box: #1e2120; --fg: #e5e7e4; --muted: #9aa19c; --rule: #3b403d;
+    --igv: #7fadea; --jb: #ff7566; --sw: #6cc58f;
+    color-scheme: dark;
+  }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--serif); font-size: 1.0625rem; line-height: 1.6; }
+.page { max-width: 64rem; margin-inline: auto; padding: 3.5rem max(16px, env(safe-area-inset-right, 0px)) 5rem max(16px, env(safe-area-inset-left, 0px)); }
+.page :is(h1, h2, h3, p, ol, ul, pre, .tablewrap) { max-width: 38rem; }
+h1 { font-family: var(--sans); font-weight: 600; font-size: 2rem; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.75rem; }
+.lede { font-size: 1.2rem; line-height: 1.5; color: var(--muted); margin: 0 0 2.5rem; }
+h2 { font-family: var(--sans); font-weight: 600; font-size: 1.0625rem; margin: 3.25rem 0 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--fg); }
+h3 { font-family: var(--sans); font-weight: 600; font-size: 0.95rem; margin: 2rem 0 0.5rem; }
+p { margin: 0 0 1rem; }
+ol, ul { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin-bottom: 0.4rem; }
+code { font-family: var(--mono); font-size: 0.84em; }
+.igv { color: var(--igv); }
+.jb { color: var(--jb); }
+.sw { color: var(--sw); }
+a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: currentColor; }
+.toc { font-family: var(--sans); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1rem; padding: 0; list-style: none; max-width: 38rem; columns: 2 14rem; }
+.toc li { margin: 0 0 0.2rem; break-inside: avoid; }
+.toc a { text-decoration: none; color: var(--muted); }
+.toc a:hover { color: var(--fg); }
+.rules { max-width: 38rem; padding-left: 1.4rem; }
+.rules li { margin-bottom: 0.6rem; }
+figure { margin: 2rem 0 2.25rem; }
+.figwrap { overflow-x: auto; }
+svg.fig { display: block; width: 100%; max-width: 50rem; min-width: 40rem; height: auto; color: var(--fg); font-family: var(--sans); }
+figcaption { font-family: var(--sans); font-size: 0.8rem; line-height: 1.45; color: var(--muted); max-width: 38rem; margin-top: 0.75rem; }
+figcaption b { color: var(--fg); font-weight: 600; }
+.fig text { fill: currentColor; font-size: 12px; }
+.fig .m { font-family: var(--mono); font-size: 11px; }
+.fig .band { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; fill: var(--muted); }
+.fig .bx { fill: var(--box); stroke: currentColor; stroke-width: 1.75; }
+.fig .bi { fill: var(--box); stroke: var(--igv); stroke-width: 1.25; }
+.fig .bj { fill: var(--box); stroke: var(--jb); stroke-width: 1.25; }
+.fig .bs { fill: var(--box); stroke: var(--sw); stroke-width: 1.25; }
+.fig .pg { stroke-dasharray: 4 3; }
+.fig .w { stroke: currentColor; stroke-width: 1; fill: none; }
+.fig .sep { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+.tablewrap { overflow-x: auto; margin: 1.25rem 0 1.5rem; }
+.page .tablewrap.wide { max-width: 64rem; }
+table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 0.85rem; line-height: 1.4; }
+th, td { text-align: left; vertical-align: top; padding: 0.5rem 1.1rem 0.5rem 0; border-bottom: 1px solid var(--rule); }
+thead th { font-weight: 600; border-bottom: 1px solid var(--fg); }
+tbody th { font-weight: 600; white-space: nowrap; }
+tbody tr:last-child :is(th, td) { border-bottom: 0; }
+td code, th code { font-size: 0.92em; white-space: nowrap; }
+td.n { font-weight: 600; color: var(--muted); width: 1.5rem; }
+pre { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; background: var(--box); border: 1px solid var(--rule); padding: 0.75rem 1rem; overflow-x: auto; margin: 0 0 1.25rem; }
+.end { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-top: 3.5rem; max-width: 38rem; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 38rem; margin: 0 0 1.25rem; }
+.pair > div { font-family: var(--sans); font-size: 0.85rem; line-height: 1.45; border-top: 1px solid var(--rule); padding-top: 0.5rem; }
+.pair b { display: block; margin-bottom: 0.25rem; }
+@media (max-width: 34rem) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main class="page">
+
+<h1>Cloudflare, for an Apache hand</h1>
+<p class="lede">With Apache there was one machine, and everything lived on it. On Cloudflare there is no machine of yours. There are three kinds of thing you upload, and each does one job. This page explains what Workers, Pages and Durable Objects are, why geenee uses each one where it does, and how they replace what Apache did.</p>
+
+<ul class="toc">
+  <li><a href="#short">The short answer</a></li>
+  <li><a href="#journey">From Apache to Cloudflare</a></li>
+  <li><a href="#worker">A Worker: code, not a server</a></li>
+  <li><a href="#pages">Pages: a folder of files</a></li>
+  <li><a href="#do">A Durable Object: where state lives</a></li>
+  <li><a href="#request">Following one request</a></li>
+  <li><a href="#why">Why each piece is where it is</a></li>
+  <li><a href="#toml">wrangler.toml is your httpd.conf</a></li>
+  <li><a href="#commands">The commands</a></li>
+  <li><a href="#traps">What Apache never asked of you</a></li>
+</ul>
+
+<h2 id="short">The short answer</h2>
+
+<ol class="rules">
+  <li><b>A Worker is a function.</b> Cloudflare calls it with a request, and it returns a response. Nothing of yours keeps running between requests. geenee and the three Upstreams are Workers.</li>
+  <li><b>A Pages project is a folder of files.</b> You upload a built <code>dist/</code> and Cloudflare serves it, the way Apache served <code>DocumentRoot</code>. No code of ours runs. The three Viewers are Pages projects.</li>
+  <li><b>A Durable Object is a small, single object that holds state.</b> For each name, such as a Room id, exactly one exists in the world. A Worker sends its requests to it. It keeps its own storage and can hold WebSockets open. Every Room is a Durable Object.</li>
+</ol>
+
+<p>Workers and Durable Objects run your code. Pages serves your files. A Worker can carry files too: geenee’s Workspace page ships inside the geenee Worker.</p>
+
+<h2 id="journey">From Apache to Cloudflare</h2>
+
+<p>In the Apache days you rented a machine and pointed a DNS <code>A</code> record at its IP address. You put HTML in <code>/var/www</code>, described the site in <code>httpd.conf</code>, and restarted. When you needed something dynamic, a PHP script or CGI program ran on that same machine. Its memory, its disk and its log files all belonged to you, and so did the job of keeping it up.</p>
+
+<p>Cloudflare removes the machine. You upload code and files to your account, and Cloudflare copies them to every one of its data centers. A request is answered by the data center nearest the person who made it. Nothing is started, restarted or patched. In exchange, two things Apache gave you for free are gone: a disk you can write to, and memory that lasts from one request to the next. Durable Objects exist to give some of that back.</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>With Apache</th><th>On Cloudflare</th><th>In geenee</th></tr></thead>
+  <tbody>
+    <tr><th>The machine</th><td>None of yours. Cloudflare’s network, in hundreds of cities</td><td>One account, which owns the <code>3dg.io</code> zone</td></tr>
+    <tr><th><code>DocumentRoot</code> of static files</th><td>A Pages project, or a Worker’s static assets</td><td>The Viewers on Pages; the Workspace inside the geenee Worker</td></tr>
+    <tr><th>PHP, CGI, <code>mod_*</code></th><td>A Worker</td><td><code>src/index.ts</code>, and each Upstream’s server</td></tr>
+    <tr><th>A session in memory, on disk or in MySQL</th><td>A Durable Object, with its own small SQLite storage</td><td><code>Room</code> in <code>src/room.ts</code></td></tr>
+    <tr><th><code>httpd.conf</code>, <code>&lt;VirtualHost&gt;</code></th><td><code>wrangler.toml</code></td><td><code>wrangler.toml</code> at the repo root</td></tr>
+    <tr><th>A DNS <code>A</code> record to your IP</th><td>A custom domain, attached to a Worker. Cloudflare makes the DNS record</td><td><code>geenee.3dg.io</code>, <code>igv-mcp.3dg.io</code> …</td></tr>
+    <tr><th>An SSL certificate</th><td>Made and renewed for you</td><td>Nothing to do</td></tr>
+    <tr><th><code>rsync</code> then <code>apachectl restart</code></th><td><code>wrangler deploy</code> (Worker) or <code>wrangler pages deploy</code> (Pages). Live everywhere in seconds</td><td>Wrapped by the deploy scripts</td></tr>
+    <tr><th><code>/var/log/httpd</code></th><td><code>wrangler tail</code>, or the Worker’s Logs in the dashboard</td><td>Logs are on for every Deployment</td></tr>
+    <tr><th>Keeping a backup of the last good copy</th><td>Every upload is kept as a version; rolling back is one command</td><td>Releases are tags, so we roll back by tag</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="worker">A Worker: code, not a server</h2>
+
+<p>A Worker is a module that exports one function, <code>fetch</code>. Cloudflare calls it with each request that arrives at the Worker’s address and sends back whatever it returns. This is geenee’s, trimmed:</p>
+
+<pre>export default {
+  fetch(request: Request, env: Env): Promise&lt;Response&gt; {
+    geenee ??= createGeenee({ igvUpstream: env.IGV_UPSTREAM_URL, … })
+    return geenee(request)
+  },
+}</pre>
+
+<p>Three things here are new to an Apache hand.</p>
+
+<ul>
+  <li><b>There is no <code>listen 443</code>.</b> You never open a port or start a process. Cloudflare starts a lightweight sandbox, called an isolate, in milliseconds when a request needs one, and throws it away when it likes.</li>
+  <li><b><code>env</code> is the configuration.</b> Everything the Worker is connected to comes in through it: the variables from <code>wrangler.toml</code> (the Upstream addresses), its static files (<code>env.ASSETS</code>), its Durable Objects (<code>env.ROOM</code>) and any secrets. These are called bindings.</li>
+  <li><b>Memory is a cache, never a store.</b> <code>geenee ??=</code> builds geenee once and reuses it while the same isolate lives. That is safe because nothing in it changes. Anything that must last, such as who is in a Room, cannot live here: the next request may land in another isolate, in another city.</li>
+</ul>
+
+<p>A Worker answers at the custom domain named in <code>wrangler.toml</code>. Cloudflare can also give every Worker a <code>*.workers.dev</code> address and preview addresses. We switch those off, so each Deployment has exactly one public address.</p>
+
+<h2 id="pages">Pages: a folder of files</h2>
+
+<p>A Pages project is the closest thing on Cloudflare to Apache serving <code>/var/www</code>. Each Viewer is a Vite build, a folder of HTML, JavaScript and CSS. The Upstream’s deploy script uploads it:</p>
+
+<pre>wrangler pages deploy viewer/dist --project-name igv-viewer --branch main</pre>
+
+<p>Cloudflare serves those files at <code>https://igv-viewer.pages.dev/</code> until the next upload. Our Viewers have no server code. Pages can run code, through Pages Functions, but none of ours do. All a browser fetches from Pages is the page itself, once, when a Viewer’s frame opens. After that, the Viewer talks only to its Upstream Worker.</p>
+
+<p>Two Pages habits to know:</p>
+
+<ul>
+  <li><b>Every upload also gets its own address</b>, such as <code>https://3f9c1a2b.igv-viewer.pages.dev</code>. Uploading with <code>--branch main</code> is what makes it the live one at <code>igv-viewer.pages.dev</code>. The old uploads stay reachable at their own addresses, which is handy for comparing.</li>
+  <li><b>Settings in the dashboard do not reach the build.</b> A Viewer has to know its Worker’s address, and Vite fixes that address in the JavaScript when it builds. So the deploy script passes it in at build time (<code>VITE_SERVER_URL</code>), and checks the built files contain it before uploading.</li>
+</ul>
+
+<p>Cloudflare now suggests Workers with static assets for new sites rather than Pages. Pages still works, and the Viewers stay on it.</p>
+
+<h2 id="do">A Durable Object: where state lives</h2>
+
+<p>Workers forget. Something has to remember that Room <code>7KQ2M9XA4T</code> exists, when it was last used, and which Workspaces are connected to it right now. That is the Room Durable Object.</p>
+
+<ul>
+  <li><b>One per name, worldwide.</b> <code>env.ROOM.idFromName(room)</code> always reaches the same object, from any Worker isolate in any city. It runs in one data center, chosen near where it was first used.</li>
+  <li><b>One request at a time.</b> It handles its requests in turn, so two tool calls for the same Room cannot trample each other.</li>
+  <li><b>It keeps WebSockets.</b> A Worker cannot hold a socket for long, but a Durable Object can. The Workspace’s <code>/ws</code>, and each Viewer’s connection to its Upstream, ends in a Durable Object.</li>
+  <li><b>Its storage outlives its code.</b> A deploy replaces the class’s code, but every Room’s stored data stays. The <code>[[migrations]]</code> block in <code>wrangler.toml</code> is how you tell Cloudflare that a class was added, renamed or removed. It is the one part of a deploy that changes stored data, so treat it like a database migration.</li>
+</ul>
+
+<p>The Upstreams have their own Durable Objects for the same reason: igv and Spacewalk each have a <code>Room</code>, and Juicebox has <code>WebSocketRoom</code> and <code>McpSession</code>. Each Upstream keeps its own Room for the same Room id. These are separate objects, and geenee never reads another Upstream’s Room.</p>
+
+<h2 id="request">Following one request</h2>
+
+<figure>
+  <div class="figwrap">
+  <svg class="fig" viewBox="0 0 760 330" role="img" aria-label="The Host and the Workspace call the geenee Worker; the geenee Worker uses its Room Durable Object and forwards to the igv Worker; the igv Viewer is fetched once from Pages and keeps a WebSocket open to the igv Worker, which uses its own Room Durable Object.">
+    <defs>
+      <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker>
+    </defs>
+    <text class="band" x="20" y="22">CALLERS</text>
+    <text class="band" x="290" y="22">IN EVERY DATA CENTER</text>
+    <text class="band" x="580" y="22">IN ONE PLACE</text>
+
+    <!-- callers -->
+    <rect class="bx" x="20" y="40" width="180" height="56" rx="3" style="stroke-width:1"/>
+    <text x="34" y="63" font-weight="600">Host</text>
+    <text x="34" y="81" fill="var(--muted)" style="fill:var(--muted)">on Anthropic’s servers</text>
+
+    <rect class="bx" x="20" y="146" width="180" height="56" rx="3" style="stroke-width:1"/>
+    <text x="34" y="169" font-weight="600">Workspace</text>
+    <text x="34" y="187" style="fill:var(--muted)">in the person’s browser</text>
+
+    <rect class="bi" x="20" y="252" width="180" height="56" rx="3"/>
+    <text class="igv" x="34" y="275" font-weight="600" style="fill:var(--igv)">igv Viewer</text>
+    <text x="34" y="293" style="fill:var(--muted)">in a frame of the Workspace</text>
+
+    <!-- workers and pages -->
+    <rect class="bx" x="290" y="40" width="210" height="74" rx="3"/>
+    <text x="304" y="62" font-weight="600">Worker geenee</text>
+    <text class="m" x="304" y="80">geenee.3dg.io</text>
+    <text x="304" y="100" style="fill:var(--muted)">code + the Workspace files</text>
+
+    <rect class="bi" x="290" y="150" width="210" height="56" rx="3"/>
+    <text x="304" y="172" font-weight="600" style="fill:var(--igv)">Worker igv-mcp</text>
+    <text class="m" x="304" y="190" style="fill:var(--igv)">igv-mcp.3dg.io</text>
+
+    <rect class="bi pg" x="290" y="252" width="210" height="56" rx="3"/>
+    <text x="304" y="274" font-weight="600" style="fill:var(--igv)">Pages igv-viewer</text>
+    <text class="m" x="304" y="292" style="fill:var(--igv)">igv-viewer.pages.dev</text>
+
+    <!-- durable objects -->
+    <rect class="bx" x="580" y="50" width="165" height="54" rx="3" style="stroke-width:1"/>
+    <text x="594" y="72" font-weight="600">Room</text>
+    <text x="594" y="90" style="fill:var(--muted)">geenee’s, one per id</text>
+
+    <rect class="bi" x="580" y="151" width="165" height="54" rx="3"/>
+    <text x="594" y="173" font-weight="600" style="fill:var(--igv)">Room</text>
+    <text x="594" y="191" style="fill:var(--muted)">igv’s, one per id</text>
+
+    <!-- wires -->
+    <path class="w" d="M200,62 L288,62" marker-end="url(#ah)"/>
+    <text class="m" x="212" y="56">POST /mcp</text>
+
+    <path class="w" d="M200,174 C245,174 245,96 288,96" marker-end="url(#ah)"/>
+    <text class="m" x="240" y="128" text-anchor="end">GET /, /ws</text>
+
+    <path class="w" d="M500,77 L578,77" marker-end="url(#ah)"/>
+
+    <path class="w" d="M395,114 L395,148" marker-end="url(#ah)"/>
+    <text class="m" x="403" y="135">forwarded call</text>
+
+    <path class="w" d="M500,178 L578,178" marker-end="url(#ah)"/>
+
+    <path class="w" d="M200,280 L288,280" marker-end="url(#ah)"/>
+    <text class="m" x="208" y="273">GET files</text>
+
+    <path class="w" d="M200,264 C245,264 245,192 288,192" marker-end="url(#ah)"/>
+    <text class="m" x="238" y="226" text-anchor="end">/ws</text>
+  </svg>
+  </div>
+  <figcaption><b>One tool call, “go to MYC”, and the pieces it touches.</b> Callers are on the left. Of the rest, solid outlines run our code (Workers and Durable Objects); the dashed outline, a Pages project, only serves files. The Host posts the call to geenee. geenee looks up the Room and forwards the call to igv. The igv Worker hands it to igv’s Room, which sends it down the WebSocket the Viewer opened when it loaded. The Viewer’s files came from Pages once, at the start. Juicebox and Spacewalk have the same shape.</figcaption>
+</figure>
+
+<p>When a request arrives for <code>geenee.3dg.io</code>, Cloudflare’s DNS answers with an address belonging to Cloudflare, not to a machine of ours. The data center nearest the caller receives the request, sees the hostname belongs to the Worker <code>geenee</code>, and runs it there. That is the whole of what <code>&lt;VirtualHost&gt;</code> and <code>ServerName</code> used to do. There is no server behind Cloudflare: the Worker is the origin.</p>
+
+<h2 id="why">Why each piece is where it is</h2>
+
+<div class="pair">
+  <div><b>Workers, for geenee and the Upstreams</b>Each one has to run code on every request: answer MCP, forward calls, accept WebSockets. Files cannot do that.</div>
+  <div><b>Pages, for the Viewers</b>A Viewer is a browser app. Its code runs in the person’s browser, not on Cloudflare. It needs a host for its files and nothing more.</div>
+  <div><b>Static assets, for the Workspace</b>The Workspace page could have been a Pages project. It ships inside the geenee Worker instead, in the same <code>wrangler deploy</code>, so the page and the code it talks to can never be out of step.</div>
+  <div><b>Durable Objects, for Rooms</b>A Room has to be one thing, in one place, that every request for that id reaches, and that keeps its sockets open. Only a Durable Object is like that.</div>
+</div>
+
+<p>An Upstream and its Viewer are a pair that point at each other. The Worker’s <code>VIEWER_URL</code> names the Pages address, and its <code>VIEWER_ORIGINS</code> lets only that page open <code>/ws</code>. The Viewer has the Worker’s address built in. That is why each Upstream’s deploy script uploads both, and why they are always released together.</p>
+
+<h2 id="toml">wrangler.toml is your httpd.conf</h2>
+
+<p>Everything Cloudflare knows about a Worker comes from <code>wrangler.toml</code>, sent with each deploy. Changes you make in the dashboard are overwritten by the next deploy. geenee’s, section by section:</p>
+
+<div class="tablewrap wide">
+<table>
+  <thead><tr><th>Line</th><th>What it says</th><th>Apache’s nearest</th></tr></thead>
+  <tbody>
+    <tr><th><code>name</code>, <code>main</code></th><td>The Worker’s name, and the file whose <code>fetch</code> is called</td><td>The script a handler runs</td></tr>
+    <tr><th><code>compatibility_date</code></th><td>Which version of Cloudflare’s runtime behaviour to use. It changes only when we change this date</td><td>Pinning the Apache version</td></tr>
+    <tr><th><code>account_id</code></th><td>The account that owns <code>3dg.io</code>, so a login with several accounts does not have to choose</td><td>Which machine to <code>ssh</code> into</td></tr>
+    <tr><th><code>[assets]</code></th><td>Upload <code>dist/</code> with the Worker, and give the code <code>env.ASSETS</code> to serve the Workspace at Room links</td><td><code>DocumentRoot</code></td></tr>
+    <tr><th><code>durable_objects</code>, <code>migrations</code></th><td>Bind the <code>Room</code> class as <code>env.ROOM</code>; record that the class exists</td><td>A database and its schema</td></tr>
+    <tr><th><code>[vars]</code></th><td>Plain settings, such as the three Upstream addresses. They are public, in the repo</td><td><code>SetEnv</code></td></tr>
+    <tr><th><code>[env.prod]</code>, <code>[env.dev]</code></th><td>The two Deployments. Each is a separate Worker under its own <code>name</code>, with its own Rooms</td><td>Two <code>&lt;VirtualHost&gt;</code> blocks, on two machines</td></tr>
+    <tr><th><code>routes … custom_domain = true</code></th><td>Answer at this hostname. Wrangler creates the DNS record and certificate</td><td><code>ServerName</code>, plus the DNS record and certificate you used to set up by hand</td></tr>
+    <tr><th><code>workers_dev</code>, <code>preview_urls = false</code></th><td>No extra Cloudflare addresses: one public address per Deployment</td><td>—</td></tr>
+    <tr><th><code>observability.logs</code></th><td>Keep logs, viewable in the dashboard</td><td><code>CustomLog</code></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Secrets never go in this file. They are stored on Cloudflare with <code>wrangler secret put NAME --env prod</code> and reach the code through <code>env</code> like any other binding. geenee has none. The igv Upstream has one, <code>SESSION_HMAC_SECRET</code>.</p>
+
+<p>Pages projects have no <code>wrangler.toml</code> in our repos. The project is created once, by <code>wrangler pages project create</code> in the Upstream’s deploy script, and each upload just names it.</p>
+
+<h2 id="commands">The commands</h2>
+
+<p>The deploy scripts run the uploads for you, after their checks. The rest are for looking around, and take a Worker by name: <code>geenee</code>, <code>geenee-dev</code>, <code>igv-mcp</code>, <code>igv-mcp-dev</code> …</p>
+
+<pre># upload a Worker: its code, files and settings
+wrangler deploy --env prod
+# upload a folder to a Pages project
+wrangler pages deploy dist --project-name igv-viewer --branch main
+
+# live logs from a Worker, like tail -f
+wrangler tail geenee
+# what was uploaded, and when
+wrangler deployments list --name geenee
+wrangler pages deployment list --project-name igv-viewer
+# back to the previous upload, in seconds
+wrangler rollback --name geenee
+# which login and account you are using
+wrangler whoami</pre>
+
+<p>geenee is the one exception to <code>--env</code>. It builds with Cloudflare’s Vite plugin, which picks the environment at build time: <code>npm run deploy:prod</code> builds with <code>CLOUDFLARE_ENV=prod</code>, then runs a plain <code>wrangler deploy</code> of what was built. The Upstreams use <code>wrangler deploy --env prod</code>.</p>
+
+<p><code>wrangler rollback</code> is the emergency brake. It puts back the previous code, but not the repo, and not the tag. The proper rollback is to release the earlier tag, as <a href="deployments.html#rollback">geenee’s Deployments</a> describes.</p>
+
+<p>In the dashboard, Workers and Pages projects share one list, <b>Workers &amp; Pages</b>. You can tell Pages projects by their <code>pages.dev</code> address. The custom domains appear under the <code>3dg.io</code> zone’s DNS as records of type Worker. Leave them alone: Wrangler owns them.</p>
+
+<h2 id="traps">What Apache never asked of you</h2>
+
+<ul class="rules">
+  <li><b>No disk.</b> A Worker cannot write a file. What must last goes in a Durable Object’s storage.</li>
+  <li><b>No memory you can trust.</b> A variable set on one request may be gone on the next. Cache only what you could rebuild.</li>
+  <li><b>A deploy is all at once, everywhere.</b> There is no moment when half the servers run the old code. A bad deploy is also everywhere at once, which is why prod changes only from a tag that was tried on dev first.</li>
+  <li><b>Named environments inherit very little.</b> <code>[env.prod]</code> does not get the top level’s <code>vars</code> or <code>durable_objects</code>, which is why <code>wrangler.toml</code> repeats them. Forget one and that Deployment silently lacks it.</li>
+  <li><b>The top level of <code>wrangler.toml</code> is never deployed.</b> It is for <code>npm run dev</code>. Its <code>name</code> is <code>geenee</code>, the same as production, so deploying it by hand would put its settings, with the dev Upstreams, over geenee production. Use the scripts.</li>
+  <li><b>A Pages build cannot read dashboard settings.</b> Anything the Viewer needs to know is fixed when it is built.</li>
+  <li><b>WebSockets are not covered by CORS.</b> An Upstream checks the <code>Origin</code> of every <code>/ws</code> itself, against <code>VIEWER_ORIGINS</code>. A Viewer at a new address cannot connect until that list names it.</li>
+</ul>
+
+<p class="end">What one geenee deploy replaces and keeps: <a href="how-geenee-deploys.html">How geenee deploys</a>. Every Deployment and how to release it: <a href="deployments.html">geenee’s Deployments</a>. Every address and what it shows: <a href="geenee-addresses.html">geenee’s addresses</a>.</p>
+
+</main>
+</body>
+</html>
