@@ -303,15 +303,20 @@ pre { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; background:
 
 <p>The deploy scripts run the uploads for you, after their checks. The rest are for looking around, and take a Worker by name: <code>geenee</code>, <code>geenee-dev</code>, <code>igv-mcp</code>, <code>igv-mcp-dev</code> …</p>
 
-<pre>wrangler deploy --env prod                 # upload a Worker: code, files, settings
+<pre># upload a Worker: its code, files and settings
+wrangler deploy --env prod
+# upload a folder to a Pages project
 wrangler pages deploy dist --project-name igv-viewer --branch main
-                                           # upload a folder to a Pages project
 
-wrangler tail geenee                       # live logs from a Worker, like tail -f
-wrangler deployments list --name geenee    # what was uploaded, and when
-wrangler rollback --name geenee            # back to the previous upload, in seconds
+# live logs from a Worker, like tail -f
+wrangler tail geenee
+# what was uploaded, and when
+wrangler deployments list --name geenee
 wrangler pages deployment list --project-name igv-viewer
-wrangler whoami                            # which login and account you are using</pre>
+# back to the previous upload, in seconds
+wrangler rollback --name geenee
+# which login and account you are using
+wrangler whoami</pre>
 
 <p>geenee is the one exception to <code>--env</code>. It builds with Cloudflare’s Vite plugin, which picks the environment at build time: <code>npm run deploy:prod</code> builds with <code>CLOUDFLARE_ENV=prod</code>, then runs a plain <code>wrangler deploy</code> of what was built. The Upstreams use <code>wrangler deploy --env prod</code>.</p>
 
