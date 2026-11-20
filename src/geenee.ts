@@ -2,7 +2,7 @@
  * geenee: the Connector at /mcp, forwarding to the Upstreams (ADR 0001).
  *
  * Routes:
- *   POST /mcp     - MCP protocol (stateless Streamable HTTP, JSON responses)
+ *   POST /mcp     - MCP protocol (stateless Streamable HTTP, JSON responses), each request logged with its Host (hostLog.ts)
  *   GET  /mcp     - 405 (no SSE stream)
  *   OPTIONS /mcp  - CORS preflight
  *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace; 410 when the Room has expired
@@ -30,6 +30,7 @@ import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI, roomLinkFor } from './c
 import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
 import { handOffPage } from './handOff.ts'
 import { serverIcons } from './icon.ts'
+import { logHost } from './hostLog.ts'
 import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
@@ -348,6 +349,8 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
           headers: { ...CORS_HEADERS, Allow: 'POST, OPTIONS' },
         })
       }
+      // Which Host is asking, for wrangler tail: never what the conversation says (hostLog.ts).
+      await logHost(request)
       return withCors(await handleMcpRequest(request))
     }
     if (url.pathname === '/viewers' && request.method === 'GET') {

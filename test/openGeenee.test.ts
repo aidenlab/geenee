@@ -151,6 +151,17 @@ describe('open_geenee', () => {
     expect(result.content).toContainEqual({ type: 'image', mimeType: 'image/png', data: qrPng(`${GEENEE}/r/7ZQH4M2K9X`) })
   })
 
+  it('gives the same four for a new Room as for one it opens again', async () => {
+    const result = await geenee().callTool('open_geenee')
+
+    const room = result.structuredContent!.room as string
+    const text = result.content[0].text!
+    expect(text).toContain(`Room link: ${GEENEE}/r/${room}\n`)
+    expect(text).toContain(`Room id: ${room}.`)
+    expect(text).toContain(`QR code: ${GEENEE}/r/${room}/qr.png\n`)
+    expect(result.content).toContainEqual({ type: 'image', mimeType: 'image/png', data: qrPng(`${GEENEE}/r/${room}`) })
+  })
+
   it('has the model repeat none of them where the Host draws the Card, and show them all everywhere else, the QR code as a Markdown image', async () => {
     const result = await geenee({ opened: ['7ZQH4M2K9X'] }).callTool('open_geenee', { room: '7ZQH4M2K9X' })
 

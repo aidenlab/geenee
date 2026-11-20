@@ -12,10 +12,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 let root: string
 let repo: string
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, encoding: 'utf8' }).trim()
-const deploy = (ref: string) => {
-  // No wrangler on the PATH the copy sees, so a ref that got past the check would fail on the login instead.
-  const run = spawnSync(join(repo, 'scripts/deploy.sh'), [ref], { cwd: repo, encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin', GEENEE_DEPLOYMENT: '' } })
-  return { status: run.status, stderr: run.stderr }
+/** Runs the copy for `ref`, answering `answer` when it asks whether the Host check passed. */
+const deploy = (ref: string, answer = 'yes') => {
+  // No wrangler on the PATH the copy sees, so a ref that got past the checks would fail on the login instead.
+  const run = spawnSync(join(repo, 'scripts/deploy.sh'), [ref], { cwd: repo, encoding: 'utf8', input: `${answer}\n`, env: { ...process.env, PATH: '/usr/bin:/bin', GEENEE_DEPLOYMENT: '' } })
+  return { status: run.status, stdout: run.stdout, stderr: run.stderr }
 }
 
 beforeEach(() => {
@@ -90,4 +91,37 @@ describe('releasing geenee production', () => {
       expect(stderr).not.toMatch(REFUSED)
     })
   }
+})
+
+describe('the Host check before a release', () => {
+  beforeEach(() => {
+    git('tag', 'prod-2026-11-12')
+    git('push', '-q', 'origin', 'prod-2026-11-12')
+  })
+
+  it('asks whether it passed on geenee dev for the commit being released, naming docs/host-check.md', () => {
+    const { stdout, stderr } = deploy('prod-2026-11-12')
+
+    const asked = stdout + stderr
+    expect(asked).toContain('docs/host-check.md')
+    expect(asked).toContain('https://geenee-dev.3dg.io')
+    expect(asked).toContain(git('rev-parse', '--short', 'prod-2026-11-12'))
+  })
+
+  for (const answer of ['no', '', 'y']) {
+    it(`does not release when the answer is ${JSON.stringify(answer)}, not yes`, () => {
+      const { status, stderr } = deploy('prod-2026-11-12', answer)
+
+      expect(status).not.toBe(0)
+      expect(stderr).toContain('not released: run the Host check (docs/host-check.md) on geenee dev first')
+      expect(stderr).not.toContain('not logged in to Cloudflare')
+    })
+  }
+
+  it('goes on to the release when the answer is yes', () => {
+    const { stderr } = deploy('prod-2026-11-12', 'yes')
+
+    expect(stderr).not.toContain('not released')
+    expect(stderr).toContain('not logged in to Cloudflare')
+  })
 })
