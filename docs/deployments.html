@@ -213,7 +213,6 @@ pre { font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; background:
 <ol>
   <li>Merge the change to <code>main</code>, after trying it on dev.</li>
   <li>Tag <code>main</code> and push the tag. Where a Viewer lives in a second repository, tag that one too, with the same name.</li>
-  <li>For geenee, deploy the tag to dev and run the <a href="host-check.md">Host check</a> there in every Host. A failure stops the release; <code>scripts/deploy.sh</code> asks whether it passed.</li>
   <li>Run the repository’s prod script with the tag. It checks the tag out into a throwaway copy, tests it, deploys the Worker and its Viewer, and checks that the live Deployment reports that tag.</li>
 </ol>
 

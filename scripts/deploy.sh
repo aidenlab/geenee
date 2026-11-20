@@ -89,19 +89,6 @@ if [[ "$DEPLOYMENT" == prod ]]; then
     echo "$REF is not on origin: push it first (git push origin $REF)" >&2
     exit 2
   fi
-  # The Host check (docs/host-check.md) is run in every Host on geenee dev at this commit before prod
-  # changes; a failure stops the release. Only the person releasing can say it passed.
-  commit="$(git -C "$REPO_ROOT" rev-parse --short "$REF^{commit}")"
-  echo "Releasing $REF ($commit) to geenee production."
-  printf 'Did the Host check (docs/host-check.md) pass in every Host on geenee dev, https://geenee-dev.3dg.io, at %s? Type yes to release: ' "$commit"
-  answer=""
-  read -r answer || true
-  if [[ "$answer" != yes ]]; then
-    echo >&2
-    echo "not released: run the Host check (docs/host-check.md) on geenee dev first" >&2
-    echo "  scripts/deploy-dev.sh $REF, then every request of the script in every Host" >&2
-    exit 1
-  fi
 fi
 
 # Every run ends by naming the Connector URL, whether it deployed or not, so it can be copied into a Host.

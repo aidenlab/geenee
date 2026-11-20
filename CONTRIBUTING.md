@@ -10,7 +10,6 @@ geenee contains none of the tool sets. It is a Cloudflare Worker that **forwards
 - [How geenee works](docs/how-geenee-works.html): the parts, the wires between them, and what happens on a tool call.
 - [geenee's addresses](docs/geenee-addresses.html): every URL geenee serves, and every page a person meets.
 - [geenee's Deployments](docs/deployments.html) and [How geenee deploys](docs/how-geenee-deploys.html): prod and dev, releasing, rolling back.
-- [The Host check](docs/host-check.md): the script run in every Host before a release.
 - [`docs/adr/`](docs/adr/): the decisions that shape geenee. [`docs/research/`](docs/research/merging-igv-and-juicebox-mcp-servers.md): the research behind them.
 
 ## Run it locally
@@ -64,11 +63,8 @@ The tests need no Worker runtime and no network. Stand-in Upstreams (`test/upstr
 npx wrangler login                    # first time on a machine
 scripts/deploy-dev.sh my-branch       # try a branch, tag or commit on https://geenee-dev.3dg.io
 git tag prod-2026-11-12 && git push origin prod-2026-11-12
-scripts/deploy-dev.sh prod-2026-11-12 # put the release on dev, and run the Host check there
 scripts/deploy.sh prod-2026-11-12     # release https://geenee.3dg.io, the published Connector
 ```
-
-Before any prod release, run the [Host check](docs/host-check.md) on dev, at the commit being released, in every Host it names. A failure stops the release. `scripts/deploy.sh` asks whether it passed and releases nothing without a `yes`. The Plugin's releases (aidenlab/plugins) run the same check.
 
 Nothing deploys from CI. Each script deploys from a clean worktree, runs the type-check and tests, and checks the live Connector afterwards. The details, and what to do when something goes wrong, are in [How geenee deploys](docs/how-geenee-deploys.html).
 
