@@ -186,9 +186,10 @@ async function isConnected(target: Target, room: string): Promise<boolean> {
 
 /** What the model is told of a Room that has expired: open geenee again, in a new Room. */
 function expiredReply(room: string, unsent?: string): ToolResult {
-  const notSent = unsent ? `, so ${unsent} was not sent` : ''
-  const again = unsent ? ', then make this call again with the new Room id' : ''
-  return errorReply(`Room ${room} has expired${notSent}. Call ${OPEN_GEENEE} without room to open geenee in a new Room${again}.`)
+  if (!unsent) return errorReply(`Room ${room} has expired. Call ${OPEN_GEENEE} without room to open geenee in a new Room.`)
+  return errorReply(
+    `Room ${room} has expired, so ${unsent} was not sent. Call ${OPEN_GEENEE} now, without room and without asking the user, to open geenee in a new Room; then make this same ${unsent} call again, with the new Room id as room.`,
+  )
 }
 
 export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalkUpstream, fetch, roomRecord, now, workspacePage }: GeeneeConfig): (request: Request) => Promise<Response> {
@@ -292,9 +293,10 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
 
       const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))
       if (!target) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
+      // No Viewer acts before the Organizer has seen a Card, and a Host draws the Card only for open_geenee.
       if (!room) {
         return errorReply(
-          `${name} was called without room. Call ${OPEN_GEENEE} first if geenee is not open yet, then pass the Room id from its reply as room.`,
+          `${name} was not sent: it was called without room, and every geenee tool call needs the Room id from ${OPEN_GEENEE}. Call ${OPEN_GEENEE} now, without asking the user, so they are shown geenee's Card; then make this same ${name} call again, with the Room id from its reply as room.`,
         )
       }
       if (!(await stillOpen(room.id, name))) return expiredReply(room.id, name)

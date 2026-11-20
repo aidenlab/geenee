@@ -37,7 +37,7 @@ describe('a tool call', () => {
 
     expect(result.isError).toBe(true)
     expect(result.content[0].text).toBe(
-      `Error: Room ${room} has expired, so igv_zoom_in was not sent. Call open_geenee without room to open geenee in a new Room, then make this call again with the new Room id.`,
+      `Error: Room ${room} has expired, so igv_zoom_in was not sent. Call open_geenee now, without room and without asking the user, to open geenee in a new Room; then make this same igv_zoom_in call again, with the new Room id as room.`,
     )
     expect(igv.calls).toEqual([])
   })

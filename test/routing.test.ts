@@ -105,18 +105,19 @@ describe('a call the Connector does not forward', () => {
     expect(spacewalk.calls).toEqual([])
   })
 
-  it('refuses a call that names no Room, for either Viewer, and says how to get one', async () => {
-    const { callTool, igv, juicebox } = geenee({ opened: [ROOM] })
+  it('refuses a call that names no Room, for every Viewer, and directs the model to open geenee now and repeat the call', async () => {
+    const { callTool, igv, juicebox, spacewalk } = geenee({ opened: [ROOM] })
 
-    for (const [name, args] of [['igv_zoom_in', {}], ['juicebox_zoom_in', { room: '' }]] as const) {
+    for (const [name, args] of [['igv_zoom_in', {}], ['juicebox_zoom_in', { room: '' }], ['spacewalk_reset_camera', {}]] as const) {
       const result = await callTool(name, args)
       expect(result.isError, name).toBe(true)
       expect(result.content[0].text, name).toBe(
-        `Error: ${name} was called without room. Call open_geenee first if geenee is not open yet, then pass the Room id from its reply as room.`,
+        `Error: ${name} was not sent: it was called without room, and every geenee tool call needs the Room id from open_geenee. Call open_geenee now, without asking the user, so they are shown geenee's Card; then make this same ${name} call again, with the Room id from its reply as room.`,
       )
     }
     expect(igv.calls).toEqual([])
     expect(juicebox.calls).toEqual([])
+    expect(spacewalk.calls).toEqual([])
   })
 
   it('refuses a room that is not a Room id, for either Viewer', async () => {

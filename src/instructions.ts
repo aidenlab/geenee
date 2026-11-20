@@ -6,7 +6,7 @@
  * Hosts differ in how much they read: what matters most is in the first 512
  * characters, and all of it is within 2,048.
  */
-export const INSTRUCTIONS = `geenee shows three viewers together on one page beside the conversation. Call open_geenee first: one call opens all three viewers and gives a Room id. Pass that Room id as room on every other geenee tool call.
+export const INSTRUCTIONS = `geenee shows three viewers together on one page beside the conversation. Call open_geenee first in a conversation, before any other geenee tool, even when the user only greets geenee or a viewer ("hello geenee", "launch geenee", "hi igv"); call it first again when a tool says the Room has expired. One call opens all three viewers, shows the user geenee's Card and gives a Room id. Pass that Room id as room on every other geenee tool call.
 
 Tools whose names start with igv_ drive the igv genome browser: a view along a genome, with tracks of signal and annotation such as bigWig, BED, peaks and genes. Use them for a locus or gene on a genome, for tracks, and to search ENCODE and 4DN for tracks.
 
