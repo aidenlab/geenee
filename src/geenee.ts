@@ -26,7 +26,7 @@ import {
   McpError,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
+import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI, roomLinkFor } from './card.ts'
 import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
 import { handOffPage } from './handOff.ts'
 import { serverIcons } from './icon.ts'
@@ -35,7 +35,7 @@ import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { INSTALL_PAGE, pageResponse } from './page.ts'
 import { qrPngBytes } from './qrPng.ts'
-import { inHandOffPath, inRoomLinkPath, inRoomQrPath, mintRoomId, parseRoomId, roomLinkPath } from './roomId.ts'
+import { inHandOffPath, inRoomLinkPath, inRoomQrPath, mintRoomId, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SHARE_GEENEE, SPACEWALK, type Viewer } from './servedTools.ts'
 import { SHARE_GEENEE_TOOL, shareGeenee } from './shareGeenee.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
@@ -379,7 +379,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       // Not a page, so no page saying why: an image tag shows nothing either way. Asking is not a use.
       if (!room || (await roomRecord(room).expired(now()))) return new Response('Not Found', { status: 404 })
       // Short-lived in caches: the image never changes, but the Room expires.
-      return new Response(qrPngBytes(new URL(roomLinkPath(room), url.origin).toString()), {
+      return new Response(qrPngBytes(roomLinkFor(url.origin, room)), {
         headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=300' },
       })
     }

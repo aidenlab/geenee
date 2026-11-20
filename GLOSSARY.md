@@ -44,6 +44,10 @@ _Avoid_: Session, channel
 The short link that brings anyone into a Room: on a computer straight into the Workspace, on a phone to the Hand-off.
 _Avoid_: URL, invite, share link
 
+**QR address**:
+Where geenee serves the QR code of a Room link as a picture, for a Host that draws no Card: the model shows it in its reply.
+_Avoid_: QR link, QR URL
+
 **Join link**:
 The address of one Viewer in a Room, which the Workspace frames. A person is given the Room link instead.
 _Avoid_: Room link

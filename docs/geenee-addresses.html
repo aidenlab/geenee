@@ -157,6 +157,9 @@ h3 { font: 600 0.95rem var(--sans); margin: 2rem 0 0.25rem; }
     <tr><td class="addr"><a data-path="/r/{room}"></a></td>
       <td><b>The Room link.</b> On a computer, the Workspace, with a quiet “Get geenee” link at the right of the tab bar. On a phone, the Workspace hands over to the Hand-off.</td>
       <td>Guests: it is the link in the Card’s text and QR code.</td></tr>
+    <tr><td class="addr"><a data-path="/r/{room}/qr.png"></a></td>
+      <td><b>The QR address:</b> the QR code of the Room link, as a PNG. <code>404</code> once the Room has expired.</td>
+      <td>The model, in a Host that draws no Card: it shows this image in its reply.</td></tr>
     <tr><td class="addr"><a data-path="/?room={room}"></a></td>
       <td>The Workspace, with no Hand-off on a phone and no Get geenee link.</td>
       <td>The Organizer: the Card’s Open geenee button and the model use it.</td></tr>
@@ -176,7 +179,7 @@ h3 { font: 600 0.95rem var(--sans); margin: 2rem 0 0.25rem; }
 </table>
 </div>
 
-<p>Every one of these but the WebSocket is a use of the Room. A Room expires after a day without use, and then stays expired: these addresses answer with the expired page, or <code>410</code> for the JSON ones.</p>
+<p>Every one of these but the QR address and the WebSocket is a use of the Room. A Room expires after a day without use, and then stays expired: these addresses answer with the expired page, or <code>410</code> for the JSON ones.</p>
 
 <h2 id="no-room">Addresses that need no Room</h2>
 <div class="tablewrap">

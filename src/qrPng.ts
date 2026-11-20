@@ -1,6 +1,7 @@
 /**
- * A QR code of a link as a PNG: base64 for the Card and the replies, bytes for the QR address. Copied from the Juicebox
- * Upstream's qrPng.js: pure JS, so it runs in the Worker without canvas.
+ * A QR code of a link as a PNG: base64 for the Card and the replies, bytes
+ * for the QR address. Copied from the Juicebox Upstream's qrPng.js: pure JS,
+ * so it runs in the Worker without canvas.
  */
 import QRCode from 'qrcode'
 
