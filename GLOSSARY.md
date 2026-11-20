@@ -5,7 +5,7 @@ One Connector that lets a person drive the igv.js genome browser, the Juicebox c
 ## Language
 
 **Host**:
-The application a person talks to the model in: Claude desktop, or ChatGPT desktop in Codex mode.
+The application a person talks to the model in: Claude desktop, claude.ai, or ChatGPT desktop in Codex mode. Claude Code and the Codex CLI are Hosts too, in a terminal, where no Card can be drawn.
 _Avoid_: MCP client, client, chat app
 
 **Marketplace**:
@@ -69,5 +69,9 @@ A Marketplace install: add the Marketplace to a Host, then install the geenee Pl
 _Avoid_: Custom connector, signup, landing page
 
 **Card**:
-What a Host shows in the conversation when geenee is opened, and again whenever the Organizer asks to share the Room with Guests: a short message led by geenee's icon, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card under geenee's icon and name, for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself.
+What a Host shows in the conversation when geenee is opened, and again whenever the Organizer asks to share the Room with Guests: a short message led by geenee's icon, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card under geenee's icon and name, for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself. Only a Host draws a Card; where a Host draws none, the model's reply gives the Organizer the Room link and its QR code instead.
 _Avoid_: Screen, view, widget
+
+**Host check**:
+The same short script of requests, each with a pass or fail, run in every Host on the dev Deployment before prod changes. A failure stops the release.
+_Avoid_: Smoke test, QA, testing in Claude and ChatGPT
