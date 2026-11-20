@@ -112,7 +112,7 @@ describe('a call the Connector does not forward', () => {
       const result = await callTool(name, args)
       expect(result.isError, name).toBe(true)
       expect(result.content[0].text, name).toBe(
-        `Error: ${name} was not sent: it was called without room, and every geenee tool call needs the Room id from open_geenee. Call open_geenee now, without asking the user, so they are shown geenee's Card; then make this same ${name} call again, with the Room id from its reply as room.`,
+        `Error: ${name} was not sent: it was called without room, and every geenee tool call needs the Room id from open_geenee. Call open_geenee now, without room and without asking the user, so they are shown geenee's Card; then make this same ${name} call again, with the Room id from its reply as room.`,
       )
     }
     expect(igv.calls).toEqual([])
