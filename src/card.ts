@@ -11,7 +11,7 @@
 import { ICON_DATA_URI } from './icon.ts'
 import { FONTS, TOKENS } from './page.ts'
 import { qrPng } from './qrPng.ts'
-import { roomLinkPath } from './roomId.ts'
+import { roomLinkPath, roomQrPath } from './roomId.ts'
 
 export const CARD_URI = 'ui://geenee/open'
 export const CARD_MIME_TYPE = 'text/html;profile=mcp-app'
@@ -33,22 +33,58 @@ function workspaceLinkFor(origin: string, room: string): string {
 }
 
 /** The Room link: the short link that brings anyone into a Room, shorter than the Workspace's and so a less dense QR code. */
-function roomLinkFor(origin: string, room: string): string {
+export function roomLinkFor(origin: string, room: string): string {
   return new URL(roomLinkPath(room), origin).toString()
 }
 
-/** What the Card draws for `room`: the link its button opens, its Room link and the QR code of that link. Shared by open_geenee and share_geenee. */
-export function cardContent(origin: string, room: string): { workspaceLink: string; roomLink: string; structuredContent: Record<string, unknown> } {
+/** The QR address: where the QR code of a Room's Room link is served as a PNG. */
+function qrAddressFor(origin: string, room: string): string {
+  return new URL(roomQrPath(room), origin).toString()
+}
+
+/** The QR code of the Room link as an MCP image content block, for Hosts that draw no Card. */
+export type QrImage = { type: 'image'; mimeType: 'image/png'; data: string }
+
+/** What the Card draws for a Room, and what a reply gives in its place where the Host draws no Card. */
+export interface CardContent {
+  /** The link the Card's button opens. */
+  workspaceLink: string
+  /** The Room link, the Card's text link and what its QR code carries. */
+  roomLink: string
+  /** The QR address: where the QR code of the Room link is served as a PNG. */
+  qrAddress: string
+  /** The QR code as an image block; undefined when it could not be drawn. */
+  qrImage?: QrImage
+  /** What the Card reads. */
+  structuredContent: Record<string, unknown>
+}
+
+/** What the Card draws for `room`: the link its button opens, its Room link and the QR code of that link, and the same for Hosts that draw no Card. Shared by open_geenee and share_geenee. */
+export function cardContent(origin: string, room: string): CardContent {
   const workspaceLink = workspaceLinkFor(origin, room)
   const roomLink = roomLinkFor(origin, room)
+  const qrAddress = qrAddressFor(origin, room)
   // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
   const structuredContent: Record<string, unknown> = { room, workspaceUrl: workspaceLink, roomUrl: roomLink }
+  let qrImage: QrImage | undefined
   try {
-    structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
+    const png = qrPng(roomLink)
+    structuredContent.qrPng = png // drawn by the Card
+    qrImage = { type: 'image', mimeType: 'image/png', data: png }
   } catch (error) {
     console.warn('[card] no QR code for the Card:', error)
   }
-  return { workspaceLink, roomLink, structuredContent }
+  return { workspaceLink, roomLink, qrAddress, qrImage, structuredContent }
+}
+
+/** The lines of a reply's text that give the Room link and its QR address, each a bare URL on its line so Hosts render it clickable. */
+export function roomLinkLines({ roomLink, qrAddress }: CardContent): string {
+  return `Room link: ${roomLink}\nQR code: ${qrAddress}\n`
+}
+
+/** What the model is told to show of a Room: nothing where the Host draws the Card, the Room link, the Room id and the QR code everywhere else. The server cannot tell Hosts apart, so the model does. */
+export function whatToShow({ qrAddress }: CardContent): string {
+  return `Where this app draws geenee's Card (Claude desktop, claude.ai), do not repeat the Room link, the Room id or the QR code in your reply: the Card shows them. Everywhere else, show the user the Room link, the Room id and the QR code in your reply, the QR code as this Markdown image: ![QR code of the Room link](${qrAddress})`
 }
 
 export const CARD_HTML = `<!DOCTYPE html>

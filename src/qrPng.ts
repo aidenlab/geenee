@@ -1,6 +1,7 @@
 /**
- * A QR code of a link as a base64 PNG, for the Card. Copied from the Juicebox
- * Upstream's qrPng.js: pure JS, so it runs in the Worker without canvas.
+ * A QR code of a link as a PNG: base64 for the Card and the replies, bytes
+ * for the QR address. Copied from the Juicebox Upstream's qrPng.js: pure JS,
+ * so it runs in the Worker without canvas.
  */
 import QRCode from 'qrcode'
 
@@ -74,6 +75,14 @@ function zlibStored(raw: Uint8Array): Uint8Array {
 
 /** A QR code of `text` as base64 PNG data (no data: prefix), `scale` pixels per module. */
 export function qrPng(text: string, scale = 8): string {
+  const png = qrPngBytes(text, scale)
+  let binary = ''
+  for (let i = 0; i < png.length; i++) binary += String.fromCharCode(png[i])
+  return btoa(binary)
+}
+
+/** A QR code of `text` as the bytes of a PNG, `scale` pixels per module. */
+export function qrPngBytes(text: string, scale = 8): Uint8Array<ArrayBuffer> {
   const qr = QRCode.create(text, { errorCorrectionLevel: 'M' })
   const size = qr.modules.size
   const data = qr.modules.data
@@ -112,8 +121,5 @@ export function qrPng(text: string, scale = 8): string {
     png.set(chunk, offset)
     offset += chunk.length
   }
-
-  let binary = ''
-  for (let i = 0; i < png.length; i++) binary += String.fromCharCode(png[i])
-  return btoa(binary)
+  return png
 }

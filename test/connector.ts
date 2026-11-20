@@ -19,7 +19,7 @@ export interface Tool {
 }
 
 export interface ToolResult {
-  content: Array<{ type: string; text?: string; uri?: string; name?: string; mimeType?: string }>
+  content: Array<{ type: string; text?: string; uri?: string; name?: string; mimeType?: string; data?: string }>
   structuredContent?: Record<string, unknown>
   isError?: boolean
 }

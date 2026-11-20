@@ -8,6 +8,7 @@
  *   GET  /viewers?room= - the address of each Viewer in a Room, for the Workspace; 410 when the Room has expired
  *   GET  /connections?room= - whether each Viewer is connected in a Room, for the marks on the Workspace's tabs; 410 likewise
  *   GET  /ws?room= - WebSocket upgrade → the Room's Durable Object (Workspaces)
+ *   GET  /r/<Room id>/qr.png - the QR address: the PNG of the Room link's QR code; 404 when the Room has expired or its id is malformed
  *   GET  /r/<Room id> - the Room link: the Workspace page, or a page saying the Room has expired or its id is malformed
  *   GET  /h/<Room id> - the Hand-off, where a phone sends the Room link on to a computer, or the same expired page
  *   GET  /install - 302 to the Marketplace install page in aidenlab/plugins (ADR 0005); /get, its old address, too
@@ -25,7 +26,7 @@ import {
   McpError,
   ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI } from './card.ts'
+import { CARD_HTML, CARD_META, CARD_MIME_TYPE, CARD_URI, roomLinkFor } from './card.ts'
 import { EXPIRED_ROOM_HTML } from './expiredRoom.ts'
 import { handOffPage } from './handOff.ts'
 import { serverIcons } from './icon.ts'
@@ -33,7 +34,8 @@ import { INSTRUCTIONS } from './instructions.ts'
 import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { INSTALL_PAGE, pageResponse } from './page.ts'
-import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
+import { qrPngBytes } from './qrPng.ts'
+import { inHandOffPath, inRoomLinkPath, inRoomQrPath, mintRoomId, parseRoomId } from './roomId.ts'
 import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SHARE_GEENEE, SPACEWALK, type Viewer } from './servedTools.ts'
 import { SHARE_GEENEE_TOOL, shareGeenee } from './shareGeenee.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
@@ -370,6 +372,16 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
       if (!(await roomRecord(room).use(now()))) return roomExpired()
       const connected = await Promise.all(targets.map(async (target) => [target.viewer.prefix, await isConnected(target, room)]))
       return Response.json(Object.fromEntries(connected))
+    }
+    const qr = inRoomQrPath(url.pathname)
+    if (qr !== null && page) {
+      const room = parseRoomId(qr)
+      // Not a page, so no page saying why: an image tag shows nothing either way. Asking is not a use.
+      if (!room || (await roomRecord(room).expired(now()))) return new Response('Not Found', { status: 404 })
+      // Short-lived in caches: the image never changes, but the Room expires.
+      return new Response(qrPngBytes(roomLinkFor(url.origin, room)), {
+        headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=300' },
+      })
     }
     const roomLink = inRoomLinkPath(url.pathname)
     if (roomLink !== null && page) {
