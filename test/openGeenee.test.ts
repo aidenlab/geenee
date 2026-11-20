@@ -141,6 +141,25 @@ describe('open_geenee', () => {
     expect(card).toContain('$("open").onclick = (e) => open(e, workspaceLink)')
   })
 
+  it('gives, for Hosts that draw no Card, the Room link, the Room id and the QR address in its text, and the QR code as an image', async () => {
+    const result = await geenee({ opened: ['7ZQH4M2K9X'] }).callTool('open_geenee', { room: '7ZQH4M2K9X' })
+
+    const text = result.content[0].text!
+    expect(text).toContain(`Room link: ${GEENEE}/r/7ZQH4M2K9X\n`)
+    expect(text).toContain('Room id: 7ZQH4M2K9X.')
+    expect(text).toContain(`QR code: ${GEENEE}/r/7ZQH4M2K9X/qr.png\n`)
+    expect(result.content).toContainEqual({ type: 'image', mimeType: 'image/png', data: qrPng(`${GEENEE}/r/7ZQH4M2K9X`) })
+  })
+
+  it('has the model repeat none of them where the Host draws the Card, and show them all everywhere else, the QR code as a Markdown image', async () => {
+    const result = await geenee({ opened: ['7ZQH4M2K9X'] }).callTool('open_geenee', { room: '7ZQH4M2K9X' })
+
+    const text = result.content[0].text!
+    expect(text).toContain("Where this app draws geenee's Card (Claude desktop, claude.ai), do not repeat the Room link, the Room id or the QR code in your reply")
+    expect(text).toContain('Everywhere else, show the user the Room link, the Room id and the QR code in your reply')
+    expect(text).toContain(`![QR code of the Room link](${GEENEE}/r/7ZQH4M2K9X/qr.png)`)
+  })
+
   it('has the model say only that geenee is opening', async () => {
     const result = await geenee().callTool('open_geenee')
 

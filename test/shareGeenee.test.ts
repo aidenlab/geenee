@@ -3,6 +3,7 @@
  * Guests who arrive after the first Card has scrolled out of sight.
  */
 import { describe, expect, it } from 'vitest'
+import { qrPng } from '../src/qrPng.ts'
 import { GEENEE, geenee, type Tool } from './connector.ts'
 
 const HOUR = 60 * 60 * 1000
@@ -40,6 +41,28 @@ describe('share_geenee', () => {
     expect(igv.calls).toEqual([])
     expect(juicebox.calls).toEqual([])
     expect(spacewalk.calls).toEqual([])
+  })
+
+  it('gives, for Hosts that draw no Card, the Room link, the Room id and the QR address in its text, and the QR code as an image', async () => {
+    const { callTool, room } = await withRoom()
+
+    const shared = await callTool('share_geenee', { room })
+
+    const text = shared.content[0].text!
+    expect(text).toContain(`Room link: ${GEENEE}/r/${room}\n`)
+    expect(text).toContain(`Room id: ${room}.`)
+    expect(text).toContain(`QR code: ${GEENEE}/r/${room}/qr.png\n`)
+    expect(shared.content).toContainEqual({ type: 'image', mimeType: 'image/png', data: qrPng(`${GEENEE}/r/${room}`) })
+  })
+
+  it('has the model repeat none of them where the Host draws the Card, and show them all everywhere else, the QR code as a Markdown image', async () => {
+    const { callTool, room } = await withRoom()
+
+    const text = (await callTool('share_geenee', { room })).content[0].text!
+
+    expect(text).toContain("Where this app draws geenee's Card (Claude desktop, claude.ai), do not repeat the Room link, the Room id or the QR code in your reply")
+    expect(text).toContain('Everywhere else, show the user the Room link, the Room id and the QR code in your reply')
+    expect(text).toContain(`![QR code of the Room link](${GEENEE}/r/${room}/qr.png)`)
   })
 
   it('given an expired Room, gives the expired-Room reply, and no Card', async () => {

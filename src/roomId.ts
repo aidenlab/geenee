@@ -14,6 +14,16 @@ export function roomLinkPath(room: string): string {
   return `/r/${room}`
 }
 
+/** The QR address of a Room: the PNG of the QR code of its Room link, for Hosts that draw no Card. */
+export function roomQrPath(room: string): string {
+  return `${roomLinkPath(room)}/qr.png`
+}
+
+/** Whatever stands for the Room id in a QR address's path, `/r/<Room id>/qr.png`, unchecked; null when `pathname` is not a QR address's. */
+export function inRoomQrPath(pathname: string): string | null {
+  return pathname.match(/^\/r\/([^/]*)\/qr\.png$/)?.[1] ?? null
+}
+
 /** The path of a Room's Hand-off, where a Room link opened on a phone goes. */
 export function handOffPath(room: string): string {
   return `/h/${room}`
