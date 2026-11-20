@@ -76,6 +76,3 @@ _Avoid_: Custom connector, signup, landing page
 What a Host shows in the conversation when geenee is opened, and again whenever the Organizer asks to share the Room with Guests: a short message led by geenee's icon, an Open geenee button, the Room link, and a QR code of the Room link for Guests to scan, which Show large makes fill the Card under geenee's icon and name, for projecting or screen-sharing. The way into the Workspace when the model cannot open it beside the conversation itself. Only a Host draws a Card; where a Host draws none, the model's reply gives the Organizer the Room link and its QR code instead.
 _Avoid_: Screen, view, widget
 
-**Host check**:
-The same short script of requests, each with a pass or fail, run in every Host on the dev Deployment before prod changes. A failure stops the release.
-_Avoid_: Smoke test, QA, testing in Claude and ChatGPT

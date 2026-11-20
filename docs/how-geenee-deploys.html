@@ -483,16 +483,13 @@ pre {
 <pre>scripts/deploy-dev.sh my-branch       # dev: any branch, tag or commit
 git tag prod-2026-11-12 main          # production: tag main,
 git push origin prod-2026-11-12       # push the tag,
-scripts/deploy-dev.sh prod-2026-11-12 # run the Host check on dev,
 scripts/deploy.sh prod-2026-11-12     # and release it</pre>
-
-<p class="note"><b>Before any prod release, the <a href="host-check.md">Host check</a> passes on dev.</b> Deploy the tag to dev and run the check’s short script of requests in every Host it names. A failure stops the release. <code>scripts/deploy.sh</code> names the commit and asks whether the check passed on dev at it; anything but <code>yes</code> releases nothing. The Plugin’s releases run the same check.</p>
 
 <p><code>scripts/deploy-dev.sh</code> is <code>scripts/deploy.sh</code> pointed at the dev deployment; the steps are the same, except that dev takes any ref and production only a <code>prod-</code> tag on origin. A second release the same day is <code>prod-2026-11-12.2</code>.</p>
 
 <figure>
   <div class="figwrap">
-  <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="The eight steps of the script in a row. Steps 1 to 6 run on your machine in a throwaway worktree: check the ref, the Host check (for production) and the Cloudflare login, check out the ref, install, type-check, test, build. Step 7 uploads with wrangler deploy. Step 8 checks the live Worker. The build writes dist/geenee for the Worker and dist/client for the Workspace page, and those are what step 7 uploads. A failure in steps 1 to 6 uploads nothing; a failure in step 8 means the build is already live.">
+  <svg class="fig" viewBox="0 0 1000 250" role="img" aria-label="The eight steps of the script in a row. Steps 1 to 6 run on your machine in a throwaway worktree: check the ref and the Cloudflare login, check out the ref, install, type-check, test, build. Step 7 uploads with wrangler deploy. Step 8 checks the live Worker. The build writes dist/geenee for the Worker and dist/client for the Workspace page, and those are what step 7 uploads. A failure in steps 1 to 6 uploads nothing; a failure in step 8 means the build is already live.">
     <text x="21" y="30" class="t-band">ON YOUR MACHINE, IN A THROWAWAY WORKTREE</text>
     <text x="753" y="30" class="t-band">UPLOAD</text>
     <text x="875" y="30" class="t-band">LIVE</text>
@@ -501,7 +498,7 @@ scripts/deploy.sh prod-2026-11-12     # and release it</pre>
 
     <g>
       <rect x="21" y="48" width="104" height="66" class="bx"/>
-      <text x="31" y="66" class="t-n">1</text><text x="31" y="84" class="t-h">May it run?</text><text x="31" y="101" class="t-s">tag, check, login</text>
+      <text x="31" y="66" class="t-n">1</text><text x="31" y="84" class="t-h">May it run?</text><text x="31" y="101" class="t-s">tag, login</text>
       <rect x="143" y="48" width="104" height="66" class="bx"/>
       <text x="153" y="66" class="t-n">2</text><text x="153" y="84" class="t-h">Check out</text><text x="153" y="101" class="t-s">git worktree, ref</text>
       <rect x="265" y="48" width="104" height="66" class="bx"/>
@@ -551,7 +548,7 @@ scripts/deploy.sh prod-2026-11-12     # and release it</pre>
 <table>
   <thead><tr><th class="n"></th><th>Step</th><th>What happens</th></tr></thead>
   <tbody>
-    <tr><td class="n">1</td><th>May it run?</th><td>For production, the ref must be a <code>prod-YYYY-MM-DD[.N]</code> tag, and origin must have that tag at the same commit; anything else, <code>main</code> included, is refused with the commands to tag and push. It then names the tag’s commit and asks whether the <a href="host-check.md">Host check</a> passed on dev at it; any answer but <code>yes</code> stops the script. Then <code>npx wrangler whoami</code>: if you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
+    <tr><td class="n">1</td><th>May it run?</th><td>For production, the ref must be a <code>prod-YYYY-MM-DD[.N]</code> tag, and origin must have that tag at the same commit; anything else, <code>main</code> included, is refused with the commands to tag and push. Then <code>npx wrangler whoami</code>: if you are not logged in to Cloudflare, the script stops and tells you to run <code>npx wrangler login</code>.</td></tr>
     <tr><td class="n">2</td><th>Check out</th><td>Creates a temporary directory and checks out the ref there with <code>git worktree add --detach</code>. For dev the ref defaults to <code>HEAD</code>, your current commit. Uncommitted edits are not in it. The worktree is removed when the script exits, whether it succeeded or not. The ref is built with its own <code>wrangler.toml</code>, so the script stops here if that file does not give the deployment’s section the expected Worker: an older branch may have no <code>[env.prod]</code>, or an <code>[env.dev]</code> that names an older Worker. Merge <code>main</code> into it first.</td></tr>
     <tr><td class="n">3</td><th>Install</th><td><code>npm ci</code>: installs exactly what <code>package-lock.json</code> says, from scratch.</td></tr>
     <tr><td class="n">4</td><th>Type-check</th><td><code>npm run typecheck</code>: regenerates the Worker’s types from <code>wrangler.toml</code>, then type-checks the Worker and tests, and the Workspace separately.</td></tr>
@@ -709,7 +706,6 @@ Connector URL: https://geenee.3dg.io/mcp</pre>
     <tr><th>The tool count dropped</th><td>An Upstream did not answer: its version reads <code>did not answer</code>. geenee still works with the others. Not a failure of the deploy.</td></tr>
     <tr><th>You want to undo a release</th><td>Release the earlier tag again: <code>scripts/deploy.sh prod-2026-11-05</code>; <code>git tag -l 'prod-*'</code> lists them. Cloudflare can also roll back to a previous version (<code>npx wrangler rollback --env prod</code>), but releasing a tag keeps git as the record of what is live.</td></tr>
     <tr><th>Someone else deploys after you</th><td>Both deployments are shared, and a deploy replaces the Worker for everyone. dev has one slot: agree who is using it. Try a branch on dev before it is merged and tagged for production.</td></tr>
-    <tr><th>A Host check request fails</th><td>Do not release. Fix it, deploy the fix to dev, and run the whole <a href="host-check.md">Host check</a> again in every Host. <code>wrangler tail --env dev</code> names each Host and whether it declares MCP Apps, which tells a Host that draws no Card from a Card that broke.</td></tr>
     <tr><th><code>scripts/deploy.sh main</code> is refused</th><td>Production takes only a <code>prod-</code> tag that is on origin. Tag the commit, push the tag, and run the script with it.</td></tr>
     <tr><th>You rename or remove the <code>Room</code> class</th><td>That needs a new <code>[[migrations]]</code> entry in <code>wrangler.toml</code>, or <code>wrangler deploy</code> refuses. Changing what is <em>inside</em> <code>Room</code> needs none.</td></tr>
     <tr><th>First deploy on a new machine</th><td><code>npx wrangler login</code> with a login that can reach the account in <code>wrangler.toml</code>. There are no secrets to set.</td></tr>
@@ -721,7 +717,7 @@ Connector URL: https://geenee.3dg.io/mcp</pre>
 
 <p>The words used here (Host, Connector, Upstream, Viewer, Workspace, Room) are defined in <code>GLOSSARY.md</code>. How the parts talk to each other once deployed is in <a href="how-geenee-works.html">How geenee works</a>. The Juicebox side of deploying is covered in more depth by <code>docs/how-juicebot-deploys.html</code> in <code>juicebox-mcp</code>.</p>
 
-<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream. Revised 5 November 2026 for the prod Upstreams, tag-only releases and <code>/versions</code> (ADR 0004). Revised 14 November 2026 for retiring an address. Revised 20 November 2026 for the Host check.</p>
+<p class="end">Written 22 October 2026 from geenee at commit 1c33760, <code>igvjs-mcp</code> at b878a47 and <code>juicebox-mcp</code> at 4c0ecaa. Revised 23 October 2026 for the test deployment and the retirement of juicebox-web. Revised 30 October 2026 for the rename to production and dev. Revised 2 November 2026 for Spacewalk, the third Upstream. Revised 5 November 2026 for the prod Upstreams, tag-only releases and <code>/versions</code> (ADR 0004). Revised 14 November 2026 for retiring an address.</p>
 
 </main>
 </body>
