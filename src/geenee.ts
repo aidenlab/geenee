@@ -34,7 +34,8 @@ import { MALFORMED_ROOM_LINK_HTML } from './malformedRoomLink.ts'
 import { OPEN_GEENEE_TOOL, openGeenee } from './openGeenee.ts'
 import { INSTALL_PAGE, pageResponse } from './page.ts'
 import { inHandOffPath, inRoomLinkPath, mintRoomId, parseRoomId } from './roomId.ts'
-import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SPACEWALK, type Viewer } from './servedTools.ts'
+import { IGV, JUICEBOX, OPEN_GEENEE, serveTools, SHARE_GEENEE, SPACEWALK, type Viewer } from './servedTools.ts'
+import { SHARE_GEENEE_TOOL, shareGeenee } from './shareGeenee.ts'
 import { upstreamAt, type ToolResult, type Upstream } from './upstream.ts'
 import { versionsPage } from './versions.ts'
 import type { ViewerKey } from './workspaceChannel.ts'
@@ -249,7 +250,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
   /** Workers are stateless, so every request gets a fresh server and transport, as in the Upstreams. */
   async function handleMcpRequest(request: Request): Promise<Response> {
     const server = new Server({ name: 'geenee', version, icons: serverIcons(new URL(request.url).origin) }, { capabilities: { tools: {}, resources: {} }, instructions: INSTRUCTIONS })
-    // The Card is geenee's one resource; open_geenee points Hosts that render MCP Apps to it.
+    // The Card is geenee's one resource; open_geenee and share_geenee point Hosts that render MCP Apps to it.
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
       resources: [{ uri: CARD_URI, name: 'geenee card', mimeType: CARD_MIME_TYPE, _meta: CARD_META }],
     }))
@@ -269,13 +270,13 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
           }
         }),
       )
-      return { tools: [OPEN_GEENEE_TOOL, ...lists.flat()] }
+      return { tools: [OPEN_GEENEE_TOOL, SHARE_GEENEE_TOOL, ...lists.flat()] }
     })
     server.setRequestHandler(CallToolRequestSchema, async ({ params: { name, arguments: { room: named, ...args } = {} } }) => {
       const room = roomNamed(named)
       if (room && 'refusal' in room) return room.refusal
+      const origin = new URL(request.url).origin
       if (name === OPEN_GEENEE) {
-        const origin = new URL(request.url).origin
         // ADR 0003 comes first: an expired Room is never opened again in an Upstream.
         if (room) {
           if (!(await stillOpen(room.id, name))) return expiredReply(room.id)
@@ -293,10 +294,17 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
         await openNew(minted)
         return openGeenee(origin, minted)
       }
+      if (name === SHARE_GEENEE) {
+        // A Card needs a Room to show: share_geenee never opens one, so the Guests already in it keep their link.
+        if (!room) return errorReply(`${name} needs room, the Room id from the reply of ${OPEN_GEENEE}. If geenee has not been opened in this conversation, call ${OPEN_GEENEE} instead: it shows the Card.`)
+        // A use of the Room, like any other call; an expired Room stays expired (ADR 0003), and open_geenee gives a new Card.
+        if (!(await stillOpen(room.id, name))) return expiredReply(room.id)
+        return shareGeenee(origin, room.id)
+      }
 
       const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))
       if (!target) throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${name}`)
-      // No Viewer acts before the Organizer has seen a Card, and a Host draws the Card only for open_geenee.
+      // No Viewer acts before the Organizer has seen a Card, and only open_geenee draws the first one.
       if (!room) {
         return errorReply(`${name} was not sent: it was called without room, and every geenee tool call needs the Room id from ${OPEN_GEENEE}. ${openThenRepeat(name)}`)
       }

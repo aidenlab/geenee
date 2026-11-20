@@ -8,13 +8,13 @@ import { geenee } from './connector.ts'
 const ROOM = '7ZQH4M2K9X'
 
 describe('with the igv Upstream unreachable', () => {
-  it('still lists open_geenee and the Juicebox and Spacewalk tools', async () => {
+  it('still lists open_geenee, share_geenee and the Juicebox and Spacewalk tools', async () => {
     const { listTools, igv } = geenee({ opened: [ROOM] })
     igv.unreachable = true
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(43)
+    expect(names).toHaveLength(44)
     expect(names[0]).toBe('open_geenee')
     expect(names.filter((name) => name.startsWith('igv_'))).toEqual([])
   })
@@ -43,13 +43,13 @@ describe('with the igv Upstream unreachable', () => {
 })
 
 describe('with the Juicebox Upstream unreachable', () => {
-  it('still lists open_geenee and the igv and Spacewalk tools', async () => {
+  it('still lists open_geenee, share_geenee and the igv and Spacewalk tools', async () => {
     const { listTools, juicebox } = geenee({ opened: [ROOM] })
     juicebox.unreachable = true
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(25)
+    expect(names).toHaveLength(26)
     expect(names.filter((name) => name.startsWith('juicebox_'))).toEqual([])
   })
 
