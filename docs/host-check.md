@@ -13,7 +13,7 @@ It is run before every prod release of geenee (`scripts/deploy.sh`, which asks w
    ```
 
 2. In each Host, point the geenee Connector at dev, `https://geenee-dev.3dg.io/mcp`. For a Plugin release, install the Plugin at the version to be released.
-3. Watch the Worker's log while you go. Every request names its Host there, and the `initialize` line shows whether the Host declares MCP Apps, so can draw the Card:
+3. Watch the Worker's log while you go. Every request names its Host there, and the `initialize` line shows whether the Host declares MCP Apps, so that it can draw the Card:
 
    ```sh
    npx wrangler tail --env dev

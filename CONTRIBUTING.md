@@ -68,7 +68,7 @@ scripts/deploy-dev.sh prod-2026-11-12 # put the release on dev, and run the Host
 scripts/deploy.sh prod-2026-11-12     # release https://geenee.3dg.io, the published Connector
 ```
 
-Before any prod release, run the [Host check](docs/host-check.md) on dev, at the commit being released, in every Host: Claude desktop, claude.ai, ChatGPT desktop in Codex mode, Claude Code and the Codex CLI. A failure stops the release. `scripts/deploy.sh` asks whether it passed and releases nothing without a `yes`. The Plugin's releases (aidenlab/plugins) run the same check.
+Before any prod release, run the [Host check](docs/host-check.md) on dev, at the commit being released, in every Host it names. A failure stops the release. `scripts/deploy.sh` asks whether it passed and releases nothing without a `yes`. The Plugin's releases (aidenlab/plugins) run the same check.
 
 Nothing deploys from CI. Each script deploys from a clean worktree, runs the type-check and tests, and checks the live Connector afterwards. The details, and what to do when something goes wrong, are in [How geenee deploys](docs/how-geenee-deploys.html).
 

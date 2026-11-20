@@ -1,7 +1,7 @@
 /**
  * Which Host is connecting, in the Worker's log (wrangler tail), kept on dev
  * and prod: on initialize, the Host's name and version and whether it declares
- * MCP Apps, so draws the Card; on every MCP request, its User-Agent. Never what
+ * MCP Apps, so that it can draw the Card; on every MCP request, its User-Agent. Never what
  * the conversation says.
  */
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest'
@@ -18,14 +18,16 @@ afterEach(() => log.mockRestore())
 /** The lines geenee logged about the Host. */
 const hostLines = () => log.mock.calls.map((args) => args.join(' ')).filter((line) => line.startsWith('[host]'))
 
-function post(body: object, userAgent?: string): Request {
+/** A POST to /mcp of `body`, a message or the raw text of one, sent with `userAgent` when given. */
+function post(body: object | string, userAgent?: string): Request {
   return new Request(`${GEENEE}/mcp`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream', ...(userAgent ? { 'User-Agent': userAgent } : {}) },
-    body: JSON.stringify(body),
+    body: typeof body === 'string' ? body : JSON.stringify(body),
   })
 }
 
+/** An initialize from a Host that names itself `clientInfo` and declares `capabilities`. */
 function initialize(clientInfo: object, capabilities: object = {}) {
   return { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities, clientInfo } }
 }
@@ -66,7 +68,7 @@ describe('logging the Host', () => {
   })
 
   it('still answers a request it cannot read', async () => {
-    const response = await geenee().handle(new Request(`${GEENEE}/mcp`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' }, body: '{not json' }))
+    const response = await geenee().handle(post('{not json'))
 
     expect(response.status).toBe(400)
     expect(hostLines()).toEqual(['[host] unreadable | User-Agent: none'])

@@ -486,7 +486,7 @@ git push origin prod-2026-11-12       # push the tag,
 scripts/deploy-dev.sh prod-2026-11-12 # run the Host check on dev,
 scripts/deploy.sh prod-2026-11-12     # and release it</pre>
 
-<p class="note"><b>Before any prod release, the <a href="host-check.md">Host check</a> passes on dev.</b> Deploy the tag to dev and run the check’s short script of requests in every Host: Claude desktop, claude.ai, ChatGPT desktop in Codex mode, Claude Code and the Codex CLI. A failure stops the release. <code>scripts/deploy.sh</code> names the commit and asks whether the check passed on dev at it; anything but <code>yes</code> releases nothing. The Plugin’s releases run the same check.</p>
+<p class="note"><b>Before any prod release, the <a href="host-check.md">Host check</a> passes on dev.</b> Deploy the tag to dev and run the check’s short script of requests in every Host it names. A failure stops the release. <code>scripts/deploy.sh</code> names the commit and asks whether the check passed on dev at it; anything but <code>yes</code> releases nothing. The Plugin’s releases run the same check.</p>
 
 <p><code>scripts/deploy-dev.sh</code> is <code>scripts/deploy.sh</code> pointed at the dev deployment; the steps are the same, except that dev takes any ref and production only a <code>prod-</code> tag on origin. A second release the same day is <code>prod-2026-11-12.2</code>.</p>
 
