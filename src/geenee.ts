@@ -275,8 +275,8 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
     server.setRequestHandler(CallToolRequestSchema, async ({ params: { name, arguments: { room: named, ...args } = {} } }) => {
       const room = roomNamed(named)
       if (room && 'refusal' in room) return room.refusal
+      const origin = new URL(request.url).origin
       if (name === OPEN_GEENEE) {
-        const origin = new URL(request.url).origin
         // ADR 0003 comes first: an expired Room is never opened again in an Upstream.
         if (room) {
           if (!(await stillOpen(room.id, name))) return expiredReply(room.id)
@@ -299,7 +299,7 @@ export function createGeenee({ version, igvUpstream, juiceboxUpstream, spacewalk
         if (!room) return errorReply(`${name} needs room, the Room id from the reply of ${OPEN_GEENEE}. If geenee has not been opened in this conversation, call ${OPEN_GEENEE} instead: it shows the Card.`)
         // A use of the Room, like any other call; an expired Room stays expired (ADR 0003), and open_geenee gives a new Card.
         if (!(await stillOpen(room.id, name))) return expiredReply(room.id)
-        return shareGeenee(new URL(request.url).origin, room.id)
+        return shareGeenee(origin, room.id)
       }
 
       const target = targets.find(({ viewer }) => name.startsWith(`${viewer.prefix}_`))

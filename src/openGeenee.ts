@@ -3,9 +3,7 @@
  * three Viewers (ADR 0002), and gives the model the one Room id every other tool
  * takes back. It stands in for each Upstream's own open tool, which geenee hides.
  */
-import { TOOL_META } from './card.ts'
-import { qrPng } from './qrPng.ts'
-import { roomLinkPath } from './roomId.ts'
+import { cardContent, TOOL_META } from './card.ts'
 import { OPEN_GEENEE } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
 
@@ -26,32 +24,6 @@ export const OPEN_GEENEE_TOOL: Tool = {
     },
   },
   _meta: TOOL_META,
-}
-
-/** The link that opens the Workspace of a Room. `origin` is geenee's own address. */
-function workspaceLinkFor(origin: string, room: string): string {
-  const link = new URL('/', origin)
-  link.searchParams.set('room', room)
-  return link.toString()
-}
-
-/** The Room link: the short link that brings anyone into a Room, shorter than the Workspace's and so a less dense QR code. */
-function roomLinkFor(origin: string, room: string): string {
-  return new URL(roomLinkPath(room), origin).toString()
-}
-
-/** What the Card draws for `room`: the link its button opens, its Room link and the QR code of that link. Shared by open_geenee and share_geenee. */
-export function cardContent(origin: string, room: string): { workspaceLink: string; roomLink: string; structuredContent: Record<string, unknown> } {
-  const workspaceLink = workspaceLinkFor(origin, room)
-  const roomLink = roomLinkFor(origin, room)
-  // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
-  const structuredContent: Record<string, unknown> = { room, workspaceUrl: workspaceLink, roomUrl: roomLink }
-  try {
-    structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
-  } catch (error) {
-    console.warn('[card] no QR code for the Card:', error)
-  }
-  return { workspaceLink, roomLink, structuredContent }
 }
 
 /** Opens geenee in `room`, a Room that has not expired. */

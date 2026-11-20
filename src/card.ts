@@ -1,5 +1,5 @@
 /**
- * The Card: the MCP App view (SEP-1865) for open_geenee and share_geenee, copied from the
+ * The Card: the MCP App view (SEP-1865) for open_geenee and share_geenee, and what it draws, copied from the
  * Juicebox Upstream's view with geenee in its place. Hosts that render MCP Apps
  * show it in the conversation; the others ignore the metadata and use the text
  * link. The button opens the link through the Host (`ui/open-link`), which
@@ -10,6 +10,8 @@
  */
 import { ICON_DATA_URI } from './icon.ts'
 import { FONTS, TOKENS } from './page.ts'
+import { qrPng } from './qrPng.ts'
+import { roomLinkPath } from './roomId.ts'
 
 export const CARD_URI = 'ui://geenee/open'
 export const CARD_MIME_TYPE = 'text/html;profile=mcp-app'
@@ -22,6 +24,32 @@ export const CARD_META = { ui: { csp: { resourceDomains: [new URL(APP_CLIENT).or
 
 /** `_meta` for the tool: the current key and the flat one older Hosts read. */
 export const TOOL_META = { ui: { resourceUri: CARD_URI }, 'ui/resourceUri': CARD_URI }
+
+/** The link that opens the Workspace of a Room. `origin` is geenee's own address. */
+function workspaceLinkFor(origin: string, room: string): string {
+  const link = new URL('/', origin)
+  link.searchParams.set('room', room)
+  return link.toString()
+}
+
+/** The Room link: the short link that brings anyone into a Room, shorter than the Workspace's and so a less dense QR code. */
+function roomLinkFor(origin: string, room: string): string {
+  return new URL(roomLinkPath(room), origin).toString()
+}
+
+/** What the Card draws for `room`: the link its button opens, its Room link and the QR code of that link. Shared by open_geenee and share_geenee. */
+export function cardContent(origin: string, room: string): { workspaceLink: string; roomLink: string; structuredContent: Record<string, unknown> } {
+  const workspaceLink = workspaceLinkFor(origin, room)
+  const roomLink = roomLinkFor(origin, room)
+  // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
+  const structuredContent: Record<string, unknown> = { room, workspaceUrl: workspaceLink, roomUrl: roomLink }
+  try {
+    structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
+  } catch (error) {
+    console.warn('[card] no QR code for the Card:', error)
+  }
+  return { workspaceLink, roomLink, structuredContent }
+}
 
 export const CARD_HTML = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="color-scheme" content="light dark"><title>geenee</title>

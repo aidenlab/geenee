@@ -3,8 +3,7 @@
  * Guests who arrive after the first Card has scrolled out of sight. It never
  * opens a Room: the Guests already in it keep their link.
  */
-import { TOOL_META } from './card.ts'
-import { cardContent } from './openGeenee.ts'
+import { cardContent, TOOL_META } from './card.ts'
 import { OPEN_GEENEE, SHARE_GEENEE } from './servedTools.ts'
 import type { Tool, ToolResult } from './upstream.ts'
 
@@ -34,7 +33,7 @@ export function shareGeenee(origin: string, room: string): ToolResult {
         type: 'text',
         text: `The Card is shown again, with the Room link and its QR code:\n${roomLink}\n\nOthers who scan the code or open the link join this same Room, ${room}; nothing changed for those already in it. Reply in one short sentence that they can scan the code to join. Do not repeat the link, the Room id or a QR code in your reply.`,
       },
-      { type: 'resource_link', uri: roomLink, name: 'Join geenee', description: 'The link that brings others into this Room', mimeType: 'text/html' },
+      { type: 'resource_link', uri: roomLink, name: 'Room link', description: 'The link that brings others into this Room', mimeType: 'text/html' },
     ],
     structuredContent,
   }
