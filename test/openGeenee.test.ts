@@ -25,6 +25,23 @@ describe('open_geenee', () => {
     expect(JSON.stringify(tool)).not.toMatch(/\bboth\b/)
   })
 
+  it('says to call it first in a conversation, before any other geenee tool, greetings included, and first again once a Room has expired', async () => {
+    const { description } = (await geenee().listTools())[0]
+
+    expect(description).toMatch(/^Call this first in a conversation, before any other geenee tool/)
+    for (const greeting of ['"hello geenee"', '"launch geenee"', '"hi igv"']) expect(description).toContain(greeting)
+    expect(description).toContain('even when the user only greets')
+    expect(description).toContain('has expired')
+  })
+
+  it('fits what Hosts read: the rule to call it first in the first 512 characters, and all of it in 2,048', async () => {
+    const { description } = (await geenee().listTools())[0]
+
+    expect(description.slice(0, 512)).toContain('before any other geenee tool')
+    expect(description.slice(0, 512)).toContain('"hi igv"')
+    expect(description.length).toBeLessThanOrEqual(2048)
+  })
+
   it('tells the model to pass the Room id to every Viewer\'s tools', async () => {
     const result = await geenee().callTool('open_geenee')
 

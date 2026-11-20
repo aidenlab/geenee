@@ -37,6 +37,15 @@ describe('the server instructions', () => {
     expect(instructions!.length).toBeLessThanOrEqual(2048)
   })
 
+  it('say, in the first 512 characters, to call open_geenee first, before any other geenee tool, greetings included, and first again once a Room has expired', async () => {
+    const opening = (await geenee().initialize()).instructions!.slice(0, 512)
+
+    expect(opening).toContain('Call open_geenee first in a conversation, before any other geenee tool')
+    for (const greeting of ['"hello geenee"', '"launch geenee"', '"hi igv"']) expect(opening).toContain(greeting)
+    expect(opening).toContain('even when the user only greets')
+    expect(opening).toContain('has expired')
+  })
+
   it('are given whether or not the Upstreams can be reached', async () => {
     const { initialize, igv, juicebox } = geenee()
     igv.unreachable = true
