@@ -21,7 +21,7 @@ export const OPEN_GEENEE_TOOL: Tool = {
       room: {
         type: 'string',
         description:
-          'Only when geenee was already opened in this conversation: the Room id from that reply of open_geenee, to get the same geenee back, with all three viewers showing what they last showed. Leave it out the first time: geenee then opens in a new Room.',
+          'Only to get geenee back beside the conversation, with all three viewers showing what they last showed, once it was opened in this conversation: the Room id from that reply of open_geenee. Leave it out the first time: geenee then opens in a new Room.',
       },
     },
   },
@@ -40,8 +40,8 @@ function roomLinkFor(origin: string, room: string): string {
   return new URL(roomLinkPath(room), origin).toString()
 }
 
-/** Opens geenee in `room`, a Room that has not expired. */
-export function openGeenee(origin: string, room: string): ToolResult {
+/** What the Card draws for `room`: the link its button opens, its Room link and the QR code of that link. Shared by open_geenee and share_geenee. */
+export function cardContent(origin: string, room: string): { workspaceLink: string; roomLink: string; structuredContent: Record<string, unknown> } {
   const workspaceLink = workspaceLinkFor(origin, room)
   const roomLink = roomLinkFor(origin, room)
   // The Card's button opens the Workspace's link; its text link and QR code carry the Room link.
@@ -49,8 +49,14 @@ export function openGeenee(origin: string, room: string): ToolResult {
   try {
     structuredContent.qrPng = qrPng(roomLink) // drawn by the Card
   } catch (error) {
-    console.warn('[open_geenee] no QR code for the Card:', error)
+    console.warn('[card] no QR code for the Card:', error)
   }
+  return { workspaceLink, roomLink, structuredContent }
+}
+
+/** Opens geenee in `room`, a Room that has not expired. */
+export function openGeenee(origin: string, room: string): ToolResult {
+  const { workspaceLink, structuredContent } = cardContent(origin, room)
   // A bare URL on its own line: Hosts render it clickable, which a code block
   // would not be. The resource link is the same link for Hosts that render
   // link content blocks.

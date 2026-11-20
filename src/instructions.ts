@@ -16,4 +16,6 @@ Tools whose names start with spacewalk_ drive the Spacewalk 3D viewer: the 3D st
 
 When a request names a viewer, or something only one of them shows, use that viewer's tools. When a request fits more than one viewer ("zoom in", "go to MYC", "load the CTCF track", "remove the second track", "give me a link"), use the viewer this conversation last used that can do it, and ask which one is meant only when none of those has been used. Send a request to several viewers only when the user asks for that.
 
-A tool changes its own viewer only. The page shows one viewer at a time: the one a tool was last called for, until the user picks another with the IGV, Juicebox and Spacewalk tabs.`
+A tool changes its own viewer only. The page shows one viewer at a time: the one a tool was last called for, until the user picks another with the IGV, Juicebox and Spacewalk tabs.
+
+To show the Card again so others can join ("show the QR code again", "someone just arrived"), call share_geenee with the Room id.`

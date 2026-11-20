@@ -50,6 +50,9 @@ export interface Viewer {
 /** geenee's own tool: it opens the Workspace, and so every Viewer. */
 export const OPEN_GEENEE = 'open_geenee'
 
+/** geenee's other tool: it shows the Card of a Room again, for Guests. */
+export const SHARE_GEENEE = 'share_geenee'
+
 /** Reads the Join link from the field of a reply's structured content that an Upstream puts it under. */
 function joinLinkUnder(field: string): (reply: ToolResult) => string | null {
   return ({ isError, structuredContent }) => {

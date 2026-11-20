@@ -137,13 +137,13 @@ describe('GET /connections', () => {
 })
 
 describe('with the Spacewalk Upstream unreachable', () => {
-  it('still lists open_geenee and the igv and Juicebox tools', async () => {
+  it('still lists open_geenee, share_geenee and the igv and Juicebox tools', async () => {
     const { listTools, spacewalk } = geenee({ opened: [ROOM] })
     spacewalk.unreachable = true
 
     const names = (await listTools()).map((tool) => tool.name)
 
-    expect(names).toHaveLength(45)
+    expect(names).toHaveLength(46)
     expect(names.filter((name) => name.startsWith('spacewalk_'))).toEqual([])
   })
 

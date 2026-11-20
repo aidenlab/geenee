@@ -1,5 +1,5 @@
 /**
- * The Card: the MCP App view (SEP-1865) for open_geenee, copied from the
+ * The Card: the MCP App view (SEP-1865) for open_geenee and share_geenee, copied from the
  * Juicebox Upstream's view with geenee in its place. Hosts that render MCP Apps
  * show it in the conversation; the others ignore the metadata and use the text
  * link. The button opens the link through the Host (`ui/open-link`), which
