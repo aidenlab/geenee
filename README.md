@@ -8,7 +8,7 @@ Drive the [igv.js](https://github.com/igvteam/igv.js) genome browser, the [Juice
 
 **[geenee.3dg.io/install](https://geenee.3dg.io/install)**
 
-Add the Aiden Lab Marketplace to Claude or ChatGPT, then install the geenee Plugin from it. The page above walks you through it for each app, and the Plugin keeps itself up to date.
+Add the Aiden Lab Marketplace to Claude or ChatGPT, then install the geenee Plugin from it. The page above walks you through it for each app.
 
 ## Use
 
