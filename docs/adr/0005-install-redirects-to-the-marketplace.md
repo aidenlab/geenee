@@ -8,7 +8,7 @@ Installing and joining a Room are two different jobs. The Card's QR code and the
 
 ## Considered Options
 
-- **Keep geenee's own install page at `/get`**, teaching the custom-connector route. Rejected: that route is no longer offered, as a custom connector gets no updates, and a second copy of the install steps would drift from the Marketplace's.
+- **Keep geenee's own install page at `/get`**, teaching the custom-connector route. Rejected: that route is no longer offered, and a second copy of the install steps would drift from the Marketplace's.
 - **Link straight to the plugins install page** from geenee's pages. Rejected: the address would be the plugins repository's to change, and it is not the one people are given.
 - **An `install_geenee` tool, or install steps on the Card.** Rejected: a tool exists only after geenee is connected, and only connected people see the Card.
 
