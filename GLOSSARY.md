@@ -9,7 +9,7 @@ The application a person talks to the model in: Claude desktop, claude.ai, or Ch
 _Avoid_: MCP client, client, chat app
 
 **Marketplace**:
-The `aidenlab/plugins` GitHub repository, added to a Host once by name, that lists the Aiden Lab's Plugins and carries their updates.
+The `aidenlab/plugins` GitHub repository, added to a Host once by name, that lists the Aiden Lab's Plugins.
 _Avoid_: Catalog, store, repo (when talking to people)
 
 **Plugin**:
